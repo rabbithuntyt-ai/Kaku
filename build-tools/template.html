@@ -4356,17 +4356,26 @@ function diagnose(said, lessons) {
   // 2. words the lessons have not taught, with the nearest one you do know
   const forms = Allowed.set(lessons);
   const left = Allowed.unknown(text, forms);
-  if (left && !latin) {
+  // These lessons are written in kana, but a microphone transcribes Japanese in kanji, so a
+  // sentence can arrive with characters Kaku has no reading for. Those are not words you got
+  // wrong — they are words it cannot read. Saying so beats gluing the stray characters into
+  // a shape like “私こ焼” and presenting that as something you ought to recognise.
+  const kanji = left ? left.replace(/[^一-龯]/g, '') : '';
+  const kana = left ? left.replace(/[一-龯]/g, '') : '';
+  if (kanji && !latin) {
+    notes.push(`Kaku reads kana, so the kanji in that (${[...new Set(kanji)].join(' ')}) went unchecked.`);
+  }
+  if (kana && !latin) {
     let near = '', best = 99;
     for (const k in VOCAB) {
       const v = VOCAB[k];
       if (!lessons.includes(v.L)) continue;
-      const d = editDistance(left, normJa(v.r));
-      if (d < best && d <= Math.max(1, Math.round(left.length / 3))) { best = d; near = v.r; }
+      const d = editDistance(kana, normJa(v.r));
+      if (d < best && d <= Math.max(1, Math.round(kana.length / 3))) { best = d; near = v.r; }
     }
     notes.push(near
-      ? `“${left}” is not a word your lessons have yet — did you mean ${near}?`
-      : `“${left}” is not in the lessons you have switched on.`);
+      ? `“${kana}” is not a word your lessons have yet — did you mean ${near}?`
+      : `“${kana}” is not in the lessons you have switched on.`);
   }
 
   const found = occurrences(text, lessons);
@@ -4450,6 +4459,20 @@ const BRAIN_MODELS = [
 ];
 // Near enough for fitting a prompt into a window: to these models a kana or a kanji is about
 // one token, and a letter of English about a third of one. Wrong by a little, never by a lot.
+// A reply that says ええええええ… is not a reply, but every one of those is legitimate
+// grammar, so the vocabulary guard waves it through. Length and repetition catch what
+// meaning cannot: a line far longer than anything these lessons can express, the same
+// character over and over, or a short run cycling.
+function looping(jp) {
+  const s = String(jp || '').replace(/\s/g, '');
+  if (s.length > 90) return true;
+  if (/(.)\1{5,}/.test(s)) return true;
+  for (let n = 2; n <= 4; n++) {
+    const re = new RegExp('(.{' + n + '})\\1{3,}');
+    if (re.test(s)) return true;
+  }
+  return false;
+}
 function roughTokens(text) {
   let n = 0;
   for (const ch of String(text || '')) n += ch.charCodeAt(0) < 128 ? 0.3 : 1;
@@ -4562,14 +4585,19 @@ const Brain = {
   async speak(rules, turns, onText) {
     const messages = [{ role: 'system', content: rules }]
       .concat(turns.map(t => ({ role: t.role === 'assistant' ? 'assistant' : 'user', content: t.content })));
+    // A small model that loses its place repeats a syllable until it runs out of room. A
+    // penalty makes that less likely, and a tighter ceiling makes it shorter when it happens;
+    // neither prevents it, so the reply is checked for it afterwards too.
     const out = await this.engine.chat.completions.create({
-      messages, temperature: 0.7, max_tokens: 120, stream: true
+      messages, temperature: 0.7, max_tokens: 80, stream: true,
+      frequency_penalty: 0.4, presence_penalty: 0.3
     });
     let text = '';
     for await (const chunk of out) {
       const bit = (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || '';
       if (!bit) continue;
       text += bit;
+      if (looping(text)) { try { await out.controller.abort(); } catch (e) {} break; }
       if (onText) onText(text);
     }
     return text.trim();
@@ -4901,10 +4929,14 @@ const Partner = {
     // A reply is taken as it stands when it keeps to your lessons, and taken with a word or
     // two marked as new when it reaches a little past them into something Kaku can explain.
     // Only a reply reaching outside every lesson is sent back to be written again.
-    let fresh = Allowed.unknown(String(reply.jp || ''), forms) ? this.stretch(reply.jp, forms) : [];
+    // a reply that has come apart is refused before anything else looks at it
+    if (looping(reply.jp)) reply = await ask('That reply repeated itself and never finished. Answer again in one short sentence.');
+    let fresh = looping(reply.jp) ? null
+      : (Allowed.unknown(String(reply.jp || ''), forms) ? this.stretch(reply.jp, forms) : []);
     if (fresh === null) {
       reply = await ask(`Your last reply used ${Allowed.unknown(String(reply.jp || ''), forms)}, which this learner has not been taught. Rewrite it using only the listed words.`);
-      fresh = Allowed.unknown(String(reply.jp || ''), forms) ? this.stretch(reply.jp, forms) : [];
+      fresh = looping(reply.jp) ? null
+        : (Allowed.unknown(String(reply.jp || ''), forms) ? this.stretch(reply.jp, forms) : []);
       if (fresh === null) return null;      // twice outside every lesson: the local partner takes it
     }
     return { jp: String(reply.jp || '').trim(), en: String(reply.en || '').trim(),
@@ -5613,7 +5645,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, roughTokens, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, roughTokens, looping, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

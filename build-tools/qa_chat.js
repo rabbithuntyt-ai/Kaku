@@ -361,6 +361,39 @@ const thread = (page) => page.$$eval('#cThread .bub', bs => bs.map(b => ({
     await ctx.close();
   }
 
+  // ---- a reply that has come apart ---------------------------------------------
+  // The partner said ええ a hundred and forty times and Kaku spoke it, because every one of
+  // those is legitimate grammar — meaning cannot catch this, only shape can.
+  {
+    const { ctx, page, errs } = await open(browser, { lessons: ['0', '1'] });
+    const r = await page.evaluate(() => {
+      const L = window.__kaku.looping;
+      return {
+        spam: L('え'.repeat(140)),
+        afterRealWords: L('はい、はい、' + 'え'.repeat(60)),
+        cycling: L('あいあいあいあいあい'),
+        tooLong: L('あ'.repeat(4) + 'いうえお'.repeat(24)),
+        realShort: L('はい'),
+        realYes: L('ええ、そうです。'),
+        realLine: L('そうですか。まいにち のみますか。'),
+        realLong: L('わたしは がくせいです。あなたは がくせいですか。')
+      };
+    });
+    ok(r.spam, 'a line of one repeated sound is refused');
+    ok(r.afterRealWords, 'and so is one that starts well and then comes apart');
+    ok(r.cycling, 'and a short run cycling over and over');
+    ok(r.tooLong, 'and anything far longer than these lessons could express');
+    ok(!r.realShort && !r.realYes, 'while a real short answer is left alone');
+    ok(!r.realLine && !r.realLong, 'and so is a real sentence, ええ and all');
+
+    // and kanji the lessons do not write is Kaku's blind spot, not your mistake
+    const d = await page.evaluate(() => window.__kaku.diagnose('私のたこ焼きです', ['0', '1']).notes);
+    ok(!d.some((n) => /私こ焼/.test(n)), 'stray characters are not glued into a word and quoted back');
+    ok(d.some((n) => /reads kana/.test(n)), 'it says plainly that it cannot read the kanji');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' \u2014 ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);
