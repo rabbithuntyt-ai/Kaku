@@ -4627,6 +4627,10 @@ const Chat = {
       } }, { label: 'Type it instead', act: () => this.typeIt() }]);
       return;
     }
+    // a model chosen just before a deliberate reload is picked straight back up
+    let again = '';
+    try { again = sessionStorage.getItem('kaku-model') || ''; sessionStorage.removeItem('kaku-model'); } catch (e) {}
+    if (again && BRAIN_MODELS.some(m => m.id === again)) return this.brainLoad(again);
     this.msg(lead ? lead + ' You can try again, or stay on the rules.'
                   : 'A model that runs on this machine has to be downloaded once. ' +
                     BRAIN_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.',
@@ -4636,6 +4640,25 @@ const Chat = {
     })).concat([{ label: 'Stay on the rules', act: () => {
       S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
     } }]));
+  },
+  // everything worth knowing when a model will not start, in one block to paste somewhere
+  copyCard(step, pct) {
+    const c = Brain.card || {};
+    const text = [
+      'Kaku model trouble',
+      'build: ' + ((window.KAKU_LAN && window.KAKU_LAN.build) || '?'),
+      'model: ' + (Brain.model || '?'),
+      'stopped at: ' + (step || '?') + ' (' + pct + '%)',
+      'graphics: ' + (c.name || 'not reported'),
+      'half-precision: ' + (c.f16 === undefined ? '?' : c.f16 ? 'yes' : 'no'),
+      'largest buffer: ' + (c.maxBuffer ? Math.round(c.maxBuffer / 1048576) + ' MB' : '?'),
+      'page: ' + location.protocol + (window.KAKU_LAN ? ' (served)' : ''),
+      'agent: ' + navigator.userAgent
+    ].join('\n');
+    const done = () => this.msg('Copied. Paste that wherever you are asking about it.', 'good');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, () => this.msg(text));
+    } else this.msg(text);
   },
   async brainLoad(id) {
     setActions($('cActions'), []);
@@ -4653,32 +4676,41 @@ const Chat = {
         ', which the model needs. Closing Kaku and opening it again usually clears that.');
     }
     this.msg('Starting the download. It only happens once.');
-    // The last stretch is compiling shaders onto the graphics card, and a card that cannot
-    // manage one does not say so \u2014 it stops. Nothing below can unstick it, but a screen that
-    // has not moved in a minute should say so and offer a way out rather than sit there.
-    let beat = Date.now(), step = '', stalled = false;
+    // The last stretch is compiling shaders onto the graphics card. A card that cannot manage
+    // one does not say so, it stops \u2014 and a slow card looks identical. Nothing here can tell
+    // them apart, so the screen reports how long it has sat still and lets you decide.
+    let beat = Date.now(), step = '', pct = 0, warned = false;
+    const held = () => Math.round((Date.now() - beat) / 1000);
+    const draw = () => {
+      const s = held();
+      this.msg('Downloading the model \u2014 ' + pct + '%' + (step ? ' \u00b7 ' + step : '') +
+        (s >= 12 ? ' \u2014 no movement for ' + s + 's' : ''), s >= 40 ? 'bad' : '');
+    };
     const watch = setInterval(() => {
-      if (stalled || Date.now() - beat < 60000) return;
-      stalled = true;
-      this.msg('It has not moved for a minute, stopped at: ' + (step || 'the very start') + '. ' +
-        Brain.cardNote() + 'That is the graphics card refusing a step rather than saying so. ' +
-        'Starting over and choosing the tiny model is the thing most likely to get past it.', 'bad');
+      draw();
+      if (warned || held() < 40) return;
+      warned = true;
       setActions($('cActions'), [
-        { label: 'Start over', primary: true, act: () => location.reload() },
+        { label: 'Keep waiting', primary: true, act: () => { warned = false; setActions($('cActions'), []); } },
+        { label: 'Start over with the tiny one', act: () => {
+          try { sessionStorage.setItem('kaku-model', BRAIN_MODELS[BRAIN_MODELS.length - 1].id); } catch (e) {}
+          location.reload();
+        } },
+        { label: 'Copy the details', act: () => Chat.copyCard(step, pct) },
         { label: 'Stay on the rules', act: () => {
           S.settings.ai = 'off'; Store.touch(); Partner.ready = false;
           if (native && native.pageFor) native.pageFor('off'); else this.open();
         } }
       ]);
-    }, 5000);
+    }, 2000);
     let ok = false;
     try {
       ok = await Brain.load(id, (text, p) => {
         beat = Date.now();
-        if (stalled) { stalled = false; setActions($('cActions'), []); }
+        if (warned) { warned = false; setActions($('cActions'), []); }
         step = String(text || '').slice(0, 70);
-        const pct = Math.round((p || 0) * 100);
-        this.msg('Downloading the model \u2014 ' + pct + '%' + (step ? ' \u00b7 ' + step : ''));
+        pct = Math.round((p || 0) * 100);
+        draw();
       });
     } catch (e) {
       Brain.state = 'failed';
