@@ -3940,6 +3940,7 @@ const Talk = {
     this.turn();
   },
   bubble(who, jp, en, mine, off) {
+    jp = toKana(jp);
     const b = document.createElement('div');
     b.className = 'bub' + (mine ? ' mine' : '') + (off ? ' off' : '');
     b.innerHTML = `<span class="who">${esc(who)}</span><div class="jp">${esc(jp)}</div>` +
@@ -5177,6 +5178,7 @@ const Chat = {
     Partner.connect().then(() => { $('cWho').textContent = 'A model on this machine'; this.ready(); });
   },
   bubble(who, jp, en, mine, fresh) {
+    jp = toKana(jp);
     const b = document.createElement('div');
     b.className = 'bub' + (mine ? ' mine' : '');
     b.innerHTML = `<span class="who">${esc(who)}</span><div class="jp">${esc(jp)}</div>` +
@@ -5215,7 +5217,7 @@ const Chat = {
     const box = $('cSuggest');
     if (!lines.length) { box.hidden = true; return; }
     box.hidden = false;
-    box.innerHTML = `<b>You could say</b>${lines.map(l => esc(l)).join('　/　')}`;
+    box.innerHTML = `<b>You could say</b>${lines.map(l => esc(toKana(l))).join('　/　')}`;
   },
   ready() {
     const mic = $('cMic');

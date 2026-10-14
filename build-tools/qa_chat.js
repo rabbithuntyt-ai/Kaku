@@ -394,6 +394,33 @@ const thread = (page) => page.$$eval('#cThread .bub', bs => bs.map(b => ({
     await ctx.close();
   }
 
+  // ---- everything in the conversation is written in kana -----------------------
+  // The kanji numerals are real lesson vocabulary, so a reply saying 十じです passes every
+  // check there is and still arrives in a script these lessons never use.
+  {
+    const { ctx, page, errs } = await open(browser, { lessons: ['0', '1', '2'] });
+    const r = await page.evaluate(() => {
+      const K = window.__kaku;
+      const forms = K.Allowed.set(['0', '1', '2']);
+      K.Chat.open();
+      K.Chat.bubble('Partner', 'いま十じです', 'It is ten now', false);
+      K.Chat.bubble('You', '七じに おきます', '', true);
+      const shown = [...document.querySelectorAll('#cThread .jp')].map((n) => n.textContent);
+      return {
+        guardPasses: K.Allowed.unknown('十じです', forms) === '',
+        shown,
+        anyKanji: shown.some((t) => /[\u4e00-\u9faf]/.test(t)),
+        numbersUntouched: K.numberReading(10)
+      };
+    });
+    ok(r.guardPasses, 'a kanji numeral does pass the vocabulary guard, so shape has to catch it');
+    ok(!r.anyKanji, 'but nothing in the conversation is shown in kanji: ' + r.shown.join(' | '));
+    ok(r.shown.some((t) => /じゅうじ/.test(t)), 'the numeral is written out as kana');
+    ok(r.numbersUntouched === 'じゅう', 'and the numbers section still teaches the kanji itself');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' \u2014 ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);
