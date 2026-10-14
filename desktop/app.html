@@ -3490,8 +3490,9 @@ function earsLoad(view, actionsId, id) {
 // It records what you say, resamples it to what the model expects, and runs Whisper over it —
 // no account, no key, nothing sent anywhere. The model is fetched once and then kept.
 const EAR_MODELS = [
-  { id: 'onnx-community/whisper-base', name: 'Base', about: 'about 80 MB, better with Japanese' },
-  { id: 'onnx-community/whisper-tiny', name: 'Tiny', about: 'about 40 MB, quicker but rougher' }
+  { id: 'onnx-community/whisper-small', name: 'Small', about: 'about 250 MB, much the best at Japanese' },
+  { id: 'onnx-community/whisper-base', name: 'Base', about: 'about 80 MB, quicker, mishears more' },
+  { id: 'onnx-community/whisper-tiny', name: 'Tiny', about: 'about 40 MB, quickest and roughest' }
 ];
 const Ears = {
   lib: null, pipe: null, state: 'cold', note: '', model: '',
@@ -3538,8 +3539,13 @@ const Ears = {
   // and decoding the whole of it at once is both simpler and more accurate than a running guess.
   async record() {
     if (!this.stream) {
+      // Echo cancellation and noise suppression are tuned to make a voice call sound clean,
+      // which means carving pieces out of the signal. A listening model wants the whole of it.
       this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+        audio: {
+          channelCount: 1, echoCancellation: false, noiseSuppression: false,
+          autoGainControl: false, sampleRate: 48000
+        }
       });
     }
     this.chunks = [];
@@ -3567,11 +3573,29 @@ const Ears = {
       return new Float32Array(0);     // nothing usable recorded; the same as hearing nothing
     }
   },
-  async hear(blob) {
+  // What is said here is Japanese out of a known set of lessons, which is far more than the
+  // model is given to work with on its own. So it is asked for several readings of the sound
+  // rather than one, and the one that fits the words you have been taught wins. A model that
+  // mishears into words you could not possibly have said is corrected by what Kaku knows.
+  async hear(blob, forms) {
     const pcm = await this.samples(blob);
     if (!pcm || pcm.length < 1600) return '';          // under a tenth of a second is a slip
-    const out = await this.pipe(pcm, { language: 'japanese', task: 'transcribe' });
-    return String((out && out.text) || '').trim();
+    const opts = { language: 'japanese', task: 'transcribe', return_timestamps: false,
+      num_beams: 5, num_return_sequences: 5, do_sample: false, no_repeat_ngram_size: 0 };
+    let out;
+    try { out = await this.pipe(pcm, opts); }
+    catch (e) { out = await this.pipe(pcm, { language: 'japanese', task: 'transcribe' }); }
+    const texts = (Array.isArray(out) ? out : [out])
+      .map(o => String((o && o.text) || '').trim()).filter(Boolean);
+    if (!texts.length) return '';
+    if (texts.length === 1 || !forms || !forms.size) return texts[0];
+    // fewest sounds that are not words you have been taught, ties going to the model's own first choice
+    let best = texts[0], bestLeft = Infinity;
+    texts.forEach((t, i) => {
+      const left = Allowed.unknown(t, forms).length + (i === 0 ? -0.5 : 0);
+      if (left < bestLeft) { bestLeft = left; best = t; }
+    });
+    return best;
   },
   release() {
     try { if (this.stream) this.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
@@ -3647,7 +3671,7 @@ const Listen = {
     if (!blob || !blob.size) return on.done([]);
     if (on.working) on.working();
     try {
-      const text = await Ears.hear(blob);
+      const text = await Ears.hear(blob, on.forms && on.forms());
       on.done(text ? [text] : []);
     } catch (e) {
       on.fail('heard-badly');
@@ -3967,6 +3991,8 @@ const Talk = {
       },
       partial: (text) => { $('tMicLabel').textContent = text ? text.slice(-28) : 'Listening…'; },
       working: () => { $('tMicLabel').textContent = 'Working out what you said…'; },
+      // a scene is one lesson's worth of words, and that is the set to judge a hearing against
+      forms: () => Allowed.set(this.lesson ? [this.lesson] : Partner.lessons()),
       done: (heard) => {
         this.listening = false;
         mic.classList.remove('live');
@@ -4800,7 +4826,13 @@ const Partner = {
         if (r && r.jp) return r;
         this.note = 'The model wandered outside your lessons, so this one is from the rules.';
       } catch (e) {
-        this.note = 'The model stopped. Carrying on with the rules.';
+        // saying only that it stopped leaves nothing to act on; the reason usually names the cause
+        const why = String((e && e.message) || e).slice(0, 110);
+        this.note = 'The model stopped' + (why ? ' — ' + why : '') + '. Carrying on with the rules.';
+        if (/device|lost|destroy|OOM|memory/i.test(why)) {
+          Brain.state = 'failed'; Brain.engine = null;
+          this.note += ' It needs loading again: pick it afresh in Practice settings.';
+        }
       }
     }
     if (this.mode === 'claude' && this.sample) {
@@ -5085,6 +5117,7 @@ const Chat = {
       started: () => { Partner.listening = true; mic.classList.add('live'); $('cMicLabel').textContent = 'Listening — tap when done'; this.msg(''); },
       partial: (t) => { $('cMicLabel').textContent = t ? t.slice(-28) : 'Listening…'; },
       working: () => { $('cMicLabel').textContent = 'Working out what you said…'; },
+      forms: () => Allowed.set(Partner.lessons()),
       done: (heard) => {
         Partner.listening = false; mic.classList.remove('live'); $('cMicLabel').textContent = 'Tap and say it';
         if (heard.length) this.said(heard[0]);

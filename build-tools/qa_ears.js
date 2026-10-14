@@ -112,6 +112,47 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   assert.strictEqual(broken.got, '', 'should be silence, not ' + JSON.stringify(broken));
   ok('and a recording that will not decode is treated as silence rather than breaking');
 
+  // Several readings of the same sound, judged by the words the lessons have taught. This is
+  // the real case: "じゅう ごぜん です" came back as "キューが出てくる", which is not something
+  // a beginner could have said, and the lessons say so.
+  const picked = await page.evaluate(async () => {
+    const K = window.__kaku, E = K.Ears;
+    const forms = K.Allowed.set(K.Partner.lessons());
+    E.state = 'warm';
+    E.samples = async () => new Float32Array(16000);
+    const seen = {};
+    E.pipe = async (pcm, opts) => {
+      seen.beams = opts.num_beams; seen.asked = opts.num_return_sequences;
+      return [{ text: 'キューが出てくる' }, { text: 'きゅう が でて くる' }, { text: 'じゅう ごぜん です' }];
+    };
+    const best = await E.hear(new Blob(['x']), forms);
+    // and with nothing to judge against, the model's own first choice stands
+    const blind = await E.hear(new Blob(['x']), null);
+    return { best, blind, seen };
+  });
+  assert.ok(picked.seen.asked > 1, 'it should ask for more than one reading');
+  ok('it asks the model for several readings of the sound, not just one');
+  assert.strictEqual(picked.best, 'じゅう ごぜん です');
+  ok('and keeps the one made of words the lessons have actually taught');
+  assert.strictEqual(picked.blind, 'キューが出てくる');
+  ok('while with no lessons to judge against it takes the model at its word');
+
+  // a model that will not take the extra readings must still be usable
+  const fallback = await page.evaluate(async () => {
+    const E = window.__kaku.Ears;
+    let first = true;
+    E.pipe = async () => {
+      if (first) { first = false; throw new Error('num_return_sequences unsupported'); }
+      return { text: 'おはよう' };
+    };
+    return await E.hear(new Blob(['x']), null);
+  });
+  assert.strictEqual(fallback, 'おはよう');
+  ok('and a runtime that refuses them is asked again the plain way rather than failing');
+
+  // back to a window with no listener, for the checks below
+  await page.evaluate(() => { window.__kaku.Ears.state = 'cold'; window.__kaku.Ears.pipe = null; });
+
   // what the microphone button does in a window with no speech service
   await page.click('#talkBtn');
   await page.waitForTimeout(150);
