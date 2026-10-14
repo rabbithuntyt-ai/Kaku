@@ -4215,7 +4215,7 @@ const Brain = {
   },
   ready() { return this.state === 'warm' && !!this.engine; },
   async load(modelId, onStep) {
-    if (this.state === 'loading') return false;
+    if (this.state === 'loading') { this.note = 'It is already downloading. Give it a moment.'; return false; }
     const why = this.why();
     if (why) { this.note = why; this.state = 'unavailable'; return false; }
     this.state = 'loading'; this.progress = 0; this.note = '';
@@ -4586,38 +4586,56 @@ const Chat = {
   },
   msg(text, kind) { const n = $('cMsg'); n.textContent = text || ''; n.className = 'msg' + (kind ? ' ' + kind : ''); },
   // the model has to be fetched once before it can answer
-  async brainOffer() {
+  // `lead` is a reason the last attempt failed: it is shown instead of the pitch, never under it
+  async brainOffer(lead) {
     const why = await Brain.check();
     if (why) {
-      this.msg(why + ' The rules are answering meanwhile.');
+      this.msg((lead ? lead + ' ' : '') + why + ' The rules are answering meanwhile.', lead ? 'bad' : '');
       setActions($('cActions'), [{ label: 'Stay on the rules', primary: true, act: () => {
         S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
       } }, { label: 'Type it instead', act: () => this.typeIt() }]);
       return;
     }
-    this.msg('A model that runs on this machine has to be downloaded once. ' +
-      BRAIN_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.');
+    this.msg(lead ? lead + ' You can try again, or stay on the rules.'
+                  : 'A model that runs on this machine has to be downloaded once. ' +
+                    BRAIN_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.',
+             lead ? 'bad' : '');
     setActions($('cActions'), BRAIN_MODELS.map((m, i) => ({
       label: 'Get the ' + m.name.toLowerCase() + ' one', primary: i === 0, act: () => this.brainLoad(m.id)
     })).concat([{ label: 'Stay on the rules', act: () => {
       S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
     } }]));
   },
-  brainLoad(id) {
+  async brainLoad(id) {
     setActions($('cActions'), []);
-    this.msg('Starting the download. It only happens once.');
-    Brain.load(id, (text, p) => {
-      const pct = Math.round((p || 0) * 100);
-      this.msg('Downloading the model \u2014 ' + pct + '%' + (text ? ' \u00b7 ' + String(text).slice(0, 70) : ''));
-    }).then((ok) => {
-      if (!ok) {
-        this.msg(Brain.note || 'That did not load.');
-        return this.brainOffer();
+    // opened straight off the disk, the page is not allowed to load the runtime sitting next to
+    // it, so the app serves itself one instead. That reloads the window: nothing follows here.
+    if (location.protocol === 'file:') {
+      if (!native || !native.pageFor) {
+        return this.brainOffer('This copy of Kaku cannot serve itself a page, which the model needs.');
       }
-      Partner.ready = false;
-      this.msg('Ready. It answers from this machine now.', 'good');
-      Partner.connect().then(() => { $('cWho').textContent = 'A model on this machine'; this.ready(); });
-    });
+      this.msg('Getting Kaku ready for the model\u2026');
+      let r = null;
+      try { r = await native.pageFor('brain'); } catch (e) { r = null; }
+      if (r && r.reloaded) return;
+      return this.brainOffer('Kaku could not serve itself a page' + (r && r.why ? ' \u2014 ' + r.why : '') +
+        ', which the model needs. Closing Kaku and opening it again usually clears that.');
+    }
+    this.msg('Starting the download. It only happens once.');
+    let ok = false;
+    try {
+      ok = await Brain.load(id, (text, p) => {
+        const pct = Math.round((p || 0) * 100);
+        this.msg('Downloading the model \u2014 ' + pct + '%' + (text ? ' \u00b7 ' + String(text).slice(0, 70) : ''));
+      });
+    } catch (e) {
+      Brain.state = 'failed';
+      Brain.note = String((e && e.message) || e).slice(0, 180);
+    }
+    if (!ok) return this.brainOffer(Brain.note || 'The download stopped and did not say why.');
+    Partner.ready = false;
+    this.msg('Ready. It answers from this machine now.', 'good');
+    Partner.connect().then(() => { $('cWho').textContent = 'A model on this machine'; this.ready(); });
   },
   bubble(who, jp, en, mine) {
     const b = document.createElement('div');

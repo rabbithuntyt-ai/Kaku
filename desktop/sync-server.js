@@ -23,8 +23,10 @@ const TYPES = {
 const JS = 'text/javascript; charset=utf-8';
 const MANIFEST = 'application/manifest+json; charset=utf-8';
 const MAX_BODY = 8 * 1024 * 1024;
-// these hold nothing personal, and a browser asks for them on its own without a key
-const OPEN = new Set(['/sw.js', '/manifest.webmanifest', '/offline', '/kaku.mobileconfig', '/kaku-ca.crt']);
+// these hold nothing personal, and a browser asks for them on its own without a key.
+// webllm.js is here because an `import` carries no query string: the page has the key,
+// the module request it makes does not, so requiring one would refuse the runtime.
+const OPEN = new Set(['/sw.js', '/manifest.webmanifest', '/offline', '/kaku.mobileconfig', '/kaku-ca.crt', '/webllm.js']);
 // the only other program file ever served: the runtime the on-device model needs
 const BY_NAME = { '/webllm.js': 'webllm.js' };
 

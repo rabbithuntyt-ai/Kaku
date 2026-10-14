@@ -74,6 +74,11 @@ const ok = (m) => { console.log('  ok  ' + m); pass++; };
   ok('the program\u2019s own files are not served, only the app');
   r = await fetch(`${base}/sw.js`);
   assert.strictEqual(r.status, 200); ok('but the offline worker is, without a key, as a browser asks for it');
+  // an `import` sends no query string, so a key here would refuse the model's runtime outright
+  r = await fetch(`${base}/webllm.js`);
+  assert.strictEqual(r.status, 200); ok('and the model runtime is, without a key, as an import asks for it');
+  assert.ok((r.headers.get('content-type') || '').includes('javascript'));
+  ok('and it arrives as something the browser will run as a module');
   r = await fetch(`${base}/main.js?k=${key}`);
   assert.strictEqual(r.status, 404); ok('only app files are served, not the program');
 

@@ -5,7 +5,7 @@
 // Progress never comes near this: it lives in the browser's own storage, written
 // by the app itself.
 
-const BUILD = 'f6a0c601f3';
+const BUILD = '2cdb9473e7';
 const CACHE = 'kaku-' + BUILD;
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
