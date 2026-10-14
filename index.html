@@ -690,7 +690,7 @@ if ('serviceWorker' in navigator) {
         </div>
         <p class="field-note">Writing plays a sound to write from memory. Reading shows a character to name.</p>
       </div>
-      <div class="field" id="aiField" hidden>
+      <div class="field" id="aiField">
         <div class="field-label">Who answers in free conversation</div>
         <div class="seg" data-key="ai">
           <button type="button" data-v="off">Rules</button>
@@ -4997,8 +4997,16 @@ const App = {
       b.addEventListener('click', m.go);
       mix.appendChild(b);
     }
-    const aiField = $('aiField');
-    if (aiField) aiField.hidden = !(typeof Partner !== 'undefined' && Partner.canClaude());
+    // the Claude option only appears in a copy that could reach it; the rest always show
+    const claudeBtn = document.querySelector('.seg[data-key="ai"] button[data-v="claude"]');
+    if (claudeBtn) claudeBtn.hidden = !(typeof Partner !== 'undefined' && Partner.canClaude());
+    const aiNote = $('aiNote');
+    if (aiNote) {
+      const canClaude = typeof Partner !== 'undefined' && Partner.canClaude();
+      aiNote.textContent = 'Rules: instant, offline, nothing to download — it follows what you say but never improvises. ' +
+        'Model here: a small model on this machine\u2019s graphics card, fetched once, then free and offline for good.' +
+        (canClaude ? ' Claude: the best Japanese, needs internet, and spends your own Claude usage.' : '');
+    }
     if (typeof Confidence !== 'undefined') Confidence.render();
     const root = document.documentElement;
     root.dataset.skin = S.settings.skin;
