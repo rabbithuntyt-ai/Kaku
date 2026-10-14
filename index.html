@@ -4252,6 +4252,20 @@ const Brain = {
     const m = BRAIN_MODELS.find(x => x.id === model || x.plain === model) || BRAIN_MODELS[0];
     return (this.card && this.card.f16 === false) ? m.plain : m.id;
   },
+  // A card without half-precision maths is, in practice, a shared one borrowing system memory,
+  // and it also has to run the larger plain build. Offering it the big model first wastes a
+  // long download on a load that will not finish. Recommend what will.
+  best() {
+    const tiny = BRAIN_MODELS[BRAIN_MODELS.length - 1];
+    return (this.card && this.card.f16 === false) ? tiny.id : BRAIN_MODELS[0].id;
+  },
+  whyBest() {
+    if (!this.card || this.card.f16 !== false) return '';
+    return 'Your graphics is shared rather than a card of its own' +
+      (this.card.name ? ' (' + this.card.name + ')' : '') +
+      ', so the tiny one is the one that will actually finish loading here. ' +
+      'Its Japanese is rougher, and anything it gets wrong still gets caught before you see it.';
+  },
   ready() { return this.state === 'warm' && !!this.engine; },
   async load(modelId, onStep) {
     if (this.state === 'loading') { this.note = 'It is already downloading. Give it a moment.'; return false; }
@@ -4261,12 +4275,22 @@ const Brain = {
     try {
       if (!this.lib) this.lib = await import(/* webpackIgnore: true */ this.libUrl());
       this.model = this.idFor(modelId || BRAIN_MODELS[0].id);
-      this.engine = await this.lib.CreateMLCEngine(this.model, {
+      const cfg = {
         initProgressCallback: (r) => {
           this.progress = typeof r.progress === 'number' ? r.progress : 0;
           if (onStep) onStep(r.text || '', this.progress);
         }
-      });
+      };
+      // A model reserves room for 4096 tokens of conversation by default. These exchanges are
+      // a handful of short lines, and that reserved room is video memory a shared graphics chip
+      // does not have going spare — it is where a load gets to the last shader and stops.
+      try {
+        this.engine = await this.lib.CreateMLCEngine(this.model, cfg, { context_window_size: 1024 });
+      } catch (e) {
+        this.note = String((e && e.message) || e).slice(0, 120);
+        this.engine = await this.lib.CreateMLCEngine(this.model, cfg);
+        this.note = '';
+      }
       this.state = 'warm';
       return true;
     } catch (e) {
@@ -4639,13 +4663,16 @@ const Chat = {
     let again = '';
     try { again = sessionStorage.getItem('kaku-model') || ''; sessionStorage.removeItem('kaku-model'); } catch (e) {}
     if (again && BRAIN_MODELS.some(m => m.id === again)) return this.brainLoad(again);
+    const best = Brain.best(), tip = Brain.whyBest();
     this.msg(lead ? lead + ' You can try again, or stay on the rules.'
                   : 'A model that runs on this machine has to be downloaded once. ' +
-                    BRAIN_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.',
+                    BRAIN_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.' +
+                    (tip ? ' ' + tip : ''),
              lead ? 'bad' : '');
-    setActions($('cActions'), BRAIN_MODELS.map((m, i) => ({
-      label: 'Get the ' + m.name.toLowerCase() + ' one', primary: i === 0, act: () => this.brainLoad(m.id)
-    })).concat([{ label: 'Stay on the rules', act: () => {
+    setActions($('cActions'), BRAIN_MODELS.map(m => ({
+      label: 'Get the ' + m.name.toLowerCase() + ' one', primary: m.id === best, act: () => this.brainLoad(m.id)
+    })).sort((a, b) => (b.primary ? 1 : 0) - (a.primary ? 1 : 0))
+      .concat([{ label: 'Stay on the rules', act: () => {
       S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
     } }]));
   },

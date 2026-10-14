@@ -83,6 +83,28 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   assert.ok(swap.half.every((id) => /q4f16/.test(id)), 'got ' + swap.half.join(', '));
   ok('and a card that has it still gets the smaller, faster one');
 
+  // a shared graphics chip is steered to the model that will finish, not the best one
+  const rec = await page.evaluate(() => {
+    const B = window.__kaku.Brain, before = B.card;
+    B.card = { f16: false, name: 'intel gen-13lp', maxBuffer: 0 };
+    const shared = { id: B.best(), why: B.whyBest(), build: B.idFor(B.best()) };
+    B.card = { f16: true, name: 'discrete', maxBuffer: 0 };
+    const own = { id: B.best(), why: B.whyBest() };
+    B.card = before;
+    return { shared, own };
+  });
+  const tiny = await page.evaluate(() => window.__kaku.BRAIN_MODELS[window.__kaku.BRAIN_MODELS.length - 1].id);
+  const bigg = await page.evaluate(() => window.__kaku.BRAIN_MODELS[0].id);
+  assert.strictEqual(rec.shared.id, tiny, 'a shared chip should be offered the tiny model first');
+  ok('a shared graphics chip is pointed at the model it can actually finish');
+  assert.ok(rec.shared.why && /tiny/.test(rec.shared.why));
+  ok('and told why, rather than silently given a lesser one');
+  assert.ok(/q4f32/.test(rec.shared.build));
+  ok('in the build it can compile');
+  assert.strictEqual(rec.own.id, bigg);
+  assert.strictEqual(rec.own.why, '');
+  ok('while a card of its own is still offered the best model, unremarked');
+
   // the key still guards everything that is not the runtime
   const r = await fetch(url.split('?')[0] + '/kaku-progress.json');
   assert.ok(r.status === 403 || r.status === 404);
