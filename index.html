@@ -693,10 +693,11 @@ if ('serviceWorker' in navigator) {
       <div class="field" id="aiField" hidden>
         <div class="field-label">Who answers in free conversation</div>
         <div class="seg" data-key="ai">
-          <button type="button" data-v="off">This device</button>
-          <button type="button" data-v="on">Claude</button>
+          <button type="button" data-v="off">Rules</button>
+          <button type="button" data-v="brain">Model here</button>
+          <button type="button" data-v="claude">Claude</button>
         </div>
-        <p class="field-note">This device costs nothing and works offline. Claude writes freer Japanese, still only in words your lessons have taught, and uses your own Claude usage.</p>
+        <p class="field-note" id="aiNote">Rules: instant, offline, no downloads — it follows what you say but never improvises. Model here: a small model on your own graphics card, downloaded once, then free and offline forever. Claude: the best Japanese, needs internet, spends your Claude usage.</p>
       </div>
       <div class="field">
         <div class="field-label">Theme</div>
@@ -1526,7 +1527,7 @@ function sanitize(o) {
   if (Array.isArray(st.numbands)) out.settings.numbands = st.numbands.filter(id => NBYID[id]);
   if (SKINS[st.skin]) out.settings.skin = st.skin;
   if (['auto', 'light', 'dark'].includes(st.mode)) out.settings.mode = st.mode;
-  if (['on', 'off'].includes(st.ai)) out.settings.ai = st.ai;
+  if (['on', 'off', 'brain', 'claude'].includes(st.ai)) out.settings.ai = st.ai === 'on' ? 'claude' : st.ai;
   // the user's own word lists, kept per lesson
   const cu = o.custom || {};
   for (const id in cu) {
@@ -3306,6 +3307,72 @@ const KREAD = (() => {
   return map;
 })();
 
+// Typing Japanese without the IME switched on is the normal case on a borrowed
+// keyboard, so romaji is accepted everywhere kana is: "watashi wa gakusei desu"
+// becomes わたしは がくせいです before anything else looks at it.
+const ROMA = (() => {
+  const map = {};
+  for (const ch in ROMAJI) {
+    if (ch < '\u3040' || ch > '\u309f') continue;              // the hiragana half only
+    if (!(ROMAJI[ch] in map)) map[ROMAJI[ch]] = ch;
+  }
+  // the small-ya digraphs: きゃ from き, しゃ from し, and so on
+  const HEADS = { ki: 'k', gi: 'g', shi: 'sh', chi: 'ch', ni: 'n', hi: 'h', bi: 'b', pi: 'p', mi: 'm', ri: 'r', ji: 'j' };
+  const SMALL = { a: 'ゃ', u: 'ゅ', o: 'ょ' };
+  for (const base in HEADS) {
+    const ch = map[base];
+    if (!ch) continue;
+    const head = HEADS[base];
+    for (const v in SMALL) {
+      const key = (head === 'sh' || head === 'ch' || head === 'j') ? head + v : head + 'y' + v;
+      map[key] = ch + SMALL[v];
+    }
+  }
+  Object.assign(map, { si: 'し', ti: 'ち', tu: 'つ', hu: 'ふ', zi: 'じ', du: 'づ', di: 'ぢ',
+    n: 'ん', nn: 'ん', wo: 'を', '-': 'ー', ltsu: 'っ', xtsu: 'っ' });
+  return map;
+})();
+// A Japanese keyboard turns "wa" into わ and expects "ha" for the particle は. A learner
+// typing romaji means the particle, so a standalone wa, o or e between words is read as
+// the particle it stands for — and the sentence check says so the first time.
+const PARTICLE_WORD = { wa: 'は', ha: 'は', o: 'を', wo: 'を', e: 'へ', he: 'へ', ga: 'が', ni: 'に', de: 'で', to: 'と', mo: 'も', no: 'の', ka: 'か' };
+const VOWEL = /[aiueo]/;
+function romajiToKana(text) {
+  // whole words first, so the particles come out as particles
+  if (/\s/.test(String(text))) {
+    return String(text).split(/(\s+)/).map(part => {
+      const key = part.trim().toLowerCase();
+      if (PARTICLE_WORD[key] && /^[a-z]{1,2}$/.test(key)) return PARTICLE_WORD[key];
+      return /\s/.test(part) ? '' : romajiToKana(part);
+    }).join('');
+  }
+  const s = String(text || '').toLowerCase();
+  let out = '', i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (!/[a-z\-]/.test(ch)) { out += text[i]; i++; continue; }
+    // a doubled consonant is a small っ: kitte -> きって
+    if (ch !== 'n' && !VOWEL.test(ch) && s[i + 1] === ch) { out += 'っ'; i++; continue; }
+    // ん before another consonant, or at the end
+    if (ch === 'n' && s[i + 1] && !VOWEL.test(s[i + 1]) && s[i + 1] !== 'y') { out += 'ん'; i++; continue; }
+    let hit = null;
+    for (let n = 3; n >= 1; n--) {
+      const piece = s.slice(i, i + n);
+      if (ROMA[piece]) { hit = [piece, ROMA[piece]]; break; }
+    }
+    if (hit) { out += hit[1]; i += hit[0].length; continue; }
+    if (ch === 'n') { out += 'ん'; i++; continue; }
+    out += text[i]; i++;
+  }
+  return out;
+}
+// true when a line is mostly Latin letters, so it was meant as romaji
+const looksRomaji = (text) => {
+  const letters = (String(text).match(/[a-z]/gi) || []).length;
+  return letters >= 2 && letters >= (String(text).replace(/\s/g, '').length) * 0.5;
+};
+function asJapanese(text) { return looksRomaji(text) ? romajiToKana(text) : String(text || ''); }
+
 function normJa(s) {
   let t = String(s || '').normalize('NFKC');
   t = t.replace(/\d+/g, (d) => { const n = parseInt(d, 10); return n > 0 && n <= 100000 ? numberReading(n) : d; });
@@ -3734,6 +3801,7 @@ const Talk = {
   // score what was said, say why if it is off, and move the words along in the review boxes
   answer(heardList, how) {
     if (this.answered) return;
+    heardList = heardList.map(asJapanese);
     const t = this.scene.turns[this.i];
     let verdict = null;
     for (const h of heardList) {
@@ -4027,6 +4095,191 @@ const OBJECTS = {
   motion: [['がっこうです。', 'School.'], ['としょかんです。', 'The library.'], ['うちです。', 'Home.']]
 };
 
+// ---------------------------------------------------------------- what is wrong with it
+// When a sentence does not come apart cleanly, saying "I did not follow" is no use. This
+// looks for the mistakes a learner at this stage actually makes, names them in English,
+// and hands back the sentence put right where it can.
+const NOUNISH = (base) => !/[うくぐすつぬぶむる]$/.test(base) && !/い$/.test(base);
+function diagnose(said, lessons) {
+  const text = normJa(said);
+  const notes = [];
+  let fixed = text;
+  if (!text) return { notes, fixed };
+
+  // 1. letters that never became Japanese
+  const latin = text.match(/[a-z]{1,}/gi);
+  if (latin) notes.push(`“${latin.join(' ')}” did not turn into Japanese — check the spelling, or type it in kana.`);
+
+  // 2. words the lessons have not taught, with the nearest one you do know
+  const forms = Allowed.set(lessons);
+  const left = Allowed.unknown(text, forms);
+  if (left && !latin) {
+    let near = '', best = 99;
+    for (const k in VOCAB) {
+      const v = VOCAB[k];
+      if (!lessons.includes(v.L)) continue;
+      const d = editDistance(left, normJa(v.r));
+      if (d < best && d <= Math.max(1, Math.round(left.length / 3))) { best = d; near = v.r; }
+    }
+    notes.push(near
+      ? `“${left}” is not a word your lessons have yet — did you mean ${near}?`
+      : `“${left}” is not in the lessons you have switched on.`);
+  }
+
+  const found = occurrences(text, lessons);
+  const noun = (o) => o && VOCAB[vkey(o.base)] && NOUNISH(o.base);
+  const verb = (o) => o && VOCAB[vkey(o.base)] && /[うくぐすつぬぶむる]$/.test(o.base) && !/い$/.test(o.base);
+  const adj = (o) => o && VOCAB[vkey(o.base)] && /い$/.test(o.base);
+
+  // 3. the particles that sound like one thing and are written as another
+  for (const o of found) {
+    const after = text.slice(o.end, o.end + 1);
+    if (!noun(o)) continue;
+    if (after === 'わ') {
+      notes.push('The topic particle is written は, even though it sounds like “wa”. ' + o.base + 'は, not ' + o.base + 'わ.');
+      fixed = fixed.slice(0, o.end) + 'は' + fixed.slice(o.end + 1);
+    } else if (after === 'お' && /[ぁ-ん]/.test(text.slice(o.end + 1, o.end + 2))) {
+      notes.push('The object particle is written を, not お. ' + o.base + 'を.');
+      fixed = fixed.slice(0, o.end) + 'を' + fixed.slice(o.end + 1);
+    } else if (after === 'え' && /[ぁ-ん]/.test(text.slice(o.end + 1, o.end + 2))) {
+      notes.push('Going somewhere takes へ, which sounds like “e”. ' + o.base + 'へ.');
+      fixed = fixed.slice(0, o.end) + 'へ' + fixed.slice(o.end + 1);
+    }
+  }
+
+  // 4. これ in front of a noun, where この belongs
+  const THIS = { これ: 'この', それ: 'その', あれ: 'あの', どれ: 'どの' };
+  for (let i = 0; i < found.length - 1; i++) {
+    const a = found[i], b = found[i + 1];
+    if (THIS[a.base] && a.end === b.at && noun(b)) {
+      notes.push(`${a.base} stands on its own. In front of a noun it becomes ${THIS[a.base]}: ${THIS[a.base]} ${b.base}.`);
+      fixed = fixed.split(a.base + b.base).join(THIS[a.base] + b.base);
+    }
+  }
+
+  // 5. ます on something that is not a verb
+  for (const o of found) {
+    const tail = text.slice(o.end, o.end + 2);
+    if (tail === 'ます' && adj(o)) notes.push(`${o.base} is an adjective, so it takes です: ${o.base}です, never ${o.base}ます.`);
+    if (tail === 'ます' && noun(o)) notes.push(`${o.base} is a noun, so it takes です: ${o.base}です.`);
+  }
+
+  // 6. two words run together with nothing to join them
+  for (let i = 0; i < found.length - 1; i++) {
+    const a = found[i], b = found[i + 1];
+    if (a.end === b.at && noun(a) && noun(b) && !THIS[a.base]) {
+      notes.push(`${a.base} and ${b.base} are run together. Japanese needs a particle between them — は, が, を or の, depending on what you mean.`);
+      break;
+    }
+  }
+
+  // 7. the verb is not at the end
+  const lastVerb = [...found].reverse().find(verb);
+  if (lastVerb) {
+    const after = found.filter(o => o.at >= lastVerb.end && (noun(o) || adj(o)));
+    if (after.length) notes.push(`In Japanese the verb comes last. Try putting ${lastVerb.base} at the end, after ${after[0].base}.`);
+  }
+
+  // 8. nothing to finish it with
+  if (!/(です|ます|ました|でした|ません|ない|か|ね|よ|ください)$/.test(text) && found.length >= 2 && !latin) {
+    notes.push('A polite sentence finishes with です or ます. Add one to the end.');
+  }
+
+  return { notes: notes.slice(0, 2), fixed: fixed !== text ? fixed : '' };
+}
+
+// ---------------------------------------------------------------- a model on this machine
+// The open conversation, answered by a small language model running on your own graphics
+// card. The weights are fetched once (about 1.1 GB) and kept by the browser; after that it
+// works with nothing connected, costs nothing, and never leaves the machine. Whatever it
+// writes still has to pass the lesson check before you see it.
+const BRAIN_MODELS = [
+  { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', name: 'Small', about: 'about 1.1 GB, needs roughly 1.6 GB of video memory' },
+  { id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC', name: 'Better', about: 'about 1.9 GB, needs roughly 2.9 GB of video memory — better Japanese' }
+];
+const Brain = {
+  engine: null, model: null, state: 'cold', progress: 0, note: '', lib: null,
+  // where the runtime comes from: beside the app when it was shipped with one
+  libUrl() {
+    if (window.KAKU_LAN || native) return 'webllm.js';
+    if (location.protocol === 'http:' || location.protocol === 'https:') return 'webllm.js';
+    return 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm';
+  },
+  // a model needs a graphics card it is allowed to use, and a page the browser trusts
+  why() {
+    if (!window.isSecureContext) return 'A model can only run on a page the browser trusts. Open Kaku from the desktop app, or over https.';
+    if (!('gpu' in navigator) || !navigator.gpu) return 'This browser cannot reach the graphics card (no WebGPU). Chrome, Edge, or the Kaku desktop app can.';
+    return '';
+  },
+  // and the card has to actually answer, which only asking finds out
+  async check() {
+    const why = this.why();
+    if (why) return why;
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) return 'The graphics card here did not answer. On a laptop this often means the browser is on the low-power chip.';
+    } catch (e) {
+      return 'The graphics card could not be reached: ' + String((e && e.message) || e).slice(0, 90);
+    }
+    return '';
+  },
+  ready() { return this.state === 'warm' && !!this.engine; },
+  async load(modelId, onStep) {
+    if (this.state === 'loading') return false;
+    const why = this.why();
+    if (why) { this.note = why; this.state = 'unavailable'; return false; }
+    this.state = 'loading'; this.progress = 0; this.note = '';
+    try {
+      if (!this.lib) this.lib = await import(/* webpackIgnore: true */ this.libUrl());
+      this.model = modelId || BRAIN_MODELS[0].id;
+      this.engine = await this.lib.CreateMLCEngine(this.model, {
+        initProgressCallback: (r) => {
+          this.progress = typeof r.progress === 'number' ? r.progress : 0;
+          if (onStep) onStep(r.text || '', this.progress);
+        }
+      });
+      this.state = 'warm';
+      return true;
+    } catch (e) {
+      this.state = 'failed';
+      this.note = String((e && e.message) || e).slice(0, 180);
+      return false;
+    }
+  },
+  // one reply: Japanese line, its English, and a correction if there was something to correct
+  async speak(rules, turns, onText) {
+    const messages = [{ role: 'system', content: rules }]
+      .concat(turns.map(t => ({ role: t.role === 'assistant' ? 'assistant' : 'user', content: t.content })));
+    const out = await this.engine.chat.completions.create({
+      messages, temperature: 0.7, max_tokens: 120, stream: true
+    });
+    let text = '';
+    for await (const chunk of out) {
+      const bit = (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || '';
+      if (!bit) continue;
+      text += bit;
+      if (onText) onText(text);
+    }
+    return text.trim();
+  },
+  // a small model does better with three lines than with JSON
+  parse(text) {
+    const lines = String(text).split('\n').map(l => l.trim()).filter(Boolean);
+    const pick = (tag) => {
+      const hit = lines.find(l => l.toLowerCase().startsWith(tag));
+      return hit ? hit.slice(hit.indexOf(':') + 1).trim() : '';
+    };
+    let jp = pick('jp'), en = pick('en'), note = pick('note');
+    if (!jp) {
+      const jpLine = lines.find(l => /[ぁ-んァ-ン一-龯]/.test(l));
+      jp = jpLine ? jpLine.replace(/^[a-z]+\s*:\s*/i, '') : '';
+      const enLine = lines.find(l => l !== jpLine && /^[\sA-Za-z,.'"!?-]+$/.test(l));
+      en = enLine || '';
+    }
+    return { jp: jp.replace(/^["'\s]+|["'\s]+$/g, ''), en, note };
+  }
+};
+
 const Partner = {
   mode: 'local', sample: null, turns: [], asked: [], busy: false, listening: false, ready: false,
   okKey: null, okLines: null, last: null,
@@ -4051,32 +4304,100 @@ const Partner = {
     const can = bank.filter(x => this.usable(x));
     return can.length ? can[Math.floor(Math.random() * can.length)] : null;
   },
+  // questions built from the words themselves, so a single lesson still gives plenty
+  // to talk about rather than the same line over and over
+  grown() {
+    const mine = this.lessons();
+    const out = [];
+    const shapes = [
+      ['{w}が すきですか。', 'Do you like {m}?'],
+      ['{w}は たかいですか。', 'Is {m} expensive?'],
+      ['{w}は おおきいですか。', 'Is {m} big?'],
+      ['よく {w}を たべますか。', 'Do you often eat {m}?'],
+      ['{w}は にほんの {w2}ですか。', 'Is {m} a Japanese {m2}?']
+    ];
+    const words = [];
+    for (const id of mine) {
+      for (const [w, r, m] of (LBYID[id] ? LBYID[id].vocab : [])) {
+        if (/[うくぐすつぬぶむる]$/.test(w) || /い$/.test(w)) continue;   // nouns only
+        words.push({ w, m });
+      }
+    }
+    if (!words.length) return out;
+    for (let i = 0; i < 14; i++) {
+      const a = words[Math.floor(Math.random() * words.length)];
+      const [jp, en] = shapes[Math.floor(Math.random() * 3)];           // the first three need one word
+      const line = { jp: jp.split('{w}').join(a.w), en: en.split('{m}').join(a.m) };
+      if (this.usable(line)) out.push(line);
+    }
+    return out;
+  },
   nextAsk() {
-    const can = ASKS.filter(a => this.usable(a) && !this.asked.includes(a.jp));
-    const pool = can.length ? can : ASKS.filter(a => this.usable(a));
-    if (!pool.length) return null;
-    const q = pool[Math.floor(Math.random() * pool.length)];
+    const fixed = ASKS.filter(a => this.usable(a));
+    const fresh = fixed.filter(a => !this.asked.includes(a.jp));
+    // when the fixed questions run thin, grow some from the vocabulary
+    const pool = fresh.length > 1 ? fresh : fresh.concat(this.grown().filter(a => !this.asked.includes(a.jp)));
+    const usePool = pool.length ? pool : fixed.filter(a => a.jp !== this.lastAsk);
+    if (!usePool.length) return null;
+    const q = usePool[Math.floor(Math.random() * usePool.length)];
+    this.lastAsk = q.jp;
     this.asked.push(q.jp);
-    if (this.asked.length > 6) this.asked.shift();
+    if (this.asked.length > 8) this.asked.shift();
     return q;
   },
   // Claude is never asked unless you switched it on: by default the partner is the one
   // running on this device, which costs nothing and works with no connection
   async connect() {
-    const wanted = S.settings.ai === 'on';
+    const wanted = S.settings.ai;
     if (this.ready && this.wanted === wanted) return this.mode;
     this.ready = true; this.wanted = wanted;
     this.sample = null;
-    if (wanted) {
+    if (wanted === 'claude') {
       try {
         if (window.claude && typeof claude.use === 'function') this.sample = await claude.use('sample');
       } catch (e) { this.sample = null; }
+      this.mode = this.sample ? 'claude' : 'local';
+      return this.mode;
     }
-    this.mode = this.sample ? 'claude' : 'local';
+    if (wanted === 'brain') { this.mode = Brain.ready() ? 'brain' : 'brain-cold'; return this.mode; }
+    this.mode = 'local';
     return this.mode;
   },
   // whether the switch is worth showing at all in this copy
   canClaude() { return !!(window.claude && typeof claude.use === 'function'); },
+  // the same brief, trimmed for a small model: short, concrete, three labelled lines out
+  brainRules() {
+    const ids = this.lessons();
+    const words = [];
+    for (const id of ids) for (const [w, r, m] of LBYID[id].vocab) words.push(w);
+    return [
+      'You are a Japanese friend chatting with a beginner. Keep it simple and warm.',
+      'Rules:',
+      '- Write Japanese in kana only (no kanji), one or two short sentences.',
+      '- Use ONLY these words, plus particles and です/ます: ' + words.join('、'),
+      '- Always end with a short question so the chat continues.',
+      '- Answer what they actually said.',
+      'Reply in exactly this shape, three lines:',
+      'JP: <your Japanese>',
+      'EN: <English translation>',
+      'NOTE: <one short English note if their Japanese had a mistake, otherwise leave blank>'
+    ].join('\n');
+  },
+  // the model on this machine, checked the same way as everything else
+  async brainReply(said, onText) {
+    const forms = Allowed.set(this.lessons());
+    const rules = this.brainRules();
+    const turns = this.turns.slice(-6).concat([{ role: 'user', content: said }]);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const raw = await Brain.speak(attempt === 0 ? rules
+        : rules + '\nYour last reply used a word outside the list. Use only the listed words.', turns, onText);
+      const got = Brain.parse(raw);
+      if (!got.jp) continue;
+      const bad = Allowed.unknown(got.jp, forms);
+      if (!bad) return got;
+    }
+    return null;
+  },
   // what the lessons allow, written out for Claude, with the grammar it may lean on
   rules() {
     const ids = this.lessons();
@@ -4185,17 +4506,22 @@ const Partner = {
       || (frame.question && frame.kind ? this.choose(FOLLOWUPS[frame.kind], frame) : null)
       || ((kind === 'statement' || kind === 'yes') && Math.random() < 0.5 ? this.echo(frame.text) : null)
       || this.nextAsk();
-    if (!answer && !ask) {
-      return { jp: 'すみません。', en: 'Sorry.', note: 'Switch a lesson on and I will have something to say.' };
-    }
+    const check = diagnose(said, this.lessons());
     if (!answer) {
-      return { jp: ask.jp, en: ask.en,
-               note: 'I did not follow that one — try answering this instead.' };
+      // it could not read the sentence: say what is wrong with it rather than asking again
+      if (check.notes.length) {
+        return { jp: 'すみません、もういちど。', en: 'Sorry, once more.',
+                 note: check.notes.join(' ') + (check.fixed ? '  Try: ' + check.fixed : ''),
+                 fixed: check.fixed };
+      }
+      if (!ask) return { jp: 'すみません。', en: 'Sorry.', note: 'Switch a lesson on and I will have something to say.' };
+      return { jp: ask.jp, en: ask.en, note: 'I did not quite follow — try answering this instead.' };
     }
     return {
       jp: ask ? answer.jp + ' ' + ask.jp : answer.jp,
       en: ask ? answer.en + ' ' + ask.en : answer.en,
-      note: ''
+      note: check.notes.length ? check.notes.join(' ') + (check.fixed ? '  Try: ' + check.fixed : '') : '',
+      fixed: check.fixed
     };
   },
   // Claude plays the part, and anything it says is checked against the lessons first
@@ -4216,7 +4542,16 @@ const Partner = {
     }
     return { jp: String(reply.jp || '').trim(), en: String(reply.en || '').trim(), note: String(reply.note || '').trim() };
   },
-  async respond(said) {
+  async respond(said, onText) {
+    if (this.mode === 'brain' && Brain.ready()) {
+      try {
+        const r = await this.brainReply(said, onText);
+        if (r && r.jp) return r;
+        this.note = 'The model wandered outside your lessons, so this one is from the rules.';
+      } catch (e) {
+        this.note = 'The model stopped. Carrying on with the rules.';
+      }
+    }
     if (this.mode === 'claude' && this.sample) {
       try {
         const r = await this.claudeReply(said);
@@ -4247,7 +4582,10 @@ const Chat = {
     this.suggest();
     this.ready();
     Partner.connect().then((mode) => {
-      $('cWho').textContent = mode === 'claude' ? 'Claude is answering' : 'Answering on this device';
+      $('cWho').textContent = mode === 'claude' ? 'Claude is answering'
+        : mode === 'brain' ? 'A model on this machine'
+        : 'Answering on this device';
+      if (mode === 'brain-cold') setTimeout(() => this.brainOffer(), 400);
       const first = Partner.nextAsk();
       const hello = Partner.pick(ANSWERS.greet);
       const jp = [hello && hello.jp, first && first.jp].filter(Boolean).join(' ');
@@ -4257,6 +4595,40 @@ const Chat = {
     });
   },
   msg(text, kind) { const n = $('cMsg'); n.textContent = text || ''; n.className = 'msg' + (kind ? ' ' + kind : ''); },
+  // the model has to be fetched once before it can answer
+  async brainOffer() {
+    const why = await Brain.check();
+    if (why) {
+      this.msg(why + ' The rules are answering meanwhile.');
+      setActions($('cActions'), [{ label: 'Stay on the rules', primary: true, act: () => {
+        S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
+      } }, { label: 'Type it instead', act: () => this.typeIt() }]);
+      return;
+    }
+    this.msg('A model that runs on this machine has to be downloaded once. ' +
+      BRAIN_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.');
+    setActions($('cActions'), BRAIN_MODELS.map((m, i) => ({
+      label: 'Get the ' + m.name.toLowerCase() + ' one', primary: i === 0, act: () => this.brainLoad(m.id)
+    })).concat([{ label: 'Stay on the rules', act: () => {
+      S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
+    } }]));
+  },
+  brainLoad(id) {
+    setActions($('cActions'), []);
+    this.msg('Starting the download. It only happens once.');
+    Brain.load(id, (text, p) => {
+      const pct = Math.round((p || 0) * 100);
+      this.msg('Downloading the model \u2014 ' + pct + '%' + (text ? ' \u00b7 ' + String(text).slice(0, 70) : ''));
+    }).then((ok) => {
+      if (!ok) {
+        this.msg(Brain.note || 'That did not load.');
+        return this.brainOffer();
+      }
+      Partner.ready = false;
+      this.msg('Ready. It answers from this machine now.', 'good');
+      Partner.connect().then(() => { $('cWho').textContent = 'A model on this machine'; this.ready(); });
+    });
+  },
   bubble(who, jp, en, mine) {
     const b = document.createElement('div');
     b.className = 'bub' + (mine ? ' mine' : '');
@@ -4311,8 +4683,16 @@ const Chat = {
     wrap.style.cssText = 'display:flex;gap:8px;width:100%';
     const input = document.createElement('input');
     input.type = 'text'; input.id = 'cType'; input.autocomplete = 'off'; input.spellcheck = false;
-    input.placeholder = 'Type what you would say';
+    input.placeholder = 'Type kana, or romaji \u2014 watashi wa gakusei desu';
     input.style.cssText = 'flex:1 1 auto;min-height:44px;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--sheet);color:var(--ink);font:400 16px var(--kana)';
+    // show it turning into kana as it is typed, so there is no doubt what was sent
+    const seen = document.createElement('div');
+    seen.className = 'heard';
+    seen.style.cssText = 'width:100%;margin:6px 0 0;text-align:left;min-height:0';
+    input.addEventListener('input', () => {
+      const v = input.value.trim();
+      seen.textContent = v && looksRomaji(v) ? romajiToKana(v) : '';
+    });
     const go = document.createElement('button');
     go.type = 'button'; go.className = 'btn primary'; go.dataset.primary = '1'; go.textContent = 'Send';
     go.style.flex = '0 0 auto';
@@ -4321,6 +4701,7 @@ const Chat = {
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') send(); });
     wrap.appendChild(input); wrap.appendChild(go);
     host.appendChild(wrap);
+    host.appendChild(seen);
     input.focus();
   },
   mic() {
@@ -4343,9 +4724,11 @@ const Chat = {
       }
     });
   },
-  async said(text) {
+  async said(raw) {
     if (Partner.busy) return;
-    this.bubble('You', text, '', true);
+    const text = asJapanese(raw);
+    const typedRomaji = text !== String(raw);
+    this.bubble('You', text, typedRomaji ? String(raw) : '', true);
     Partner.turns.push({ role: 'user', content: text });
     if (Partner.turns.length > 12) Partner.turns = Partner.turns.slice(-12);
     Partner.busy = true;
@@ -4359,8 +4742,15 @@ const Chat = {
       if (Partner.lessons().includes(v.L) && saidNorm.includes(normJa(v.r))) SRS.update(k, 'p', 'perfect');
     }
     Store.touch();
-    let reply = null;
-    try { reply = await Partner.respond(text); } catch (e) { reply = null; }
+    let reply = null, ghost = null;
+    const onText = (sofar) => {
+      const got = Brain.parse(sofar);
+      if (!got.jp) return;
+      if (!ghost) ghost = this.bubble('Partner', got.jp, '', false);
+      else ghost.querySelector('.jp').textContent = got.jp;
+    };
+    try { reply = await Partner.respond(text, onText); } catch (e) { reply = null; }
+    if (ghost) ghost.remove();
     Partner.busy = false;
     $('cMic').disabled = !Listen.ok;
     this.msg(Partner.note || '');
@@ -4447,6 +4837,11 @@ const App = {
         const b = e.target.closest('button'); if (!b) return;
         const key = seg.dataset.key, v = b.dataset.v;
         S.settings[key] = (key === 'len' || key === 'fresh') ? +v : v;
+        // a model needs the page served rather than opened off the disk
+        if (key === 'ai' && native && native.pageFor) {
+          Store.flushNow();
+          native.pageFor(v).then(r => { if (r && r.reloaded) return; if (typeof Partner !== 'undefined') Partner.ready = false; }).catch(() => {});
+        }
         if (key === 'script' && v !== 'b' && v !== this.tab) this.drawCharts(v);
         Store.touch(); this.refresh();
       });
@@ -4645,7 +5040,7 @@ const App = {
   },
   syncNote(on) {
     const node = $('syncNote');
-    const lan = window.KAKU_LAN;
+    const lan = window.KAKU_LAN && !window.KAKU_LAN.local ? window.KAKU_LAN : null;
     if (lan) {
       const away = typeof Wifi !== 'undefined' && Wifi.live === false;
       node.textContent = lan.secure
@@ -4704,14 +5099,14 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Allowed, parseJa, occurrences, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();
 Speech.init();
 App.build();
 App.refresh();
-if (window.KAKU_LAN) Wifi.start();
+if (window.KAKU_LAN && !window.KAKU_LAN.local) Wifi.start();   // the desktop window serves itself; there is nothing to sync with
 if (native) {
   // the file on disk is the real record; the browser copy is only a cache
   App.syncNote(false);
