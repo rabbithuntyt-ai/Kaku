@@ -301,6 +301,28 @@ const thread = (page) => page.$$eval('#cThread .bub', bs => bs.map(b => ({
     await ctx.close();
   }
 
+  // ---- the prompt has to fit the window it is sent into ----------------------
+  // "Prompt tokens exceed context window size: 591 / 512" — the rules listed every word of
+  // every lesson switched on, so the prompt grew with the lessons until the model refused it.
+  {
+    const { ctx, page, errs } = await open(browser, { lessons: ['0', '1', '2', '3', '4', '5'] });
+    const fit = await page.evaluate(() => {
+      const K = window.__kaku;
+      const out = { unbounded: K.roughTokens(K.Partner.brainRules(99999)), fits: [], shape: true };
+      for (const b of [256, 512, 1000, 1600]) {
+        const r = K.Partner.brainRules(b);
+        out.fits.push({ b, got: K.roughTokens(r) });
+        if (!/JP: <your Japanese>/.test(r) || !/Use ONLY these words/.test(r)) out.shape = false;
+      }
+      return out;
+    });
+    ok(fit.unbounded > 512, 'six lessons of words would not have fitted the old window');
+    for (const f of fit.fits) ok(f.got <= f.b, 'a ' + f.b + '-token budget is respected (' + f.got + ')');
+    ok(fit.shape, 'and the reply shape survives the trimming, which is what makes it parseable');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' \u2014 ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);
