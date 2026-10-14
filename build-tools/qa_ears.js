@@ -153,6 +153,32 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   // back to a window with no listener, for the checks below
   await page.evaluate(() => { window.__kaku.Ears.state = 'cold'; window.__kaku.Ears.pipe = null; });
 
+  // These lessons are kana, and so is everything typed into them. A transcriber writes
+  // Japanese the normal way, in kanji, so what you said came back in a script the lessons
+  // never use — and then got marked wrong for it.
+  const kana = await page.evaluate(() => {
+    const t = window.__kaku.toKana;
+    return {
+      his: t('私のたこ焼きです'),
+      time: t('今午前十時です'),
+      mixed: t('私は毎日七時に起きます'),
+      major: t('専攻は日本語です'),
+      already: t('おはようございます'),
+      katakana: t('コーヒーを のみます')
+    };
+  });
+  assert.strictEqual(kana.time, 'いまごぜんじゅうじです');
+  ok('a sentence transcribed in kanji comes back in the kana these lessons are written in');
+  assert.strictEqual(kana.mixed, 'わたしはまいにちななじにおきます');
+  ok('and the longer word wins, so 毎日 is not rewritten as 毎にち from the inside');
+  assert.strictEqual(kana.major, 'せんこうはにほんごです');
+  ok('including the words the lessons actually teach');
+  assert.ok(!/[\u4e00-\u9faf]/.test(kana.his.replace('焼', '')), 'got ' + kana.his);
+  ok('and what it has no reading for is simply left, not mangled');
+  assert.strictEqual(kana.already, 'おはようございます');
+  assert.strictEqual(kana.katakana, 'コーヒーを のみます');
+  ok('while kana and katakana are passed through untouched');
+
   // what the microphone button does in a window with no speech service
   await page.click('#talkBtn');
   await page.waitForTimeout(150);
