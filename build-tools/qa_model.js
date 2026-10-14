@@ -61,11 +61,27 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   assert.strictEqual(got.create, 'function');
   ok('and it brings the part that starts a model');
 
-  const wanted = await page.evaluate(() => window.__kaku.BRAIN_MODELS.map((m) => m.id));
+  const wanted = await page.evaluate(() =>
+    window.__kaku.BRAIN_MODELS.reduce((a, m) => a.concat([m.id, m.plain]), []));
   for (const id of wanted) {
     assert.ok(got.ids.includes(id), id + ' is offered in settings but the runtime does not know it');
   }
-  ok('every model Kaku offers is one the runtime can actually fetch');
+  ok('every model Kaku offers is one the runtime can actually fetch, both builds of it');
+
+  // a card without half-precision maths must be sent to the plain build, never the f16 one
+  const swap = await page.evaluate(() => {
+    const B = window.__kaku.Brain, before = B.card;
+    B.card = { f16: false, name: 'test', maxBuffer: 0 };
+    const plain = window.__kaku.BRAIN_MODELS.map((m) => B.idFor(m.id));
+    B.card = { f16: true, name: 'test', maxBuffer: 0 };
+    const half = window.__kaku.BRAIN_MODELS.map((m) => B.idFor(m.id));
+    B.card = before;
+    return { plain, half };
+  });
+  assert.ok(swap.plain.every((id) => /q4f32/.test(id)), 'got ' + swap.plain.join(', '));
+  ok('a card with no half-precision maths is given the plain build instead');
+  assert.ok(swap.half.every((id) => /q4f16/.test(id)), 'got ' + swap.half.join(', '));
+  ok('and a card that has it still gets the smaller, faster one');
 
   // the key still guards everything that is not the runtime
   const r = await fetch(url.split('?')[0] + '/kaku-progress.json');

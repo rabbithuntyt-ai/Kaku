@@ -10,6 +10,15 @@ const { SyncServer } = require('./sync-server');
 const { CertStore } = require('./cert-store');
 const { mergeStates } = require('./merge');
 
+// A model compiles seventy-odd shaders onto the graphics card before it answers anything.
+// Chromium keeps some of what that needs behind switches, and without them the compile
+// does not fail — it stops partway and sits there, which looks exactly like a hung app.
+// These have to be set before the app is ready, so they go here rather than in a function.
+app.commandLine.appendSwitch('enable-unsafe-webgpu');
+app.commandLine.appendSwitch('enable-dawn-features', 'allow_unsafe_apis');
+// and on a laptop, ask for the real graphics card rather than the power-saving chip
+app.commandLine.appendSwitch('force_high_performance_gpu');
+
 // If a folder called "data" sits next to the program, everything lives there and the
 // whole app folder can be moved, copied or carried on a stick. Otherwise it uses the
 // normal per-user location, which survives re-downloading the app.

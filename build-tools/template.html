@@ -4183,9 +4183,17 @@ function diagnose(said, lessons) {
 // card. The weights are fetched once (about 1.1 GB) and kept by the browser; after that it
 // works with nothing connected, costs nothing, and never leaves the machine. Whatever it
 // writes still has to pass the lesson check before you see it.
+// Each comes in two builds. The half-precision one is smaller and faster but needs a card
+// that advertises shader-f16; plenty of older and integrated chips do not, and on those the
+// shaders do not refuse to compile, they just stop partway. `plain` is the build that asks
+// nothing special of the card, used whenever f16 is missing.
 const BRAIN_MODELS = [
-  { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', name: 'Small', about: 'about 1.1 GB, needs roughly 1.6 GB of video memory' },
-  { id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC', name: 'Better', about: 'about 1.9 GB, needs roughly 2.9 GB of video memory — better Japanese' }
+  { id: 'Qwen2.5-1.5B-Instruct-q4f16_1-MLC', plain: 'Qwen2.5-1.5B-Instruct-q4f32_1-MLC',
+    name: 'Small', about: 'about 1.1 GB, needs roughly 1.6 GB of video memory' },
+  { id: 'Qwen2.5-3B-Instruct-q4f16_1-MLC', plain: 'Qwen2.5-3B-Instruct-q4f32_1-MLC',
+    name: 'Better', about: 'about 1.9 GB, needs roughly 2.9 GB of video memory — better Japanese' },
+  { id: 'Qwen2.5-0.5B-Instruct-q4f16_1-MLC', plain: 'Qwen2.5-0.5B-Instruct-q4f32_1-MLC',
+    name: 'Tiny', about: 'about 0.4 GB, needs roughly 1 GB of video memory — for a card that struggles' }
 ];
 const Brain = {
   engine: null, model: null, state: 'cold', progress: 0, note: '', lib: null,
@@ -4203,16 +4211,36 @@ const Brain = {
     return '';
   },
   // and the card has to actually answer, which only asking finds out
+  card: null,
   async check() {
     const why = this.why();
     if (why) return why;
     try {
-      const adapter = await navigator.gpu.requestAdapter();
+      const adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' })
+                   || await navigator.gpu.requestAdapter();
       if (!adapter) return 'The graphics card here did not answer. On a laptop this often means the browser is on the low-power chip.';
+      let info = {};
+      try { info = adapter.info || (adapter.requestAdapterInfo ? await adapter.requestAdapterInfo() : {}) || {}; } catch (e) {}
+      this.card = {
+        f16: adapter.features && adapter.features.has('shader-f16'),
+        name: [info.vendor, info.architecture, info.description].filter(Boolean).join(' ').trim(),
+        maxBuffer: (adapter.limits && adapter.limits.maxStorageBufferBindingSize) || 0
+      };
     } catch (e) {
       return 'The graphics card could not be reached: ' + String((e && e.message) || e).slice(0, 90);
     }
     return '';
+  },
+  // what to say about the card when something goes wrong with it
+  cardNote() {
+    if (!this.card) return '';
+    return (this.card.name ? 'Graphics: ' + this.card.name + '. ' : '') +
+      (this.card.f16 ? '' : 'It does not do half-precision maths, so the plain build is used. ');
+  },
+  // the build this card can actually compile
+  idFor(model) {
+    const m = BRAIN_MODELS.find(x => x.id === model || x.plain === model) || BRAIN_MODELS[0];
+    return (this.card && this.card.f16 === false) ? m.plain : m.id;
   },
   ready() { return this.state === 'warm' && !!this.engine; },
   async load(modelId, onStep) {
@@ -4222,7 +4250,7 @@ const Brain = {
     this.state = 'loading'; this.progress = 0; this.note = '';
     try {
       if (!this.lib) this.lib = await import(/* webpackIgnore: true */ this.libUrl());
-      this.model = modelId || BRAIN_MODELS[0].id;
+      this.model = this.idFor(modelId || BRAIN_MODELS[0].id);
       this.engine = await this.lib.CreateMLCEngine(this.model, {
         initProgressCallback: (r) => {
           this.progress = typeof r.progress === 'number' ? r.progress : 0;
@@ -4623,17 +4651,39 @@ const Chat = {
         ', which the model needs. Closing Kaku and opening it again usually clears that.');
     }
     this.msg('Starting the download. It only happens once.');
+    // The last stretch is compiling shaders onto the graphics card, and a card that cannot
+    // manage one does not say so \u2014 it stops. Nothing below can unstick it, but a screen that
+    // has not moved in a minute should say so and offer a way out rather than sit there.
+    let beat = Date.now(), step = '', stalled = false;
+    const watch = setInterval(() => {
+      if (stalled || Date.now() - beat < 60000) return;
+      stalled = true;
+      this.msg('It has not moved for a minute, stopped at: ' + (step || 'the very start') + '. ' +
+        Brain.cardNote() + 'That is the graphics card refusing a step rather than saying so. ' +
+        'Starting over and choosing the tiny model is the thing most likely to get past it.', 'bad');
+      setActions($('cActions'), [
+        { label: 'Start over', primary: true, act: () => location.reload() },
+        { label: 'Stay on the rules', act: () => {
+          S.settings.ai = 'off'; Store.touch(); Partner.ready = false;
+          if (native && native.pageFor) native.pageFor('off'); else this.open();
+        } }
+      ]);
+    }, 5000);
     let ok = false;
     try {
       ok = await Brain.load(id, (text, p) => {
+        beat = Date.now();
+        if (stalled) { stalled = false; setActions($('cActions'), []); }
+        step = String(text || '').slice(0, 70);
         const pct = Math.round((p || 0) * 100);
-        this.msg('Downloading the model \u2014 ' + pct + '%' + (text ? ' \u00b7 ' + String(text).slice(0, 70) : ''));
+        this.msg('Downloading the model \u2014 ' + pct + '%' + (step ? ' \u00b7 ' + step : ''));
       });
     } catch (e) {
       Brain.state = 'failed';
       Brain.note = String((e && e.message) || e).slice(0, 180);
     }
-    if (!ok) return this.brainOffer(Brain.note || 'The download stopped and did not say why.');
+    clearInterval(watch);
+    if (!ok) return this.brainOffer(Brain.cardNote() + (Brain.note || 'The download stopped and did not say why.'));
     Partner.ready = false;
     this.msg('Ready. It answers from this machine now.', 'good');
     Partner.connect().then(() => { $('cWho').textContent = 'A model on this machine'; this.ready(); });
