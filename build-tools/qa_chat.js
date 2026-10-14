@@ -323,6 +323,44 @@ const thread = (page) => page.$$eval('#cThread .bub', bs => bs.map(b => ({
     await ctx.close();
   }
 
+  // ---- reaching a little past the lessons -------------------------------------
+  // A partner held to thirty words cannot hold a conversation, so a reply may use a word or
+  // two beyond them — but only words Kaku can define, shown with their meaning as they are
+  // used, and counted as taught from then on. A word no lesson teaches is still refused.
+  {
+    const { ctx, page, errs } = await open(browser, { lessons: ['0'] });
+    const r = await page.evaluate(() => {
+      const K = window.__kaku, S = K.S();
+      S.met = []; K.Allowed.key = '';
+      const forms = () => K.Allowed.set(['0']);
+      const later = K.LBYID['2'].vocab[0][0];
+      const out = {};
+      out.inside = K.Partner.stretch('おはようございます', forms());
+      out.one = K.Partner.stretch('これは ' + later + ' です', forms());
+      out.nowhere = K.Partner.stretch('わたしは ぞうきん です', forms());
+      // more than the cap is too much to take in at once
+      const many = K.LBYID['2'].vocab.slice(0, 5).map((v) => v[0]).join(' ');
+      out.tooMany = K.Partner.stretch(many, forms());
+      // and once shown, it is taught
+      K.Partner.met(out.one);
+      out.after = K.Allowed.unknown('これは ' + later + ' です', forms());
+      out.met = S.met.slice();
+      // it survives a save and reload of the state
+      out.kept = K.sanitize(JSON.parse(JSON.stringify(S))).met;
+      return out;
+    });
+    ok(Array.isArray(r.inside) && r.inside.length === 0, 'a reply inside your lessons brings no new words');
+    ok(Array.isArray(r.one) && r.one.length === 1, 'a reply reaching one word past them is allowed');
+    ok(!!(r.one[0] && r.one[0].m), 'and that word arrives with its meaning, never as a guess');
+    ok(r.nowhere === null, 'a word no lesson teaches is still refused outright');
+    ok(r.tooMany === null, 'and so is a reply piling on more new words than you could take in');
+    ok(r.after === '', 'a word met once counts as taught from then on');
+    ok(r.met.length === 1, 'and is remembered');
+    ok(Array.isArray(r.kept) && r.kept.length === 1, 'and survives being saved and loaded');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' \u2014 ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);
