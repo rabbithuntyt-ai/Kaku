@@ -4284,8 +4284,12 @@ const Brain = {
       // A model reserves room for 4096 tokens of conversation by default. These exchanges are
       // a handful of short lines, and that reserved room is video memory a shared graphics chip
       // does not have going spare — it is where a load gets to the last shader and stops.
+      // the bigger the model, the more each reserved token costs, so the big one gets least
+      const room = /-3B-/.test(this.model) ? 512 : 1024;
       try {
-        this.engine = await this.lib.CreateMLCEngine(this.model, cfg, { context_window_size: 1024 });
+        this.engine = await this.lib.CreateMLCEngine(this.model, cfg, {
+          context_window_size: room, prefill_chunk_size: 256
+        });
       } catch (e) {
         this.note = String((e && e.message) || e).slice(0, 120);
         this.engine = await this.lib.CreateMLCEngine(this.model, cfg);
@@ -4659,9 +4663,13 @@ const Chat = {
       } }, { label: 'Type it instead', act: () => this.typeIt() }]);
       return;
     }
-    // a model chosen just before a deliberate reload is picked straight back up
+    // a model chosen just before a deliberate reload, or before a restart onto another
+    // graphics route, is picked straight back up rather than dropping back to this menu
     let again = '';
-    try { again = sessionStorage.getItem('kaku-model') || ''; sessionStorage.removeItem('kaku-model'); } catch (e) {}
+    try {
+      again = sessionStorage.getItem('kaku-model') || localStorage.getItem('kaku-model-after-restart') || '';
+      sessionStorage.removeItem('kaku-model'); localStorage.removeItem('kaku-model-after-restart');
+    } catch (e) {}
     if (again && BRAIN_MODELS.some(m => m.id === again)) return this.brainLoad(again);
     const best = Brain.best(), tip = Brain.whyBest();
     this.msg(lead ? lead + ' You can try again, or stay on the rules.'
@@ -4676,6 +4684,23 @@ const Chat = {
       S.settings.ai = 'off'; Store.touch(); Partner.ready = false; this.open();
     } }]));
   },
+  // Same card, different driver: Chromium's Direct3D and Vulkan routes to an Intel chip do not
+  // report the same abilities and do not use the same shader compiler, so the one that will not
+  // build is often not the card's fault. Restarting is the only way to change it, and the model
+  // chosen is kept so the restart lands straight back on the attempt.
+  async gpuSwap(model) {
+    if (!native || !native.gpuPath) return;
+    let now = { path: 'auto' };
+    try { now = await native.gpuNow(); } catch (e) {}
+    const order = ['auto', 'vulkan', 'd3d12', 'opengl'];
+    const next = order[(order.indexOf(now.path) + 1) % order.length];
+    const names = { auto: 'the usual one', vulkan: 'Vulkan', d3d12: 'Direct3D 12', opengl: 'OpenGL' };
+    this.msg('Restarting Kaku on ' + names[next] + ' and trying again…');
+    try { localStorage.setItem('kaku-model-after-restart', model || ''); } catch (e) {}
+    try { await native.gpuPath(next); } catch (e) {
+      this.msg('Could not switch graphics route.', 'bad');
+    }
+  },
   // everything worth knowing when a model will not start, in one block to paste somewhere
   copyCard(step, pct) {
     const c = Brain.card || {};
@@ -4688,6 +4713,7 @@ const Chat = {
       'half-precision: ' + (c.f16 === undefined ? '?' : c.f16 ? 'yes' : 'no'),
       'largest buffer: ' + (c.maxBuffer ? Math.round(c.maxBuffer / 1048576) + ' MB' : '?'),
       'page: ' + location.protocol + (window.KAKU_LAN ? ' (served)' : ''),
+      'graphics route: ' + (this.gpuNow || 'unknown'),
       'agent: ' + navigator.userAgent
     ].join('\n');
     const done = () => this.msg('Copied. Paste that wherever you are asking about it.', 'good');
@@ -4695,8 +4721,12 @@ const Chat = {
       navigator.clipboard.writeText(text).then(done, () => this.msg(text));
     } else this.msg(text);
   },
+  gpuNow: '',
   async brainLoad(id) {
     setActions($('cActions'), []);
+    if (native && native.gpuNow && !this.gpuNow) {
+      try { this.gpuNow = (await native.gpuNow()).path; } catch (e) {}
+    }
     // opened straight off the disk, the page is not allowed to load the runtime sitting next to
     // it, so the app serves itself one instead. That reloads the window: nothing follows here.
     if (location.protocol === 'file:') {
@@ -4727,6 +4757,7 @@ const Chat = {
       warned = true;
       setActions($('cActions'), [
         { label: 'Keep waiting', primary: true, act: () => { warned = false; setActions($('cActions'), []); } },
+        { label: 'Try the other graphics route', act: () => this.gpuSwap(id) },
         { label: 'Start over with the tiny one', act: () => {
           try { sessionStorage.setItem('kaku-model', BRAIN_MODELS[BRAIN_MODELS.length - 1].id); } catch (e) {}
           location.reload();
@@ -4736,7 +4767,7 @@ const Chat = {
           S.settings.ai = 'off'; Store.touch(); Partner.ready = false;
           if (native && native.pageFor) native.pageFor('off'); else this.open();
         } }
-      ]);
+      ].filter(a => a.label !== 'Try the other graphics route' || (native && native.gpuPath)));
     }, 2000);
     let ok = false;
     try {

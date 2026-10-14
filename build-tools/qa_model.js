@@ -105,6 +105,39 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   assert.strictEqual(rec.own.why, '');
   ok('while a card of its own is still offered the best model, unremarked');
 
+  // the same card behaves differently down each route, so the offer must cycle through them
+  // and hand the chosen model across the restart rather than landing back on the menu
+  const desk = await browser.newPage();
+  desk.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)));
+  // the bridge has to exist before the page runs, which is how the real app presents it
+  await desk.addInitScript(() => {
+    window.__calls = [];
+    window.__testPath = 'auto';
+    window.kakuNative = {
+      load: async () => null, save: async () => true, info: async () => ({}),
+      gpuNow: async () => ({ path: window.__testPath, paths: ['auto', 'vulkan', 'd3d12', 'opengl'] }),
+      gpuPath: async (w) => { window.__calls.push(w); return { ok: true }; },
+      onMenu: () => {}
+    };
+  });
+  await desk.goto(url, { waitUntil: 'load' });
+  const route = await desk.evaluate(async () => {
+    const calls = window.__calls;
+    const seen = [];
+    for (const from of ['auto', 'vulkan', 'd3d12', 'opengl']) {
+      window.__testPath = from;
+      calls.length = 0;
+      await window.__kaku.Chat.gpuSwap('Qwen2.5-3B-Instruct-q4f16_1-MLC');
+      seen.push([from, calls[0]]);
+    }
+    return { seen, held: localStorage.getItem('kaku-model-after-restart') };
+  });
+  assert.deepStrictEqual(route.seen,
+    [['auto', 'vulkan'], ['vulkan', 'd3d12'], ['d3d12', 'opengl'], ['opengl', 'auto']]);
+  ok('each try moves to the next way of reaching the card, and comes back round');
+  assert.strictEqual(route.held, 'Qwen2.5-3B-Instruct-q4f16_1-MLC');
+  ok('and the model being attempted is held across the restart');
+
   // the key still guards everything that is not the runtime
   const r = await fetch(url.split('?')[0] + '/kaku-progress.json');
   assert.ok(r.status === 403 || r.status === 404);

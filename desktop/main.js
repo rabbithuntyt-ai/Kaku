@@ -19,6 +19,7 @@ app.commandLine.appendSwitch('enable-dawn-features', 'allow_unsafe_apis');
 // and on a laptop, ask for the real graphics card rather than the power-saving chip
 app.commandLine.appendSwitch('force_high_performance_gpu');
 
+
 // If a folder called "data" sits next to the program, everything lives there and the
 // whole app folder can be moved, copied or carried on a stick. Otherwise it uses the
 // normal per-user location, which survives re-downloading the app.
@@ -48,6 +49,16 @@ function readSettings() {
 function writeSettings(s) {
   try { fs.writeFileSync(SETTINGS_FILE(), JSON.stringify(s), 'utf8'); } catch (e) {}
 }
+
+// Chromium can talk to the graphics card more than one way, and they are not equally capable
+// on the same hardware. Intel's Vulkan driver reports half-precision maths where its Direct3D
+// one often does not, and the two compile shaders with completely different compilers, so a
+// shader that hangs on one can build on the other. Changing it means restarting, so the choice
+// is remembered. This has to run before the app is ready, which it does — the file is read
+// at load, not at window time.
+const GPU_PATHS = { auto: '', vulkan: 'vulkan', d3d12: 'd3d12', opengl: 'opengles' };
+const GPU_PATH = (() => { try { return readSettings().gpu || 'auto'; } catch (e) { return 'auto'; } })();
+if (GPU_PATHS[GPU_PATH]) app.commandLine.appendSwitch('use-webgpu-adapter', GPU_PATHS[GPU_PATH]);
 
 // where progress lives: the app folder by default, or any folder the user picks
 // (a OneDrive or Dropbox folder makes two computers share one file)
@@ -442,5 +453,16 @@ ipcMain.handle('kaku:pageFor', guard(async (e, how) => {
   }
   return { ok: true, reloaded: false };
 }));
+
+// the page asks for a different route to the graphics card, which only a restart can change
+ipcMain.handle('kaku:gpuPath', guard((e, which) => {
+  if (!Object.prototype.hasOwnProperty.call(GPU_PATHS, which)) return { ok: false };
+  if (which === GPU_PATH) return { ok: true, already: true, path: GPU_PATH };
+  writeSettings({ ...readSettings(), gpu: which });
+  app.relaunch();
+  app.exit(0);
+  return { ok: true };
+}));
+ipcMain.handle('kaku:gpuNow', guard(() => ({ path: GPU_PATH, paths: Object.keys(GPU_PATHS) })));
 
 ipcMain.handle('kaku:openWeb', guard(() => { shell.openExternal(WEB_VERSION); return true; }));
