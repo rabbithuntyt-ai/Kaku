@@ -4200,9 +4200,10 @@ const BRAIN_MODELS = [
 const Brain = {
   engine: null, model: null, state: 'cold', progress: 0, note: '', lib: null,
   // where the runtime comes from: beside the app when it was shipped with one
+  // the leading ./ is not decoration: a bare name is an import-map specifier and will not resolve
   libUrl() {
-    if (window.KAKU_LAN || native) return 'webllm.js';
-    if (location.protocol === 'http:' || location.protocol === 'https:') return 'webllm.js';
+    if (window.KAKU_LAN || native) return './webllm.js';
+    if (location.protocol === 'http:' || location.protocol === 'https:') return './webllm.js';
     return 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.79/+esm';
   },
   // a model needs a graphics card it is allowed to use, and a page the browser trusts
