@@ -465,4 +465,14 @@ ipcMain.handle('kaku:gpuPath', guard((e, which) => {
 }));
 ipcMain.handle('kaku:gpuNow', guard(() => ({ path: GPU_PATH, paths: Object.keys(GPU_PATHS) })));
 
+// Electron has no speech recognition: it is Chromium without the service behind it. The same
+// page in a real browser does, and because that page is served from here it reads and writes
+// this same progress file — so it is the one Kaku, not a second copy to keep in step.
+ipcMain.handle('kaku:openHere', guard(async () => {
+  const url = await localPage();
+  if (!url) return { ok: false };
+  await shell.openExternal(url);
+  return { ok: true };
+}));
+
 ipcMain.handle('kaku:openWeb', guard(() => { shell.openExternal(WEB_VERSION); return true; }));

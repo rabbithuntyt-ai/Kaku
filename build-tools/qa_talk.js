@@ -186,6 +186,55 @@ const say = async (page, text) => {
     await ctx.close();
   }
 
+  // ---- a window that accepts the microphone and then does nothing with it ------
+  // This is the desktop app's shape: start() works, nothing listens, it ends at once with no
+  // result and no error. Telling someone to speak up is the one thing that cannot help.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 430, height: 940 } });
+    await ctx.route(/fonts\.(googleapis|gstatic)/, r => r.abort());
+    await ctx.addInitScript(() => {
+      window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+      const ss = window.speechSynthesis;
+      ss.getVoices = () => [{ name: 'Kyoko', lang: 'ja-JP' }];
+      ss.cancel = () => {}; ss.speak = () => {};
+      window.SpeechRecognition = class {
+        start() { setTimeout(() => this.onend && this.onend(), 5); }
+        stop() {} abort() {}
+      };
+      window.__opened = 0;
+      window.kakuNative = {
+        load: async () => null, save: async () => true, info: async () => ({}),
+        openHere: async () => { window.__opened++; return { ok: true }; },
+        onMenu: () => {}
+      };
+    });
+    const page = await ctx.newPage();
+    const errs = [];
+    page.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
+    await page.goto('file://' + __dirname + '/test.html', { waitUntil: 'load' });
+    await page.click('#talkBtn');
+    await page.waitForTimeout(150);
+    await page.click('[data-scene="0"] .lrow-mid');
+    await page.waitForTimeout(150);
+    await page.click('#tStart button[data-primary]');
+    await page.waitForTimeout(250);
+    await page.click('#tMic');
+    await page.waitForTimeout(250);
+    const msg = await page.textContent('#tMsg');
+    ok(!/did not catch|did not hear|a little closer/.test(msg),
+      'it does not blame you for mumbling when nothing was listening');
+    ok(/cannot use the microphone|missing the piece/.test(msg), 'it says the window itself cannot listen');
+    ok(await page.evaluate(() => document.getElementById('tMic').hidden), 'and puts the dead button away');
+    const labels = await page.$$eval('#tActions button', (b) => b.map((x) => x.textContent));
+    ok(labels.some((l) => /browser/i.test(l)), 'it offers the browser, which can listen');
+    ok(labels.some((l) => /Type/i.test(l)), 'and typing, for anyone who would rather');
+    await page.click('#tActions button[data-primary]');
+    await page.waitForTimeout(150);
+    ok(await page.evaluate(() => window.__opened) === 1, 'and that button opens the served page');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);

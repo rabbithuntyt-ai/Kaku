@@ -3426,6 +3426,26 @@ function judge(said, turn) {
            dist: best.dist, score: best.score };
 }
 
+// Said once, in both places that listen. The desktop app cannot do speech recognition at all —
+// it is Chromium without the service behind it — but the very same page, opened in a real
+// browser, can. It is served from this computer and shares this progress file, so going there
+// is not starting again somewhere else; it is the same Kaku with a working microphone.
+function noListening(view, actionsId) {
+  const browser = native && native.openHere;
+  view.msg('This window cannot use the microphone. The desktop app is missing the piece of ' +
+    'Chrome that turns speech into words — it is not your microphone, and nothing you say will ' +
+    'reach it.' + (browser ? ' The same Kaku opened in your browser can listen, and keeps the ' +
+    'same progress.' : ' Type your answer instead.'), 'bad');
+  const acts = [{ label: 'Type it instead', primary: !browser, act: () => view.typeIt() }];
+  if (browser) acts.unshift({ label: 'Open Kaku in my browser', primary: true, act: () => {
+    native.openHere().then((r) => {
+      if (!r || !r.ok) view.msg('Could not open a browser from here.', 'bad');
+      else view.msg('Opened. Use the microphone there — this window keeps the same progress.', 'good');
+    }).catch(() => {});
+  } });
+  setActions($(actionsId), acts);
+}
+
 const Listen = {
   SR: typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null,
   rec: null, live: false, denied: false,
@@ -3450,9 +3470,24 @@ const Listen = {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') this.denied = true;
       on.fail(e.error || 'error');
     };
-    rec.onend = () => { this.live = false; this.rec = null; on.done(heard); };
-    try { rec.start(); this.rec = rec; this.live = true; on.started(); } catch (e) { on.fail('start'); }
+    // The desktop app is Chromium without the speech service Chromium normally talks to, so
+    // starting works, nothing listens, and it ends at once with no result and no error. That
+    // is not someone mumbling, and saying "I did not catch that" sends them to say it louder.
+    let began = 0, errored = false;
+    const was = rec.onerror;
+    rec.onerror = (e) => { errored = true; was(e); };
+    rec.onend = () => {
+      this.live = false; this.rec = null;
+      if (!heard.length && !errored && Date.now() - began < 500) {
+        this.mute = true;
+        return on.fail('no-service');
+      }
+      on.done(heard);
+    };
+    try { began = Date.now(); rec.start(); this.rec = rec; this.live = true; on.started(); }
+    catch (e) { on.fail('start'); }
   },
+  mute: false,
   stop() { try { if (this.rec) this.rec.stop(); } catch (e) {} }
 };
 
@@ -3782,7 +3817,8 @@ const Talk = {
           mic.hidden = true;
           this.msg('This device will not let the page use the microphone. Type your answer instead.');
           this.typeIt();
-        } else if (why === 'no-speech') this.msg('I did not hear anything that time.');
+        } else if (why === 'no-service') { mic.hidden = true; noListening(this, 'tActions'); }
+        else if (why === 'no-speech') this.msg('I did not hear anything that time.');
         else if (why === 'network') this.msg('Listening needs a connection on this browser. Type it instead for now.');
         else this.msg('The microphone stopped. Try again, or type it.');
       }
@@ -4888,7 +4924,8 @@ const Chat = {
       },
       fail: (why) => {
         Partner.listening = false; mic.classList.remove('live'); $('cMicLabel').textContent = 'Tap and say it';
-        if (why === 'not-allowed' || why === 'service-not-allowed') { mic.hidden = true; this.msg('This device will not let the page listen. Type instead.'); this.typeIt(); }
+        if (why === 'no-service') { mic.hidden = true; noListening(this, 'cActions'); }
+        else if (why === 'not-allowed' || why === 'service-not-allowed') { mic.hidden = true; this.msg('This device will not let the page listen. Type instead.'); this.typeIt(); }
         else if (why === 'network') this.msg('Listening needs a connection on this browser. Type it instead.');
         else this.msg('I did not catch that.');
       }

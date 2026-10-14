@@ -15,5 +15,7 @@ contextBridge.exposeInMainWorld('kakuNative', {
   // a different route to the graphics card, which takes a restart
   gpuPath: (which) => ipcRenderer.invoke('kaku:gpuPath', which),
   gpuNow: () => ipcRenderer.invoke('kaku:gpuNow'),
+  // the same served page in a real browser, which can listen where this window cannot
+  openHere: () => ipcRenderer.invoke('kaku:openHere'),
   onMenu: (fn) => ipcRenderer.on('menu', (e, action) => fn(action))
 });
