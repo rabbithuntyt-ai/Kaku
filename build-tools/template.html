@@ -4274,11 +4274,13 @@ const Brain = {
       // A model reserves room for 4096 tokens of conversation by default. These exchanges are
       // a handful of short lines, and that reserved room is video memory a shared graphics chip
       // does not have going spare — it is where a load gets to the last shader and stops.
-      // the bigger the model, the more each reserved token costs, so the big one gets least
-      const room = /-3B-/.test(this.model) ? 512 : 1024;
+      // Room reserved for the conversation is room the card cannot use for anything else. On a
+      // shared chip there is none to spare, so it gets the smallest that still holds an exchange.
+      const tight = this.card && this.card.f16 === false;
+      const room = tight || /-3B-/.test(this.model) ? 512 : 1024;
       try {
         this.engine = await this.lib.CreateMLCEngine(this.model, cfg, {
-          context_window_size: room, prefill_chunk_size: 256
+          context_window_size: room, prefill_chunk_size: tight ? 128 : 256
         });
       } catch (e) {
         this.note = String((e && e.message) || e).slice(0, 120);
@@ -4736,17 +4738,36 @@ const Chat = {
     // them apart, so the screen reports how long it has sat still and lets you decide.
     let beat = Date.now(), step = '', pct = 0, warned = false;
     const held = () => Math.round((Date.now() - beat) / 1000);
-    const draw = () => {
-      const s = held();
-      this.msg('Downloading the model \u2014 ' + pct + '%' + (step ? ' \u00b7 ' + step : '') +
-        (s >= 12 ? ' \u2014 no movement for ' + s + 's' : ''), s >= 40 ? 'bad' : '');
+    // which route to the card, which build of the model: both have been guessed at long enough
+    const where = () => {
+      const c = Brain.card || {};
+      const route = { auto: 'usual route', vulkan: 'Vulkan', d3d12: 'Direct3D 12', opengl: 'OpenGL' }[this.gpuNow];
+      return [route, c.f16 === undefined ? '' : c.f16 ? 'half-precision' : 'plain build']
+        .filter(Boolean).join(', ');
     };
+    let patience = 150;
+    const draw = () => {
+      if (warned) return;             // the warning stays put until something actually moves
+      const s = held(), w = where();
+      this.msg('Loading the model \u2014 ' + pct + '%' + (step ? ' \u00b7 ' + step : '') +
+        (w ? ' \u00b7 ' + w : '') +
+        (s >= 20 ? ' \u2014 still on this step, ' + s + 's' : ''), '');
+    };
+    // Compiling shaders the first time is slow on a shared chip \u2014 minutes, not seconds \u2014 and
+    // Chromium keeps the result, so a second run is quick. Waiting is usually the right answer,
+    // and the old forty-second alarm was talking people out of it.
     const watch = setInterval(() => {
       draw();
-      if (warned || held() < 40) return;
+      if (warned || held() < patience) return;
       warned = true;
+      this.msg('Still on the same step after ' + held() + ' seconds, at ' + pct + '%' +
+        (where() ? ' (' + where() + ')' : '') + '. On a shared graphics chip the first build of ' +
+        'these shaders can take ten or fifteen minutes, and the result is kept afterwards, so ' +
+        'the usual answer is to leave it alone. Changing anything starts the compiling over.', 'bad');
       setActions($('cActions'), [
-        { label: 'Keep waiting', primary: true, act: () => { warned = false; setActions($('cActions'), []); } },
+        { label: 'Leave it running', primary: true, act: () => {
+          warned = false; patience = held() + 600; setActions($('cActions'), []); draw();
+        } },
         { label: 'Try the other graphics route', act: () => this.gpuSwap(id) },
         { label: 'Start over with the tiny one', act: () => {
           try { sessionStorage.setItem('kaku-model', BRAIN_MODELS[BRAIN_MODELS.length - 1].id); } catch (e) {}
@@ -4763,7 +4784,7 @@ const Chat = {
     try {
       ok = await Brain.load(id, (text, p) => {
         beat = Date.now();
-        if (warned) { warned = false; setActions($('cActions'), []); }
+        if (warned) { warned = false; patience = 150; setActions($('cActions'), []); }
         step = String(text || '').slice(0, 70);
         pct = Math.round((p || 0) * 100);
         draw();
