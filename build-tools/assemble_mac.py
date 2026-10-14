@@ -12,7 +12,7 @@ ROOT = '/home/claude/kaku'
 APP = os.path.join(ROOT, 'desktop')
 APP_ID = 'ca.stokoe.kaku'
 KEEP_LPROJ = {'en.lproj', 'en_GB.lproj'}
-FILES = ['main.js', 'preload.js', 'store.js', 'sync-server.js', 'certs.js', 'cert-store.js', 'sw.js', 'webllm.js', 'WEBLLM-LICENSE.txt', 'merge.js', 'app.html']
+FILES = ['main.js', 'preload.js', 'store.js', 'sync-server.js', 'certs.js', 'cert-store.js', 'sw.js', 'webllm.js', 'WEBLLM-LICENSE.txt', 'asr.js', 'ort-wasm-simd-threaded.jsep.mjs', 'ort-wasm-simd-threaded.jsep.wasm', 'ASR-LICENSE.txt', 'merge.js', 'app.html']
 
 
 def icns(png_path, out_path):

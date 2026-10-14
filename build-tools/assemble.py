@@ -18,7 +18,7 @@ def build(platform, out_dir):
     # the app itself goes where Electron looks for it
     app_dir = os.path.join(out_dir, 'resources', 'app')
     os.makedirs(app_dir)
-    for name in ['main.js', 'preload.js', 'store.js', 'sync-server.js', 'certs.js', 'cert-store.js', 'sw.js', 'webllm.js', 'WEBLLM-LICENSE.txt', 'merge.js', 'app.html']:
+    for name in ['main.js', 'preload.js', 'store.js', 'sync-server.js', 'certs.js', 'cert-store.js', 'sw.js', 'webllm.js', 'WEBLLM-LICENSE.txt', 'asr.js', 'ort-wasm-simd-threaded.jsep.mjs', 'ort-wasm-simd-threaded.jsep.wasm', 'ASR-LICENSE.txt', 'merge.js', 'app.html']:
         shutil.copy(os.path.join(APP, name), app_dir)
     shutil.copytree(os.path.join(APP, 'fonts'), os.path.join(app_dir, 'fonts'))
     os.makedirs(os.path.join(app_dir, 'build'))

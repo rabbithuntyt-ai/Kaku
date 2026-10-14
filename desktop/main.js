@@ -96,6 +96,20 @@ function createWindow() {
     }
   });
 
+  // The microphone, and only the microphone, and only for Kaku's own page. Everything else a
+  // page might ask the computer for — camera, location, notifications — is refused outright.
+  win.webContents.session.setPermissionRequestHandler((contents, permission, done) => {
+    const from = contents.getURL();
+    const mine = from.startsWith('file://') || (pageOrigin && from.startsWith(pageOrigin));
+    done(!!mine && (permission === 'media' || permission === 'audioCapture'));
+  });
+  if (win.webContents.session.setPermissionCheckHandler) {
+    win.webContents.session.setPermissionCheckHandler((contents, permission, origin) => {
+      const mine = !origin || origin.startsWith('file://') || (pageOrigin && origin.startsWith(pageOrigin));
+      return !!mine && (permission === 'media' || permission === 'audioCapture');
+    });
+  }
+
   if (hosted) {
     win.loadURL(WEB_VERSION);
     win.webContents.on('did-fail-load', (e, code, desc, url, isMain) => {

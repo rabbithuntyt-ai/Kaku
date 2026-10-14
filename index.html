@@ -3440,27 +3440,146 @@ function judge(said, turn) {
 // it is Chromium without the service behind it — but the very same page, opened in a real
 // browser, can. It is served from this computer and shares this progress file, so going there
 // is not starting again somewhere else; it is the same Kaku with a working microphone.
+// Said once, in both places that listen. This window has no speech service of its own, so the
+// offer is to put one in it: a listening model that runs here, fetched once and then kept.
 function noListening(view, actionsId) {
-  const browser = native && native.openHere;
-  view.msg('This window cannot use the microphone. The desktop app is missing the piece of ' +
-    'Chrome that turns speech into words — it is not your microphone, and nothing you say will ' +
-    'reach it.' + (browser ? ' The same Kaku opened in your browser can listen, and keeps the ' +
-    'same progress.' : ' Type your answer instead.'), 'bad');
-  const acts = [{ label: 'Type it instead', primary: !browser, act: () => view.typeIt() }];
-  if (browser) acts.unshift({ label: 'Open Kaku in my browser', primary: true, act: () => {
+  if (Ears.ready()) return;                       // already handled; nothing to offer
+  view.msg('This window has no way of its own to turn speech into words — that part of ' +
+    'Chrome is not in the desktop app. Kaku can do the listening itself instead: a model that ' +
+    'runs on this machine, fetched once, then yours offline. ' +
+    EAR_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.', 'bad');
+  const acts = EAR_MODELS.map((m, i) => ({
+    label: 'Get the ' + m.name.toLowerCase() + ' listener', primary: i === 0,
+    act: () => earsLoad(view, actionsId, m.id)
+  }));
+  acts.push({ label: 'Type it instead', act: () => view.typeIt() });
+  if (native && native.openHere) acts.push({ label: 'Open Kaku in my browser', act: () => {
     native.openHere().then((r) => {
       if (!r || !r.ok) view.msg('Could not open a browser from here.', 'bad');
-      else view.msg('Opened. Use the microphone there — this window keeps the same progress.', 'good');
+      else view.msg('Opened. The microphone works there, on the same progress.', 'good');
     }).catch(() => {});
   } });
   setActions($(actionsId), acts);
 }
 
+function earsLoad(view, actionsId, id) {
+  setActions($(actionsId), []);
+  view.msg('Fetching the listening model. It only happens once.');
+  Ears.load(id, (file, pct) => {
+    view.msg('Fetching the listener — ' + pct + '%' + (file ? ' · ' + file.slice(-28) : ''));
+  }).then((ok) => {
+    if (!ok) {
+      view.msg(Ears.note || 'The listener did not load.', 'bad');
+      return setActions($(actionsId), [
+        { label: 'Try again', primary: true, act: () => earsLoad(view, actionsId, id) },
+        { label: 'Type it instead', act: () => view.typeIt() }
+      ]);
+    }
+    const mic = $(actionsId === 'tActions' ? 'tMic' : 'cMic');
+    if (mic) mic.hidden = false;
+    view.msg('Ready. Tap the microphone and say it.', 'good');
+    setActions($(actionsId), []);
+  });
+}
+
+// Listening done here, on this machine, for the window that has no speech service of its own.
+// It records what you say, resamples it to what the model expects, and runs Whisper over it —
+// no account, no key, nothing sent anywhere. The model is fetched once and then kept.
+const EAR_MODELS = [
+  { id: 'onnx-community/whisper-base', name: 'Base', about: 'about 80 MB, better with Japanese' },
+  { id: 'onnx-community/whisper-tiny', name: 'Tiny', about: 'about 40 MB, quicker but rougher' }
+];
+const Ears = {
+  lib: null, pipe: null, state: 'cold', note: '', model: '',
+  stream: null, rec: null, chunks: [],
+  libUrl() {
+    if (window.KAKU_LAN || native) return './asr.js';
+    return 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1';
+  },
+  ready() { return this.state === 'warm' && !!this.pipe; },
+  async load(modelId, onStep) {
+    if (this.state === 'loading') { this.note = 'It is already loading.'; return false; }
+    this.state = 'loading'; this.note = '';
+    try {
+      if (!this.lib) this.lib = await import(/* webpackIgnore: true */ this.libUrl());
+      const env = this.lib.env;
+      // the runtime's own wasm sits beside the app; without this it reaches for a CDN
+      if (window.KAKU_LAN || native) {
+        env.backends.onnx.wasm.wasmPaths = location.origin + '/';
+        env.backends.onnx.wasm.numThreads = 1;
+      }
+      env.allowLocalModels = false;
+      this.model = modelId || EAR_MODELS[0].id;
+      this.pipe = await this.lib.pipeline('automatic-speech-recognition', this.model, {
+        dtype: { encoder_model: 'q8', decoder_model_merged: 'q8' },
+        device: 'wasm',
+        progress_callback: (p) => {
+          if (!onStep) return;
+          const pct = p && typeof p.progress === 'number' ? Math.round(p.progress) : 0;
+          onStep(p && p.file ? String(p.file) : '', pct);
+        }
+      });
+      this.state = 'warm';
+      return true;
+    } catch (e) {
+      this.state = 'failed';
+      this.note = String((e && e.message) || e).slice(0, 180);
+      return false;
+    }
+  },
+  // Recording, then decoding, rather than listening live: a short turn is a couple of seconds
+  // and decoding the whole of it at once is both simpler and more accurate than a running guess.
+  async record() {
+    if (!this.stream) {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }
+      });
+    }
+    this.chunks = [];
+    const rec = new MediaRecorder(this.stream);
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) this.chunks.push(e.data); };
+    rec.start();
+    this.rec = rec;
+  },
+  stopRecording() {
+    return new Promise((done) => {
+      const rec = this.rec;
+      if (!rec || rec.state === 'inactive') return done(null);
+      rec.onstop = () => { this.rec = null; done(new Blob(this.chunks, { type: rec.mimeType })); };
+      try { rec.stop(); } catch (e) { this.rec = null; done(null); }
+    });
+  },
+  // Whisper wants one channel of 16 kHz samples; the browser decodes and resamples both at once
+  async samples(blob) {
+    const buf = await blob.arrayBuffer();
+    const ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 16000);
+    try {
+      const audio = await ctx.decodeAudioData(buf);
+      return audio.getChannelData(0);
+    } catch (e) {
+      return new Float32Array(0);     // nothing usable recorded; the same as hearing nothing
+    }
+  },
+  async hear(blob) {
+    const pcm = await this.samples(blob);
+    if (!pcm || pcm.length < 1600) return '';          // under a tenth of a second is a slip
+    const out = await this.pipe(pcm, { language: 'japanese', task: 'transcribe' });
+    return String((out && out.text) || '').trim();
+  },
+  release() {
+    try { if (this.stream) this.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    this.stream = null;
+  }
+};
+
 const Listen = {
   SR: typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null,
   rec: null, live: false, denied: false,
-  get ok() { return !!this.SR; },
+  get ok() { return !!this.SR || Ears.ready(); },
   start(on) {
+    // once a listener of our own is loaded it answers instead, in this window and any other
+    // where the browser's service turned out not to be there
+    if (Ears.ready()) return this.startEars(on);
     if (!this.ok || this.live) return;
     let rec;
     try { rec = new this.SR(); } catch (e) { return on.fail('start'); }
@@ -3498,7 +3617,35 @@ const Listen = {
     catch (e) { on.fail('start'); }
   },
   mute: false,
-  stop() { try { if (this.rec) this.rec.stop(); } catch (e) {} }
+  stop() {
+    if (this.onEars) return this.stopEars();
+    try { if (this.rec) this.rec.stop(); } catch (e) {}
+  },
+  // the same four callbacks, served by the model on this machine rather than by the browser
+  onEars: null,
+  async startEars(on) {
+    if (this.live) return;
+    try { await Ears.record(); } catch (e) {
+      return on.fail(/denied|NotAllowed/i.test(String(e && e.name)) ? 'not-allowed' : 'start');
+    }
+    this.live = true; this.onEars = on; on.started();
+  },
+  async stopEars() {
+    const on = this.onEars;
+    this.onEars = null; this.live = false;
+    if (!on) return;
+    let blob = null;
+    try { blob = await Ears.stopRecording(); } catch (e) {}
+    Ears.release();                   // give the microphone back rather than holding it open
+    if (!blob || !blob.size) return on.done([]);
+    if (on.working) on.working();
+    try {
+      const text = await Ears.hear(blob);
+      on.done(text ? [text] : []);
+    } catch (e) {
+      on.fail('heard-badly');
+    }
+  }
 };
 
 // ---------------------------------------------------------------- what counts as taught
@@ -3812,6 +3959,7 @@ const Talk = {
         this.msg('');
       },
       partial: (text) => { $('tMicLabel').textContent = text ? text.slice(-28) : 'Listening…'; },
+      working: () => { $('tMicLabel').textContent = 'Working out what you said…'; },
       done: (heard) => {
         this.listening = false;
         mic.classList.remove('live');
@@ -3828,6 +3976,7 @@ const Talk = {
           this.msg('This device will not let the page use the microphone. Type your answer instead.');
           this.typeIt();
         } else if (why === 'no-service') { mic.hidden = true; noListening(this, 'tActions'); }
+        else if (why === 'heard-badly') this.msg('The listener could not make that out. Try again, or type it.');
         else if (why === 'no-speech') this.msg('I did not hear anything that time.');
         else if (why === 'network') this.msg('Listening needs a connection on this browser. Type it instead for now.');
         else this.msg('The microphone stopped. Try again, or type it.');
@@ -4927,6 +5076,7 @@ const Chat = {
     Listen.start({
       started: () => { Partner.listening = true; mic.classList.add('live'); $('cMicLabel').textContent = 'Listening — tap when done'; this.msg(''); },
       partial: (t) => { $('cMicLabel').textContent = t ? t.slice(-28) : 'Listening…'; },
+      working: () => { $('cMicLabel').textContent = 'Working out what you said…'; },
       done: (heard) => {
         Partner.listening = false; mic.classList.remove('live'); $('cMicLabel').textContent = 'Tap and say it';
         if (heard.length) this.said(heard[0]);
@@ -4936,6 +5086,7 @@ const Chat = {
         Partner.listening = false; mic.classList.remove('live'); $('cMicLabel').textContent = 'Tap and say it';
         if (why === 'no-service') { mic.hidden = true; noListening(this, 'cActions'); }
         else if (why === 'not-allowed' || why === 'service-not-allowed') { mic.hidden = true; this.msg('This device will not let the page listen. Type instead.'); this.typeIt(); }
+        else if (why === 'heard-badly') this.msg('The listener could not make that out. Try again, or type it.');
         else if (why === 'network') this.msg('Listening needs a connection on this browser. Type it instead.');
         else this.msg('I did not catch that.');
       }
@@ -5324,7 +5475,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

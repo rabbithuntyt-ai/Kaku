@@ -26,9 +26,16 @@ const MAX_BODY = 8 * 1024 * 1024;
 // these hold nothing personal, and a browser asks for them on its own without a key.
 // webllm.js is here because an `import` carries no query string: the page has the key,
 // the module request it makes does not, so requiring one would refuse the runtime.
-const OPEN = new Set(['/sw.js', '/manifest.webmanifest', '/offline', '/kaku.mobileconfig', '/kaku-ca.crt', '/webllm.js']);
-// the only other program file ever served: the runtime the on-device model needs
-const BY_NAME = { '/webllm.js': 'webllm.js' };
+const OPEN = new Set(['/sw.js', '/manifest.webmanifest', '/offline', '/kaku.mobileconfig', '/kaku-ca.crt',
+  '/webllm.js', '/asr.js', '/ort-wasm-simd-threaded.jsep.mjs', '/ort-wasm-simd-threaded.jsep.wasm']);
+// the only other program files ever served: the runtimes the on-device model and the
+// on-device listening need. Public library code, no progress, nothing personal.
+const BY_NAME = {
+  '/webllm.js': 'webllm.js',
+  '/asr.js': 'asr.js',
+  '/ort-wasm-simd-threaded.jsep.mjs': 'ort-wasm-simd-threaded.jsep.mjs',
+  '/ort-wasm-simd-threaded.jsep.wasm': 'ort-wasm-simd-threaded.jsep.wasm'
+};
 
 // the address a phone on the same Wi-Fi can reach
 function lanAddress() {
@@ -207,7 +214,9 @@ class SyncServer {
       let file;
       try { file = fs.readFileSync(path.join(this.appDir, BY_NAME[url.pathname])); }
       catch (e) { return send(404, 'not found'); }
-      return send(200, file, JS, 'public, max-age=2592000');
+      // a .wasm served as JavaScript is refused by the browser before it ever runs
+      const type = url.pathname.endsWith('.wasm') ? 'application/wasm' : JS;
+      return send(200, file, type, 'public, max-age=2592000');
     }
     if (url.pathname === '/sw.js') {
       let sw;
