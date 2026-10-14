@@ -3434,12 +3434,12 @@ function judge(said, turn) {
 // offer is to put one in it: a listening model that runs here, fetched once and then kept.
 function noListening(view, actionsId) {
   if (Ears.ready()) return;                       // already handled; nothing to offer
-  view.msg('This window has no way of its own to turn speech into words — that part of ' +
-    'Chrome is not in the desktop app. Kaku can do the listening itself instead: a model that ' +
-    'runs on this machine, fetched once, then yours offline. ' +
-    EAR_MODELS.map(m => m.name + ': ' + m.about).join('. ') + '.', 'bad');
+  // Short, because the buttons under it are the answer and a paragraph of red pushes them off
+  // the screen — which reads as a dead end rather than a choice.
+  view.msg('This window cannot turn speech into words by itself. Kaku can do the listening ' +
+    'here instead — fetched once, then yours offline.');
   const acts = EAR_MODELS.map((m, i) => ({
-    label: 'Get the ' + m.name.toLowerCase() + ' listener', primary: i === 0,
+    label: m.name + ' listener · ' + m.about.replace(/^about /, ''), primary: i === 0,
     act: () => earsLoad(view, actionsId, m.id)
   }));
   acts.push({ label: 'Type it instead', act: () => view.typeIt() });
@@ -3450,6 +3450,17 @@ function noListening(view, actionsId) {
     }).catch(() => {});
   } });
   setActions($(actionsId), acts);
+  showActions(actionsId);
+}
+
+// A choice is no use below the fold. Whenever buttons replace something that was the way
+// forward, they are brought to where the eye already is.
+function showActions(actionsId) {
+  const host = $(actionsId);
+  if (!host || !host.scrollIntoView) return;
+  requestAnimationFrame(() => {
+    try { host.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { host.scrollIntoView(); }
+  });
 }
 
 function earsLoad(view, actionsId, id) {
@@ -3460,10 +3471,11 @@ function earsLoad(view, actionsId, id) {
   }).then((ok) => {
     if (!ok) {
       view.msg(Ears.note || 'The listener did not load.', 'bad');
-      return setActions($(actionsId), [
+      setActions($(actionsId), [
         { label: 'Try again', primary: true, act: () => earsLoad(view, actionsId, id) },
         { label: 'Type it instead', act: () => view.typeIt() }
       ]);
+      return showActions(actionsId);
     }
     const mic = $(actionsId === 'tActions' ? 'tMic' : 'cMic');
     if (mic) mic.hidden = false;
@@ -3496,7 +3508,10 @@ const Ears = {
       // the runtime's own wasm sits beside the app; without this it reaches for a CDN
       if (window.KAKU_LAN || native) {
         env.backends.onnx.wasm.wasmPaths = location.origin + '/';
-        env.backends.onnx.wasm.numThreads = 1;
+        // more than one core, where the browser will share memory between them
+        const threads = typeof SharedArrayBuffer === 'function'
+          ? Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1)) : 1;
+        env.backends.onnx.wasm.numThreads = threads;
       }
       env.allowLocalModels = false;
       this.model = modelId || EAR_MODELS[0].id;
@@ -4430,16 +4445,16 @@ const Brain = {
   // A card without half-precision maths is, in practice, a shared one borrowing system memory,
   // and it also has to run the larger plain build. Offering it the big model first wastes a
   // long download on a load that will not finish. Recommend what will.
-  best() {
-    const tiny = BRAIN_MODELS[BRAIN_MODELS.length - 1];
-    return (this.card && this.card.f16 === false) ? tiny.id : BRAIN_MODELS[0].id;
-  },
+  // The shared-graphics chips were being steered down to the tiny model because the shaders
+  // would not finish building — which was the compiler, not the chip. With that fixed they
+  // can take the better one like anything else, so nothing is talked out of it any more.
+  best() { return (BRAIN_MODELS.find(m => m.name === 'Better') || BRAIN_MODELS[0]).id; },
   whyBest() {
     if (!this.card || this.card.f16 !== false) return '';
     return 'Your graphics is shared rather than a card of its own' +
       (this.card.name ? ' (' + this.card.name + ')' : '') +
-      ', so the tiny one is the one that will actually finish loading here. ' +
-      'Its Japanese is rougher, and anything it gets wrong still gets caught before you see it.';
+      ', so the better one will take a few minutes to build the first time. It is kept ' +
+      'afterwards. The tiny one is there if you would rather not wait.';
   },
   ready() { return this.state === 'warm' && !!this.engine; },
   async load(modelId, onStep) {
@@ -4964,6 +4979,7 @@ const Chat = {
           if (native && native.pageFor) native.pageFor('off'); else this.open();
         } }
       ].filter(a => a.label !== 'Try the other graphics route' || (native && native.gpuPath)));
+      showActions('cActions');
     }, 2000);
     let ok = false;
     try {

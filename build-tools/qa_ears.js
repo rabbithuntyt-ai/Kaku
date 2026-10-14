@@ -124,7 +124,7 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   const msg = await page.textContent('#tMsg');
   assert.ok(!/did not catch|a little closer/.test(msg), 'got: ' + msg);
   ok('it does not tell you to speak up when nothing was listening');
-  assert.ok(/no way of its own|runs on this machine/.test(msg), 'got: ' + msg);
+  assert.ok(/cannot turn speech into words|listening here instead/.test(msg), 'got: ' + msg);
   ok('it offers to do the listening here instead');
   const labels = await page.$$eval('#tActions button', (b) => b.map((x) => x.textContent));
   assert.ok(labels.some((l) => /base listener/i.test(l)) && labels.some((l) => /tiny listener/i.test(l)),
@@ -132,6 +132,24 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
   ok('with both listeners to choose from, and their sizes said up front');
   assert.ok(labels.some((l) => /Type/i.test(l)));
   ok('and typing, for anyone who would rather');
+
+  // a choice below the fold is no choice: the buttons must be on screen, not merely in the page
+  const seen = await page.evaluate(() => {
+    const host = document.getElementById('tActions');
+    const b = host && host.querySelector('button');
+    if (!b) return { none: true };
+    const r = b.getBoundingClientRect();
+    return { top: r.top, bottom: r.bottom, h: window.innerHeight, height: r.height };
+  });
+  assert.ok(!seen.none, 'there should be buttons at all');
+  assert.ok(seen.height > 0, 'the buttons should be rendered');
+  assert.ok(seen.top >= 0 && seen.bottom <= seen.h + 1,
+    'buttons off screen: ' + JSON.stringify(seen));
+  ok('and they are on screen, not waiting below the fold');
+
+  // the message must not be so long that it buries them
+  assert.ok(msg.length < 220, 'the offer is ' + msg.length + ' characters: ' + msg);
+  ok('with a message short enough to leave room for them');
 
   // once a listener is loaded the microphone goes through it rather than the dead service
   const routed = await page.evaluate(async () => {

@@ -93,17 +93,25 @@ const ok = (m) => { passed++; console.log('  ok  ' + m); };
     B.card = before;
     return { shared, own };
   });
-  const tiny = await page.evaluate(() => window.__kaku.BRAIN_MODELS[window.__kaku.BRAIN_MODELS.length - 1].id);
-  const bigg = await page.evaluate(() => window.__kaku.BRAIN_MODELS[0].id);
-  assert.strictEqual(rec.shared.id, tiny, 'a shared chip should be offered the tiny model first');
-  ok('a shared graphics chip is pointed at the model it can actually finish');
-  assert.ok(rec.shared.why && /tiny/.test(rec.shared.why));
-  ok('and told why, rather than silently given a lesser one');
+  const better = await page.evaluate(() =>
+    window.__kaku.BRAIN_MODELS.find((m) => m.name === 'Better').id);
+  // The steering down to the tiny model was working around a compiler that hung, not a chip
+  // that could not cope. With that fixed, a shared chip gets the best model like anything else.
+  assert.strictEqual(rec.shared.id, better, 'a shared chip should still be offered the best model');
+  ok('a shared graphics chip is offered the better model, not talked down to a lesser one');
+  assert.ok(rec.shared.why && /few minutes|kept afterwards/.test(rec.shared.why), rec.shared.why);
+  ok('and told honestly that the first build will take a while');
   assert.ok(/q4f32/.test(rec.shared.build));
-  ok('in the build it can compile');
-  assert.strictEqual(rec.own.id, bigg);
+  ok('in the build its card can actually compile');
+  assert.strictEqual(rec.own.id, better);
   assert.strictEqual(rec.own.why, '');
-  ok('while a card of its own is still offered the best model, unremarked');
+  ok('while a card of its own gets the same model with nothing said');
+
+  // the compiler switch is the whole reason the above is safe to offer
+  const mainJs = require('fs').readFileSync('/home/claude/kaku/desktop/main.js', 'utf8');
+  assert.ok(/enable-dawn-features[^\n]*use_dxc/.test(mainJs),
+    'the app must ask for the modern shader compiler');
+  ok('and the app asks for the shader compiler that can build these in reasonable time');
 
   // the same card behaves differently down each route, so the offer must cycle through them
   // and hand the chosen model across the restart rather than landing back on the menu

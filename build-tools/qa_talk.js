@@ -223,7 +223,7 @@ const say = async (page, text) => {
     const msg = await page.textContent('#tMsg');
     ok(!/did not catch|did not hear|a little closer/.test(msg),
       'it does not blame you for mumbling when nothing was listening');
-    ok(/no way of its own|runs on this machine/.test(msg), 'it says the window itself cannot listen');
+    ok(/cannot turn speech into words|listening here instead/.test(msg), 'it says the window itself cannot listen');
     const labels = await page.$$eval('#tActions button', (b) => b.map((x) => x.textContent));
     ok(labels.some((l) => /listener/i.test(l)), 'it offers to do the listening here instead');
     ok(labels.some((l) => /Type/i.test(l)), 'and typing, for anyone who would rather');

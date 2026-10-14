@@ -15,7 +15,13 @@ const { mergeStates } = require('./merge');
 // does not fail — it stops partway and sits there, which looks exactly like a hung app.
 // These have to be set before the app is ready, so they go here rather than in a function.
 app.commandLine.appendSwitch('enable-unsafe-webgpu');
-app.commandLine.appendSwitch('enable-dawn-features', 'allow_unsafe_apis');
+// use_dxc is the one that matters on Windows. Without it the shaders are built by FXC, the
+// legacy HLSL compiler, which on something the size of a language model's kernels can take
+// a quarter of an hour or simply never come back — which is what reaching module 73 of 74
+// and stopping dead looks like. DXC is the modern compiler and builds the same work quickly.
+app.commandLine.appendSwitch('enable-dawn-features', 'allow_unsafe_apis,use_dxc');
+// lets the listening model use more than one core; harmless where it is unavailable
+app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
 // and on a laptop, ask for the real graphics card rather than the power-saving chip
 app.commandLine.appendSwitch('force_high_performance_gpu');
 
@@ -57,7 +63,18 @@ function writeSettings(s) {
 // is remembered. This has to run before the app is ready, which it does — the file is read
 // at load, not at window time.
 const GPU_PATHS = { auto: '', vulkan: 'vulkan', d3d12: 'd3d12', opengl: 'opengles' };
-const GPU_PATH = (() => { try { return readSettings().gpu || 'auto'; } catch (e) { return 'auto'; } })();
+// A route chosen to escape the FXC hang was chosen against a problem that no longer exists,
+// and DXC only applies to the Direct3D one — so a route picked before this is cleared once,
+// putting everyone back where the fix can reach them. Chosen again afterwards, it stays.
+const GPU_GEN = 2;
+const GPU_PATH = (() => {
+  try {
+    const s = readSettings();
+    if (s.gpu && s.gpuGen !== GPU_GEN) { writeSettings({ ...s, gpu: 'auto', gpuGen: GPU_GEN }); return 'auto'; }
+    if (s.gpuGen !== GPU_GEN) writeSettings({ ...s, gpuGen: GPU_GEN });
+    return s.gpu || 'auto';
+  } catch (e) { return 'auto'; }
+})();
 if (GPU_PATHS[GPU_PATH]) app.commandLine.appendSwitch('use-webgpu-adapter', GPU_PATHS[GPU_PATH]);
 
 // where progress lives: the app folder by default, or any folder the user picks
