@@ -78,7 +78,7 @@ def forms_for(lessons, upto, extra):
     for les in lessons:
         if int(les['id']) > upto:
             continue
-        for w, r, m in les['vocab']:
+        for w, r, m in (row[:3] for row in les['vocab']):
             for word in {w, r}:
                 if word:
                     forms |= adj_forms(word) | verb_forms(word)
@@ -148,7 +148,7 @@ def check(lessons, scenes):
 
 def check_teaches(lessons, scenes):
     """Every word a turn says it drills has to be a real entry, or grading goes nowhere."""
-    known = {w for les in lessons for w, r, m in les['vocab']}
+    known = {row[0] for les in lessons for row in les['vocab']}
     return [f"L{s['lesson']} turn {i + 1}: teaches '{w}', which is not a word in any lesson"
             for s in scenes for i, t in enumerate(s['turns']) for w in t.get('teaches', []) if w not in known]
 

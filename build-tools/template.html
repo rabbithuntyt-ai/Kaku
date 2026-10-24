@@ -319,6 +319,69 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .sub { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
 .msg { min-height: 2.9em; margin: 2px 0 6px; font-size: 15px; line-height: 1.45; color: var(--muted); }
 .msg.bad { color: var(--red); }
+.streak { margin: 2px 0 8px; font-size: 13px; color: var(--red); font-weight: 600; }
+.gain { margin-top: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; color: var(--muted);
+        background: color-mix(in srgb, var(--trace) 30%, transparent); }
+.gain.big { color: var(--ink); font-weight: 600; border: 1px solid var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); }
+
+
+/* ---- the midterm, the grid and the verbs ---- */
+.exam-tile { border-color: var(--red); }
+.t-when { font-weight: 400; font-size: 13px; color: var(--muted); margin-left: 6px; }
+.ready { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 4px; }
+.ready-big { flex: 1 1 140px; border: 1px solid var(--trace); border-radius: 12px; padding: 12px 14px; }
+.ready-big.alt { background: color-mix(in srgb, var(--trace) 22%, transparent); }
+.ready-n { display: block; font-size: 30px; font-weight: 650; color: var(--ink); line-height: 1.1; }
+.ready-l { display: block; font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.parts { display: grid; gap: 8px; margin: 12px 0; }
+.part { display: grid; gap: 4px; text-align: left; padding: 11px 13px; border: 1px solid var(--trace);
+        border-radius: 12px; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.part:hover { border-color: var(--ink-soft); }
+.part-n { font-weight: 620; }
+.part-a { font-size: 13px; color: var(--muted); }
+.part-b { display: block; height: 5px; border-radius: 3px; background: var(--trace); overflow: hidden; }
+.part-b i { display: block; height: 100%; background: var(--red); }
+.part-p { font-size: 12px; color: var(--muted); }
+.opts { display: grid; gap: 7px; margin: 10px 0; }
+.opt { padding: 11px 14px; border: 1px solid var(--trace); border-radius: 11px; background: transparent;
+       color: inherit; font: inherit; font-size: 16px; text-align: left; cursor: pointer; }
+.opt:hover:not(:disabled) { border-color: var(--ink-soft); }
+.opt.is-right { border-color: var(--red); background: color-mix(in srgb, var(--red) 13%, transparent); }
+.opt.is-wrong { opacity: .55; text-decoration: line-through; }
+.type { width: 100%; padding: 11px 13px; font: inherit; font-size: 18px; border: 1px solid var(--trace);
+        border-radius: 11px; background: transparent; color: inherit; margin: 10px 0; }
+.given { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.given span { border: 1px dashed var(--ink-soft); border-radius: 8px; padding: 4px 9px; font-size: 16px; }
+.ex-line { margin-top: 6px; font-size: 17px; }
+.ex-line.reply { padding-left: 16px; color: var(--muted); }
+.ex-hint { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.blank { border-bottom: 2px dashed var(--red); padding: 0 24px; }
+.score { text-align: center; padding: 6px 0 2px; }
+.score-n { display: block; font-size: 42px; font-weight: 680; line-height: 1; }
+.score-l { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.row { display: flex; justify-content: space-between; padding: 6px 2px; border-bottom: 1px solid var(--trace); font-size: 14.5px; }
+.miss { padding: 7px 2px; border-bottom: 1px solid var(--trace); }
+.miss b { display: block; font-size: 15.5px; }
+.miss span { font-size: 13px; color: var(--muted); }
+.kgrid { display: grid; grid-template-columns: auto repeat(4, 1fr); gap: 5px; margin: 12px 0; }
+.kg-h { text-align: center; font-size: 12px; color: var(--muted); padding: 3px 1px; }
+.kg-h b { display: block; font-size: 17px; color: var(--ink); }
+.kg-r { font-size: 12px; color: var(--muted); align-self: center; padding-right: 6px; text-align: right; }
+.kg-c { border: 1px solid var(--trace); border-radius: 10px; padding: 10px 4px; text-align: center;
+        background: linear-gradient(to top, color-mix(in srgb, var(--red) 20%, transparent) var(--lit, 0%), transparent var(--lit, 0%)); }
+.kg-c b { font-size: 17px; }
+.vgroup { margin-bottom: 14px; }
+.vhow { font-weight: 400; color: var(--muted); font-size: 12.5px; }
+.vrow { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; padding: 8px 10px; border: 1px solid var(--trace);
+        border-radius: 10px; margin-bottom: 5px;
+        background: linear-gradient(to right, color-mix(in srgb, var(--red) 15%, transparent) var(--lit, 0%), transparent var(--lit, 0%)); }
+.vrow b { font-size: 17px; }
+.vrow.trap { border-color: var(--red); }
+.vm { font-size: 14px; color: var(--muted); align-self: center; }
+.vf, .vp { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+.vnote { grid-column: 1 / -1; font-size: 12.5px; color: var(--red); margin-top: 2px; }
+@media (max-width: 420px) { .kgrid { font-size: 13px; } .kg-c { padding: 8px 2px; } .ready-n { font-size: 26px; } }
+
 .fresh { margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--trace); display: flex; flex-wrap: wrap; gap: 4px 10px; }
 .newword { font-size: 13.5px; color: var(--muted); }
 .newword b { color: var(--ink); font-weight: 600; }
@@ -601,6 +664,7 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
     </header>
 
     <p class="wifi-line" id="wifiLine" hidden></p>
+    <p class="streak" id="streakLine" hidden></p>
 
     <div class="start">
       <button class="btn primary" id="startBtn" type="button">Start practice</button>
@@ -609,6 +673,11 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
     </div>
 
     <nav class="tiles" aria-label="Study sections">
+      <button class="tile wide exam-tile" id="examBtn" type="button">
+        <span class="t-main">Midterm mock <span class="t-when" id="examWhen"></span></span>
+        <span class="t-sub" id="examSub">The five parts of the real paper, marked as you go</span>
+        <span class="meter"><i id="examMeter"></i></span>
+      </button>
       <button class="tile" id="lessonsBtn" type="button">
         <span class="t-main">Lessons</span>
         <span class="t-sub" id="lessonsSub">Grammar notes and vocabulary</span>
@@ -627,6 +696,16 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
         <span class="t-main">Numbers</span>
         <span class="t-sub" id="numbersSub">1 to 100,000</span>
         <span class="meter"><i id="numbersMeter"></i></span>
+      </button>
+      <button class="tile" id="verbsBtn" type="button">
+        <span class="t-main">Verbs</span>
+        <span class="t-sub" id="verbsSub">Lesson 3 by group, meaning and ます form</span>
+        <span class="meter"><i id="verbsMeter"></i></span>
+      </button>
+      <button class="tile" id="gridBtn" type="button">
+        <span class="t-main">こそあど</span>
+        <span class="t-sub" id="gridSub">これ, この, ここ — the grid, drilled one decision at a time</span>
+        <span class="meter"><i id="gridMeter"></i></span>
       </button>
       <button class="tile wide" id="talkBtn" type="button">
         <span class="t-main">Talking practice</span>
@@ -879,6 +958,66 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
       <p class="note" id="tScore"></p>
       <div id="tReview"></div>
       <div class="actions" id="tAgain"></div>
+    </div>
+  </section>
+
+  <section id="exam" hidden aria-label="Midterm mock exam">
+    <button class="back" id="examBack" type="button">Back</button>
+    <div id="examHome">
+      <h2 class="k-head">Midterm mock</h2>
+      <p class="note" id="examCount"></p>
+      <div class="ready" id="examReady"></div>
+      <div class="actions" id="examStart"></div>
+      <div class="parts" id="examParts"></div>
+      <details class="settings" id="examSet">
+        <summary>Exam details</summary>
+        <div class="field">
+          <div class="field-label">Which sitting</div>
+          <div class="seg" data-key="sitting">
+            <button type="button" data-v="1">Mon 26 Oct</button>
+            <button type="button" data-v="2">Tue 27 Oct</button>
+          </div>
+          <p class="field-note">60 minutes, 16% of the grade, answers in Japanese with no kanji.</p>
+        </div>
+      </details>
+    </div>
+    <div id="examRun" hidden>
+      <p class="eyebrow" id="examPart"></p>
+      <p class="note" id="examProg"></p>
+      <div class="cue" id="examQ"></div>
+      <div id="examBody"></div>
+      <p class="msg" id="examMsg" aria-live="polite"></p>
+      <div class="actions" id="examActions"></div>
+    </div>
+  </section>
+
+  <section id="verbs" hidden aria-label="Lesson 3 verbs">
+    <button class="back" id="verbsBack" type="button">Back</button>
+    <h2 class="k-head">う-verbs, る-verbs, irregular</h2>
+    <p class="note">Thirteen verbs. The group decides the conjugation, so knowing which group a verb is in <em>is</em> knowing how to conjugate it.</p>
+    <div class="vlist" id="vList"></div>
+    <div class="actions" id="verbsActions"></div>
+    <div id="verbsRun" hidden>
+      <p class="note" id="vProg"></p>
+      <div class="cue" id="vQ"></div>
+      <div id="vBody"></div>
+      <p class="msg" id="vMsg" aria-live="polite"></p>
+      <div class="actions" id="vNext"></div>
+    </div>
+  </section>
+
+  <section id="grid" hidden aria-label="kosoado">
+    <button class="back" id="gridBack" type="button">Back</button>
+    <h2 class="k-head">こそあど</h2>
+    <p class="note">Twelve words, but only two decisions: how far away it is, and what shape the sentence needs. The grid is the whole of it.</p>
+    <div class="kgrid" id="kGrid"></div>
+    <div class="actions" id="gridActions"></div>
+    <div id="gridRun" hidden>
+      <p class="note" id="gridProg"></p>
+      <div class="cue" id="gridQ"></div>
+      <div id="gridBody"></div>
+      <p class="msg" id="gridMsg" aria-live="polite"></p>
+      <div class="actions" id="gridNext"></div>
     </div>
   </section>
 
@@ -1283,6 +1422,11 @@ const ROMAJI = /*__ROMAJI__*/null;   // sound of every kana
 const LOOK = /*__LOOK__*/null;       // visually nearest characters, for reading-quiz choices
 const KANJI = /*__KANJI__*/null;     // JLPT N5 kanji: strokes, meanings, readings
 const LESSONS = /*__LESSONS__*/null; // lesson notes, vocabulary and sentence drills
+// JAPA 100 at VIU: which of the above the course itself covers, and the katakana the midterm
+// asks you to write. Everything else Kaku knows stays available; it just is not on the exam.
+const COURSE = (LESSONS && LESSONS.course) || {};
+const KATAKANA = (LESSONS && LESSONS.katakana) || [];
+const COURSE_IDS = Object.keys(COURSE);
 
 // Japanese readings for 0 to 100,000, with every sound change.
 // Kept as a standalone file so it can be tested in node and pasted into the app.
@@ -1428,6 +1572,9 @@ for (const les of LESSONS.lessons) {
 }
 const vkey = (w) => 'v:' + w;
 const isVocab = (k) => k.charCodeAt(0) === 118 && k.charCodeAt(1) === 58;
+// x:<part><index> — one record per midterm question, so the exam feeds the same review boxes
+// as everything else rather than being a thing you pass or fail in isolation
+const isExam = (k) => k.charCodeAt(0) === 120 && k.charCodeAt(1) === 58;
 // built at startup and again whenever the user's own word lists change
 function indexVocab() {
   for (const k in VOCAB) delete VOCAB[k];
@@ -1435,9 +1582,13 @@ function indexVocab() {
     les.keys = [];
     const mine = (S.custom && S.custom[les.id]) || [];
     const own = les.vocab.length;
-    les.vocab.concat(mine).forEach(([w, r, m], i) => {
+    // c is the JAPA 100 lesson a word belongs to, when the course teaches it at all
+    les.vocab.concat(mine).forEach(([w, r, m, c], i) => {
       const k = vkey(w);
-      if (!VOCAB[k]) { VOCAB[k] = { w, r, m, L: les.id, mine: i >= own ? 1 : 0, rj: romajiOf(r || w) }; les.keys.push(k); }
+      if (!VOCAB[k]) {
+        VOCAB[k] = { w, r, m, L: les.id, c: c || '', mine: i >= own ? 1 : 0, rj: romajiOf(r || w) };
+        les.keys.push(k);
+      }
     });
   }
 }
@@ -1501,7 +1652,7 @@ const strokeCache = {};
 const strokesOf = (ch) => strokeCache[ch] || (strokeCache[ch] = KVG[ch].s.map(Core.buildStroke));
 
 // ---------------------------------------------------------------- state + storage
-const DEFAULTS = { rows: ['a','k','s','t','n','h','m','y','r','w'], script: 'b', mix: 'both', prompt: 'sound', strict: 'normal', len: 15, fresh: 5, lessons: [], numbands: [], skin: 'genki', mode: 'auto', ai: 'off' };
+const DEFAULTS = { rows: ['a','k','s','t','n','h','m','y','r','w'], script: 'b', mix: 'both', prompt: 'sound', strict: 'normal', len: 15, fresh: 5, lessons: [], numbands: [], skin: 'genki', mode: 'auto', ai: 'off', sitting: '1' };
 const MODES = { write: ['w'], read: ['r'], both: ['w', 'r'] };
 const blankRec = () => ({ b: 0, due: 0, last: 0, n: 0, ok: 0, lapses: 0 });
 const KEY = 'kaku-hiragana-v1';
@@ -1509,6 +1660,9 @@ let S = { v: 1, updatedAt: 0, settings: { ...DEFAULTS }, progress: {}, custom: {
 
 function sanitize(o) {
   const out = { v: 1, updatedAt: +o.updatedAt || 0, settings: { ...DEFAULTS }, progress: {}, custom: {},
+    exam: (o.exam && typeof o.exam === 'object') ? { best: Math.max(0, Math.min(100, +o.exam.best || 0)), last: Math.max(0, Math.min(100, +o.exam.last || 0)), at: +o.exam.at || 0, runs: Math.max(0, +o.exam.runs || 0) } : undefined,
+    streak: (o.streak && typeof o.streak === 'object') ? { n: Math.max(0, +o.streak.n || 0), last: String(o.streak.last || '').slice(0, 12), best: Math.max(0, +o.streak.best || 0) } : undefined,
+    hit: (o.hit && typeof o.hit === 'object') ? o.hit : undefined,
     met: Array.isArray(o.met) ? o.met.filter(w => typeof w === 'string' && VOCAB['v:' + w]).slice(0, 400) : [] };
   const st = o.settings || {};
   if (Array.isArray(st.rows)) out.settings.rows = st.rows.filter(id => ROWS.some(r => r.id === id));
@@ -1522,6 +1676,7 @@ function sanitize(o) {
   if (Array.isArray(st.numbands)) out.settings.numbands = st.numbands.filter(id => NBYID[id]);
   if (SKINS[st.skin]) out.settings.skin = st.skin;
   if (['auto', 'light', 'dark'].includes(st.mode)) out.settings.mode = st.mode;
+  if (['1', '2'].includes(st.sitting)) out.settings.sitting = st.sitting;
   if (['on', 'off', 'brain', 'claude'].includes(st.ai)) out.settings.ai = st.ai === 'on' ? 'claude' : st.ai;
   // the user's own word lists, kept per lesson
   const cu = o.custom || {};
@@ -1546,7 +1701,7 @@ function sanitize(o) {
     if (old && e.w.n > 0 && !e.r.due) e.r.due = Date.now();                 // start reading practice for them now
   }
   for (const k in pr) {                                                     // vocabulary, drill and number records
-    if (!(isVocab(k) || isNum(k) || isDrill(k)) || !pr[k] || typeof pr[k] !== 'object') continue;
+    if (!(isVocab(k) || isNum(k) || isDrill(k) || isExam(k)) || !pr[k] || typeof pr[k] !== 'object') continue;
     if (isNum(k) && !NBYID[k]) continue;
     if (isDrill(k) && !DRILL[k]) continue;
     out.progress[k] = { r: rec(pr[k].r || {}), p: rec(pr[k].p || {}) };
@@ -1610,8 +1765,8 @@ const Store = {
 };
 
 // kana are written and read; vocabulary is recognised (JP to English) and produced (English to JP)
-const modesOf = (k) => isDrill(k) ? ['r'] : (isVocab(k) || isNum(k)) ? ['r', 'p'] : MODES[S.settings.mix];
-const allModesOf = (k) => isDrill(k) ? ['r'] : (isVocab(k) || isNum(k)) ? ['r', 'p'] : ['w', 'r'];
+const modesOf = (k) => (isDrill(k) || isExam(k)) ? ['r'] : (isVocab(k) || isNum(k)) ? ['r', 'p'] : MODES[S.settings.mix];
+const allModesOf = (k) => (isDrill(k) || isExam(k)) ? ['r'] : (isVocab(k) || isNum(k)) ? ['r', 'p'] : ['w', 'r'];
 const SRS = {
   rec(ch, m) { const p = S.progress[ch] || (S.progress[ch] = {}); return p[m] || (p[m] = blankRec()); },
   done(ch, m) { const p = S.progress[ch]; return !!(p && p[m] && p[m].n > 0); },
@@ -2051,7 +2206,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3210,6 +3365,12 @@ const Numbers = {
 $('numbersBtn').addEventListener('click', () => Numbers.open());
 $('vocabBtn').addEventListener('click', () => Vocab.open());
 $('talkBtn').addEventListener('click', () => Talk.open());
+$('examBtn').addEventListener('click', () => Exam.open());
+$('gridBtn').addEventListener('click', () => Grid.open());
+$('verbsBtn').addEventListener('click', () => Verbs.open());
+for (const [id, fn] of [['examBack', 1], ['gridBack', 1], ['verbsBack', 1]]) {
+  $(id).addEventListener('click', () => { show('home'); App.refresh(); });
+}
 $('tBack').addEventListener('click', () => (Talk.scene && !$('tRoom').hidden) ? Talk.open() : Talk.close());
 $('tMic').addEventListener('click', () => Talk.mic());
 $('cBack').addEventListener('click', () => Talk.open());
@@ -5525,6 +5686,35 @@ const App = {
       ? `${mineScenes.length} scene${mineScenes.length > 1 ? 's' : ''} from your lessons \u00b7 ${scenes.length} in all`
       : `${scenes.length} scenes \u00b7 say your lessons out loud`;
     meter('talkMeter', scenes.length ? spoken.length / Math.max(1, [...new Set(scenes.flatMap(l => l.scene.turns.flatMap(t => (t.teaches || []).map(vkey))))].length) : 0);
+    const st = (S.streak && S.streak.n) || 0, sline = $('streakLine');
+    sline.hidden = st < 1;
+    if (st >= 1) {
+      sline.textContent = st === 1 ? 'Practised today.'
+        : st + ' days in a row' + ((S.streak.best > st) ? ' \u00b7 best ' + S.streak.best : '') + '.';
+    }
+
+    // the midterm, the grid and the verbs
+    const rd = Exam.readiness(), left = Exam.daysLeft();
+    $('examWhen').textContent = left > 1 ? 'in ' + left + ' days' : left === 1 ? 'tomorrow'
+      : left === 0 ? 'today' : '';
+    const bestRun = (S.exam && S.exam.best) || 0;
+    $('examSub').textContent = bestRun
+      ? Math.round(rd.expected * 100) + '% expected \u00b7 best paper so far ' + bestRun + '%'
+      : Math.round(rd.expected * 100) + '% expected \u00b7 the five parts, marked as you go';
+    meter('examMeter', rd.expected);
+    const kos = (EXAM.kosoado && EXAM.kosoado.rows || []).flatMap(r => r[2].map((w, i) => 'x:s' + (r[0] + i)));
+    const kosC = kos.length ? kos.reduce((a, k) => a + confidence(k), 0) / kos.length : 0;
+    $('gridSub').textContent = kosC > 0.05
+      ? Math.round(kosC * 100) + '% on the twelve'
+      : 'これ, この, ここ \u2014 the grid, one decision at a time';
+    meter('gridMeter', kosC);
+    const vk = Verbs.all().flatMap(v => ['g', 'm', 'f', 'r'].map(k => Verbs.key(v.v, k)));
+    const vC = vk.length ? vk.reduce((a, k) => a + confidence(k), 0) / vk.length : 0;
+    $('verbsSub').textContent = vC > 0.05
+      ? Math.round(vC * 100) + '% of the thirteen, group and all'
+      : 'Lesson 3 by group, meaning and \u307e\u3059 form';
+    meter('verbsMeter', vC);
+
     $('numbersSub').textContent = nb.length
       ? `${solid} of ${NBANDS.length} bands solid`
       : '1 to 100,000, sound changes and all';
@@ -5664,7 +5854,682 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+// ================================================================ the midterm
+// JAPA 100's midterm has five parts and a published checklist, so this is not a guess at what
+// an exam might look like — it is that paper, in that order. Every question also becomes an
+// ordinary review item, so revising for the exam feeds the same boxes as everything else.
+const EXAM = (LESSONS && LESSONS.exam) || {};
+const Exam = {
+  PARTS: [
+    { id: 'listen', n: 'Listening', q: 5,
+      about: 'A statement, read twice. Pick the number you heard — a time, a price, a phone number, an age.' },
+    { id: 'kata', n: 'Katakana', q: 8,
+      about: 'An English word. Write it in katakana.' },
+    { id: 'vg', n: 'Vocabulary & grammar', q: 15,
+      about: 'Multiple choice over everything the course has covered.' },
+    { id: 'build', n: 'Writing sentences', q: 5,
+      about: 'Put the words in order, add the particles, conjugate the verb.' },
+    { id: 'ex', n: 'Completing exchanges', q: 5,
+      about: 'Supply the question or the answer that is missing.' }
+  ],
+  SITTINGS: { '1': ['Monday 26 October', Date.UTC(2026, 9, 26, 21, 30)],
+              '2': ['Tuesday 27 October', Date.UTC(2026, 9, 27, 18, 30)] },
+  when() { return this.SITTINGS[S.settings.sitting || '1'] || this.SITTINGS['1']; },
+  daysLeft() {
+    const ms = this.when()[1] - Date.now();
+    return Math.ceil(ms / DAY);
+  },
+  // the review keys each part draws on, so readiness is read off the same records as everything
+  keys(part) {
+    if (part === 'listen') return NBANDS.map(b => b.id).filter(id => NBYID[id]);
+    if (part === 'kata') return KATAKANA.map((k, i) => 'x:k' + i);
+    if (part === 'vg') {
+      const g = (EXAM.grammar || []).map((x, i) => 'x:g' + i);
+      const words = Object.keys(VOCAB).filter(k => VOCAB[k].c);
+      return g.concat(words);
+    }
+    if (part === 'build') return (EXAM.build || []).map((x, i) => 'x:b' + i);
+    if (part === 'ex') return (EXAM.exchange || []).map((x, i) => 'x:e' + i);
+    return [];
+  },
+  // How likely a single question of this part is to be right. An item never attempted is not
+  // assumed hopeless and not assumed fine: 0.25 is roughly a guess on four options.
+  partChance(part) {
+    const keys = this.keys(part);
+    if (!keys.length) return 0.25;
+    let total = 0;
+    for (const k of keys) total += Math.max(0.25, confidence(k));
+    return Math.max(0.05, Math.min(0.995, total / keys.length));
+  },
+  // Two numbers, because they answer different questions. The expected mark is what you would
+  // probably get; the perfect-paper chance is every question going right at once, which is what
+  // 100% actually means and is always the smaller, harsher number.
+  readiness() {
+    const parts = this.PARTS.map(p => {
+      const chance = this.partChance(p.id);
+      return { id: p.id, n: p.n, q: p.q, chance, about: p.about };
+    });
+    const marks = parts.reduce((a, p) => a + p.chance * p.q, 0);
+    const total = parts.reduce((a, p) => a + p.q, 0);
+    const perfect = parts.reduce((a, p) => a * Math.pow(p.chance, p.q), 1);
+    return { parts, expected: marks / total, perfect, total };
+  },
+  open() {
+    show('exam');
+    $('examRun').hidden = true;
+    $('examHome').hidden = false;
+    this.paint();
+  },
+  paint() {
+    const r = this.readiness(), left = this.daysLeft(), when = this.when()[0];
+    $('examCount').textContent = left > 1 ? when + ' — ' + left + ' days away.'
+      : left === 1 ? when + ' — tomorrow.'
+      : left === 0 ? when + ' — today.' : when + ' has been and gone.';
+    const pct = (x) => Math.round(x * 100);
+    const perfect = r.perfect < 0.005 ? '<1' : String(pct(r.perfect));
+    $('examReady').innerHTML =
+      '<div class="ready-big"><span class="ready-n">' + pct(r.expected) + '%</span>' +
+      '<span class="ready-l">mark you would probably get</span></div>' +
+      '<div class="ready-big alt"><span class="ready-n">' + perfect + '%</span>' +
+      '<span class="ready-l">chance of a perfect paper</span></div>' +
+      '<p class="field-note">Every question is also a review item, so the two numbers move as you practise. ' +
+      'A perfect paper means all ' + r.total + ' right at once, which is why it is the harsher number.</p>';
+    $('examParts').innerHTML = r.parts.map((p, i) => {
+      const part = this.PARTS[i];
+      return '<button class="part" type="button" data-part="' + p.id + '">' +
+        '<span class="part-n">' + ['I', 'II', 'III', 'IV', 'V'][i] + '. ' + esc(part.n) + '</span>' +
+        '<span class="part-a">' + esc(p.about) + '</span>' +
+        '<span class="part-b"><i style="width:' + pct(p.chance) + '%"></i></span>' +
+        '<span class="part-p">' + pct(p.chance) + '% · ' + p.q + ' questions</span></button>';
+    }).join('');
+    $('examParts').querySelectorAll('[data-part]').forEach(b => {
+      b.addEventListener('click', () => this.run(b.dataset.part));
+    });
+    setActions($('examStart'), [
+      { label: 'Sit the whole paper', primary: true, act: () => this.run(null) },
+      { label: 'Weakest part first', act: () => {
+        const worst = r.parts.slice().sort((a, b) => a.chance - b.chance)[0];
+        this.run(worst.id);
+      } }
+    ]);
+  }
+};
+
+// ---------------------------------------------------------------- building the questions
+Object.assign(Exam, {
+  shuffle(a) { const x = a.slice(); for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; } return x; },
+  pick(a, n) { return this.shuffle(a).slice(0, n); },
+  // weakest first, so a mock paper spends its questions where they are needed
+  weakest(keys, n) {
+    return keys.slice().sort((a, b) => confidence(a) - confidence(b)).slice(0, Math.max(n * 2, n))
+      .sort(() => Math.random() - 0.5).slice(0, n);
+  },
+  make(part, n) {
+    const out = [];
+    if (part === 'listen') {
+      const frames = EXAM.listen || [];
+      for (let i = 0; i < n; i++) {
+        const f = frames[i % frames.length];
+        let value, say, show;
+        if (f.kind === 'time') {
+          const h = 1 + Math.floor(Math.random() * 12), half = Math.random() < 0.4;
+          value = h + (half ? ':30' : ":00");
+          say = numberReading(h) + 'じ' + (half ? 'はん' : '');
+          show = (x) => x;
+        } else if (f.kind === 'yen') {
+          const v = [120, 350, 480, 640, 1200, 2500, 3800, 5000, 8000][Math.floor(Math.random() * 9)];
+          value = v; say = numberReading(v) + 'えん'; show = (x) => x + ' yen';
+        } else if (f.kind === 'year') {
+          const v = 1 + Math.floor(Math.random() * 4);
+          value = v; say = numberReading(v) + 'ねんせい'; show = (x) => ['first', 'second', 'third', 'fourth'][x - 1] + '-year';
+        } else {
+          const v = 18 + Math.floor(Math.random() * 25);
+          value = v; say = numberReading(v) + 'さい'; show = (x) => x + ' years old';
+        }
+        const wrong = new Set();
+        while (wrong.size < 2) {
+          const d = f.kind === 'yen' ? [120, 350, 480, 640, 1200, 2500, 3800, 5000, 8000][Math.floor(Math.random() * 9)]
+            : f.kind === 'year' ? 1 + Math.floor(Math.random() * 4)
+            : f.kind === 'time' ? (1 + Math.floor(Math.random() * 12)) + (Math.random() < 0.4 ? ':30' : ':00')
+            : 18 + Math.floor(Math.random() * 25);
+          if (String(d) !== String(value)) wrong.add(String(d));
+        }
+        const opts = this.shuffle([String(value)].concat([...wrong]));
+        out.push({ kind: 'mc', key: 'n:' + (NBANDS[0] && NBANDS[0].id), q: f.q, say: f.frame.replace('{}', say),
+                   opts: opts.map(show), raw: opts, a: opts.indexOf(String(value)),
+                   why: 'It said ' + f.frame.replace('{}', say) });
+      }
+      return out;
+    }
+    if (part === 'kata') {
+      const idx = this.weakest(KATAKANA.map((k, i) => 'x:k' + i), n).map(k => +k.slice(3));
+      for (const i of idx) {
+        const [kana, en] = KATAKANA[i];
+        out.push({ kind: 'type', key: 'x:k' + i, q: en, a: kana, why: en + ' is ' + kana + '.' });
+      }
+      return out;
+    }
+    if (part === 'vg') {
+      const gN = Math.min(Math.ceil(n * 0.6), (EXAM.grammar || []).length);
+      const gIdx = this.weakest((EXAM.grammar || []).map((x, i) => 'x:g' + i), gN).map(k => +k.slice(3));
+      for (const i of gIdx) {
+        const g = EXAM.grammar[i];
+        const order = this.shuffle(g.o.map((o, j) => j));
+        out.push({ kind: 'mc', key: 'x:g' + i, q: g.q, opts: order.map(j => g.o[j]),
+                   a: order.indexOf(g.a), why: g.why });
+      }
+      // the rest are course words: see the meaning, choose the word
+      const words = Object.keys(VOCAB).filter(k => VOCAB[k].c);
+      for (const k of this.weakest(words, n - out.length)) {
+        const v = VOCAB[k];
+        const others = this.pick(words.filter(x => x !== k && VOCAB[x].m !== v.m), 3).map(x => VOCAB[x].w);
+        const opts = this.shuffle([v.w].concat(others));
+        out.push({ kind: 'mc', key: k, q: v.m, opts, a: opts.indexOf(v.w),
+                   why: v.w + ' = ' + v.m });
+      }
+      return this.shuffle(out);
+    }
+    if (part === 'build') {
+      const idx = this.weakest((EXAM.build || []).map((x, i) => 'x:b' + i), n).map(k => +k.slice(3));
+      for (const i of idx) {
+        const b = EXAM.build[i];
+        out.push({ kind: 'type', key: 'x:b' + i, q: b.en, words: b.w, a: b.a, alt: b.alt || [],
+                   why: b.a });
+      }
+      return out;
+    }
+    if (part === 'ex') {
+      const idx = this.weakest((EXAM.exchange || []).map((x, i) => 'x:e' + i), n).map(k => +k.slice(3));
+      for (const i of idx) {
+        const e = EXAM.exchange[i];
+        out.push({ kind: 'type', key: 'x:e' + i, exchange: e, a: e.a, alt: e.alt || [],
+                   q: e.ask === 'before' ? e.after : e.before, why: e.a });
+      }
+      return out;
+    }
+    return out;
+  },
+  // Marked the way the paper is: the shape has to be right, but spacing and the full stop are
+  // not what is being tested, and neither is whether you wrote it in kanji or kana.
+  right(item, given) {
+    if (item.kind === 'mc') return given === item.a;
+    const tidy = (x) => toKana(String(x || '')).replace(/[\s　。、．，]/g, '');
+    const got = tidy(given);
+    return [item.a].concat(item.alt || []).some(x => tidy(x) === got);
+  }
+});
+
+// ---------------------------------------------------------------- sitting the paper
+Object.assign(Exam, {
+  run(partId) {
+    const parts = partId ? this.PARTS.filter(p => p.id === partId) : this.PARTS;
+    this.queue = [];
+    for (const p of parts) {
+      for (const item of this.make(p.id, p.q)) this.queue.push(Object.assign({ part: p }, item));
+    }
+    this.i = 0; this.ok = 0; this.log = [];
+    this.whole = !partId;
+    Gains.snap();
+    $('examHome').hidden = true;
+    $('examRun').hidden = false;
+    this.ask();
+  },
+  ask() {
+    const it = this.queue[this.i];
+    if (!it) return this.finish();
+    const n = ['I', 'II', 'III', 'IV', 'V'][this.PARTS.findIndex(p => p.id === it.part.id)];
+    $('examPart').textContent = 'Part ' + n + ' · ' + it.part.n;
+    $('examProg').textContent = 'Question ' + (this.i + 1) + ' of ' + this.queue.length;
+    $('examMsg').textContent = ''; $('examMsg').className = 'msg';
+    const body = $('examBody');
+    body.textContent = '';
+    if (it.say) {
+      // listening: the statement is spoken, never shown, and read twice like the real paper
+      $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>';
+      this.heard = 0;
+      const hear = document.createElement('button');
+      hear.type = 'button'; hear.className = 'btn';
+      hear.textContent = 'Play it';
+      hear.addEventListener('click', () => {
+        if (this.heard >= 2) return;
+        this.heard++;
+        Speech.line(it.say);
+        hear.textContent = this.heard >= 2 ? 'Played twice' : 'Play it once more';
+        hear.disabled = this.heard >= 2;
+      });
+      body.appendChild(hear);
+      setTimeout(() => hear.click(), 250);
+    } else if (it.exchange) {
+      const e = it.exchange;
+      $('examQ').innerHTML = '<b>Complete the exchange</b>' +
+        '<div class="ex-line">' + (e.ask === 'before' ? '<span class="blank">?</span>' : esc(e.before)) + '</div>' +
+        '<div class="ex-line reply">' + (e.ask === 'after' ? '<span class="blank">?</span>' : esc(e.after)) + '</div>' +
+        (e.hint ? '<div class="ex-hint">' + esc(e.hint) + '</div>' : '');
+    } else if (it.words) {
+      $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>' +
+        '<div class="given">' + it.words.map(w => '<span>' + esc(w) + '</span>').join('') + '</div>' +
+        '<div class="ex-hint">Order them, add the particles, and put the verb in its polite form.</div>';
+    } else {
+      $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>';
+    }
+    if (it.kind === 'mc') {
+      const wrap = document.createElement('div');
+      wrap.className = 'opts';
+      it.opts.forEach((o, j) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'opt'; b.textContent = o;
+        b.addEventListener('click', () => this.answer(j));
+        wrap.appendChild(b);
+      });
+      body.appendChild(wrap);
+      setActions($('examActions'), []);
+    } else {
+      const input = document.createElement('input');
+      input.type = 'text'; input.className = 'type'; input.id = 'examType';
+      input.setAttribute('autocomplete', 'off'); input.setAttribute('autocapitalize', 'off');
+      input.placeholder = it.part.id === 'kata' ? 'katakana' : 'write it in kana';
+      input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') this.answer(input.value); });
+      body.appendChild(input);
+      setActions($('examActions'), [{ label: 'Answer', primary: true, act: () => this.answer(input.value) }]);
+      setTimeout(() => input.focus(), 30);
+    }
+  },
+  answer(given) {
+    const it = this.queue[this.i];
+    if (!it || it.done) return;
+    it.done = true;
+    const good = this.right(it, given);
+    if (good) { this.ok++; Gains.mark(); }
+    this.log.push({ part: it.part.n, q: it.q, good, want: it.a, why: it.why });
+    if (it.key) SRS.update(it.key, 'r', good ? 'perfect' : 'weak');
+    Store.touch();
+    $('examMsg').textContent = good ? 'Right.' : (it.kind === 'mc'
+      ? 'Not that one. ' + it.why
+      : 'The answer is ' + (it.alt && it.alt.length ? it.a + ' (or ' + it.alt.join(', ') + ')' : it.a) + '.');
+    $('examMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    $('examBody').querySelectorAll('.opt').forEach((b, j) => {
+      if (j === it.a) b.classList.add('is-right');
+      else if (!good && b.textContent === String(given)) b.classList.add('is-wrong');
+      b.disabled = true;
+    });
+    const input = $('examType');
+    if (input) input.disabled = true;
+    setActions($('examActions'), [{
+      label: this.i + 1 >= this.queue.length ? 'See how you did' : 'Next', primary: true,
+      act: () => { this.i++; this.ask(); }
+    }]);
+  },
+  finish() {
+    const total = this.queue.length, pct = total ? Math.round(this.ok / total * 100) : 0;
+    const byPart = {};
+    for (const l of this.log) {
+      const b = byPart[l.part] || (byPart[l.part] = { ok: 0, n: 0 });
+      b.n++; if (l.good) b.ok++;
+    }
+    const best = this.whole ? Math.max(pct, (S.exam && S.exam.best) || 0) : ((S.exam && S.exam.best) || 0);
+    if (this.whole) {
+      S.exam = S.exam || {};
+      S.exam.best = best;
+      S.exam.last = pct;
+      S.exam.at = Date.now();
+      S.exam.runs = (S.exam.runs || 0) + 1;
+      Store.touch();
+    }
+    const missed = this.log.filter(l => !l.good);
+    $('examPart').textContent = this.whole ? 'Mock paper finished' : 'Part finished';
+    $('examProg').textContent = '';
+    $('examQ').innerHTML = '<div class="score"><span class="score-n">' + pct + '%</span>' +
+      '<span class="score-l">' + this.ok + ' of ' + total + ' right' +
+      (this.whole && pct >= best && this.ok > 0 ? ' — your best yet' : '') + '</span></div>';
+    $('examBody').innerHTML = Object.keys(byPart).map(k =>
+      '<div class="row"><span>' + esc(k) + '</span><span>' + byPart[k].ok + '/' + byPart[k].n + '</span></div>').join('') +
+      (missed.length ? '<p class="sect">Worth another look</p>' + missed.slice(0, 10).map(l =>
+        '<div class="miss"><b>' + esc(l.q) + '</b><span>' + esc(String(l.why || l.want)) + '</span></div>').join('') : '');
+    $('examMsg').textContent = '';
+    Gains.line($('examBody'));
+    setActions($('examActions'), [
+      { label: 'Again', primary: true, act: () => this.run(this.whole ? null : this.queue[0].part.id) },
+      { label: 'Back to the midterm', act: () => this.open() }
+    ]);
+    App.refresh();
+  }
+});
+
+// ================================================================ こそあど
+// Twelve words that learners mix up for one reason: they vary along two axes at once. Shown as
+// a grid they are two decisions, and each question here varies exactly one of them — the other
+// stays fixed, so a wrong answer tells you which decision you are actually unsure about.
+const Grid = {
+  data() { return EXAM.kosoado || { cols: [], rows: [], cues: [], lines: [] }; },
+  open() {
+    show('grid');
+    $('gridRun').hidden = true;
+    this.paint();
+    setActions($('gridActions'), [
+      { label: 'Drill the grid', primary: true, act: () => this.run() },
+      { label: 'Hear the lines', act: () => this.lines() }
+    ]);
+  },
+  paint() {
+    const d = this.data();
+    const head = '<div class="kg-h"></div>' + d.cols.map(c =>
+      '<div class="kg-h"><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></div>').join('');
+    const body = d.rows.map(r =>
+      '<div class="kg-r">' + esc(r[1]) + '</div>' +
+      r[2].map((w, i) => {
+        const key = 'x:s' + (r[0] + i);
+        const c = confidence(key);
+        return '<div class="kg-c" style="--lit:' + Math.round(c * 100) + '%"><b>' + esc(w) + '</b></div>';
+      }).join('')).join('');
+    $('kGrid').innerHTML = head + body;
+  },
+  lines() {
+    const d = this.data();
+    $('gridRun').hidden = false;
+    $('gridProg').textContent = 'Every one of them in a sentence.';
+    $('gridQ').innerHTML = '';
+    $('gridBody').innerHTML = d.lines.map(([jp, en], i) =>
+      '<div class="miss"><b>' + esc(jp) + '</b><span>' + esc(en) + '</span></div>').join('');
+    $('gridMsg').textContent = '';
+    setActions($('gridNext'), [
+      { label: 'Say them to me', primary: true, act: () => d.lines.forEach(([jp], i) => setTimeout(() => Speech.line(jp), i * 2200)) },
+      { label: 'Drill instead', act: () => this.run() }
+    ]);
+  },
+  run() {
+    const d = this.data();
+    this.queue = Exam.shuffle(d.cues).slice(0, 10);
+    this.i = 0; this.ok = 0;
+    Gains.snap();
+    $('gridRun').hidden = false;
+    this.ask();
+  },
+  ask() {
+    const d = this.data(), cue = this.queue[this.i];
+    if (!cue) return this.done();
+    const [rowId, colId, text] = cue;
+    const row = d.rows.find(r => r[0] === rowId);
+    const colIdx = d.cols.findIndex(c => c[0] === colId);
+    const answer = row[2][colIdx];
+    // vary one axis only: either the distance (same row) or the shape (same column)
+    const alongRow = Math.random() < 0.6;
+    let opts;
+    if (alongRow) opts = row[2].slice();
+    else opts = d.rows.map(r => r[2][colIdx]);
+    opts = Exam.shuffle(opts);
+    this.cur = { key: 'x:s' + (rowId + colIdx), a: opts.indexOf(answer), answer,
+                 why: answer + ' — ' + row[3] + ' ' + d.cols[colIdx][2] + '.' };
+    $('gridProg').textContent = 'Question ' + (this.i + 1) + ' of ' + this.queue.length +
+      ' · ' + (alongRow ? 'how far away?' : 'which shape?');
+    $('gridQ').innerHTML = '<b>' + esc(text) + '</b>';
+    $('gridMsg').textContent = ''; $('gridMsg').className = 'msg';
+    const body = $('gridBody');
+    body.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'opts';
+    opts.forEach((o, j) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', () => this.answer(j));
+      wrap.appendChild(b);
+    });
+    body.appendChild(wrap);
+    setActions($('gridNext'), []);
+  },
+  answer(j) {
+    const c = this.cur;
+    if (!c || c.done) return;
+    c.done = true;
+    const good = j === c.a;
+    if (good) { this.ok++; Gains.mark(); }
+    SRS.update(c.key, 'r', good ? 'perfect' : 'weak');
+    Store.touch();
+    $('gridMsg').textContent = good ? 'Right. ' + c.why : c.why;
+    $('gridMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    $('gridBody').querySelectorAll('.opt').forEach((b, k) => {
+      if (k === c.a) b.classList.add('is-right');
+      b.disabled = true;
+    });
+    setActions($('gridNext'), [{
+      label: this.i + 1 >= this.queue.length ? 'How did I do?' : 'Next', primary: true,
+      act: () => { this.i++; this.ask(); }
+    }]);
+  },
+  done() {
+    const pct = Math.round(this.ok / this.queue.length * 100);
+    $('gridProg').textContent = '';
+    $('gridQ').innerHTML = '<div class="score"><span class="score-n">' + pct + '%</span>' +
+      '<span class="score-l">' + this.ok + ' of ' + this.queue.length + ' right</span></div>';
+    $('gridBody').innerHTML = '';
+    $('gridMsg').textContent = '';
+    Gains.line($('gridBody'));
+    setActions($('gridNext'), [
+      { label: 'Again', primary: true, act: () => this.run() },
+      { label: 'Back to the grid', act: () => { $('gridRun').hidden = true; this.paint(); } }
+    ]);
+    this.paint();
+    App.refresh();
+  }
+};
+
+// ================================================================ the Lesson 3 verbs
+// Four things are worth knowing about each: which group it is in, what it means, what its
+// polite form looks like, and which particle it takes. The group is the one that does the most
+// work, because it is what decides the conjugation — so it gets asked about most.
+const Verbs = {
+  all() { return EXAM.verbs || []; },
+  groups() { return EXAM.verbgroups || []; },
+  key(v, kind) { return 'x:v' + kind + this.all().findIndex(x => x.v === v); },
+  open() {
+    show('verbs');
+    $('verbsRun').hidden = true;
+    this.paint();
+    setActions($('verbsActions'), [
+      { label: 'Which group?', primary: true, act: () => this.run('g') },
+      { label: 'What does it mean?', act: () => this.run('m') },
+      { label: 'Make it polite', act: () => this.run('f') },
+      { label: 'From memory', act: () => this.run('r') }
+    ]);
+  },
+  paint() {
+    const byGroup = this.groups().map(([id, name, how]) => {
+      const mine = this.all().filter(v => v.g === id);
+      return '<div class="vgroup"><p class="sect">' + esc(name) + ' · <span class="vhow">' + esc(how) + '</span></p>' +
+        mine.map(v => {
+          const c = Math.round(confidence(this.key(v.v, 'g')) * 100);
+          return '<div class="vrow' + (v.trap ? ' trap' : '') + '" style="--lit:' + c + '%">' +
+            '<b>' + esc(v.v) + '</b><span class="vm">' + esc(v.m) + '</span>' +
+            '<span class="vf">' + esc(v.ms) + ' / ' + esc(v.mn) + '</span>' +
+            '<span class="vp">' + esc(v.p) + '</span>' +
+            (v.trap ? '<span class="vnote">' + esc(v.note) + '</span>' : '') + '</div>';
+        }).join('') + '</div>';
+    }).join('');
+    $('vList').innerHTML = byGroup;
+  },
+  run(kind) {
+    this.kind = kind;
+    this.queue = Exam.shuffle(this.all()).slice(0, kind === 'r' ? 8 : 10);
+    this.i = 0; this.ok = 0;
+    Gains.snap();
+    $('verbsRun').hidden = false;
+    this.ask();
+  },
+  ask() {
+    const v = this.queue[this.i];
+    if (!v) return this.done();
+    const kind = this.kind;
+    $('vProg').textContent = 'Question ' + (this.i + 1) + ' of ' + this.queue.length;
+    $('vMsg').textContent = ''; $('vMsg').className = 'msg';
+    const body = $('vBody');
+    body.innerHTML = '';
+    let opts, answer, prompt, why;
+    if (kind === 'g') {
+      opts = this.groups().map(g => g[1]);
+      answer = this.groups().findIndex(g => g[0] === v.g);
+      prompt = v.v + ' — which group?';
+      why = v.note;
+    } else if (kind === 'm') {
+      const others = Exam.shuffle(this.all().filter(x => x.v !== v.v)).slice(0, 3).map(x => x.m);
+      opts = Exam.shuffle([v.m].concat(others));
+      answer = opts.indexOf(v.m);
+      prompt = v.v;
+      why = v.v + ' = ' + v.m;
+    } else if (kind === 'f') {
+      // A う-verb ending in る invites exactly one mistake — treating it as a る-verb — so that
+      // option is always on the paper. Offering it only sometimes is testing something else.
+      const tempt = (v.g === 'u' && v.v.endsWith('る')) ? v.v.slice(0, -1) + 'ます' : '';
+      const wrong = new Set();
+      for (const x of this.all()) { if (x.ms !== v.ms && x.ms !== tempt) wrong.add(x.ms); }
+      const fill = Exam.shuffle([...wrong]).slice(0, tempt ? 2 : 3);
+      opts = Exam.shuffle([v.ms].concat(tempt ? [tempt] : []).concat(fill));
+      answer = opts.indexOf(v.ms);
+      prompt = v.v + ' — polite form?';
+      why = v.note;
+    } else {
+      prompt = v.m;
+      answer = v.v; why = v.v + ' (' + this.groups().find(g => g[0] === v.g)[1] + ') — ' + v.ms;
+    }
+    $('vQ').innerHTML = '<b>' + esc(prompt) + '</b>';
+    this.cur = { v, answer, why, kind };
+    if (kind === 'r') {
+      const input = document.createElement('input');
+      input.type = 'text'; input.className = 'type'; input.id = 'vType';
+      input.placeholder = 'the dictionary form, in kana';
+      input.setAttribute('autocomplete', 'off');
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.answer(input.value); });
+      body.appendChild(input);
+      setActions($('vNext'), [{ label: 'Answer', primary: true, act: () => this.answer(input.value) }]);
+      setTimeout(() => input.focus(), 30);
+    } else {
+      const wrap = document.createElement('div');
+      wrap.className = 'opts';
+      opts.forEach((o, j) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'opt'; b.textContent = o;
+        b.addEventListener('click', () => this.answer(j));
+        wrap.appendChild(b);
+      });
+      body.appendChild(wrap);
+      setActions($('vNext'), []);
+    }
+  },
+  answer(given) {
+    const c = this.cur;
+    if (!c || c.done) return;
+    c.done = true;
+    const good = c.kind === 'r'
+      ? toKana(String(given || '')).replace(/[\s　。]/g, '') === c.answer
+      : given === c.answer;
+    if (good) { this.ok++; Gains.mark(); }
+    SRS.update(this.key(c.v.v, c.kind), 'r', good ? 'perfect' : 'weak');
+    Store.touch();
+    $('vMsg').textContent = (good ? 'Right. ' : 'Not quite. ') + c.why;
+    $('vMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    $('vBody').querySelectorAll('.opt').forEach((b, k) => {
+      if (k === c.answer) b.classList.add('is-right');
+      b.disabled = true;
+    });
+    const input = $('vType');
+    if (input) input.disabled = true;
+    setActions($('vNext'), [{
+      label: this.i + 1 >= this.queue.length ? 'How did I do?' : 'Next', primary: true,
+      act: () => { this.i++; this.ask(); }
+    }]);
+  },
+  done() {
+    const pct = Math.round(this.ok / this.queue.length * 100);
+    $('vProg').textContent = '';
+    $('vQ').innerHTML = '<div class="score"><span class="score-n">' + pct + '%</span>' +
+      '<span class="score-l">' + this.ok + ' of ' + this.queue.length + ' right</span></div>';
+    $('vBody').innerHTML = '';
+    $('vMsg').textContent = '';
+    Gains.line($('vBody'));
+    setActions($('vNext'), [
+      { label: 'Again', primary: true, act: () => this.run(this.kind) },
+      { label: 'Back to the list', act: () => { $('verbsRun').hidden = true; this.paint(); } }
+    ]);
+    this.paint();
+    App.refresh();
+  }
+};
+
+// ================================================================ showing the gain
+// Practice that does not visibly move anything is practice you stop doing. Three things are
+// worth showing: that you turned up again today, what a session actually shifted, and the one
+// number that connects the work to the thing you are worried about — the mark you would get.
+const Gains = {
+  today() { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); },
+  yesterday() { const d = new Date(Date.now() - DAY); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); },
+  // counted once a day, the first time you get anything right
+  mark() {
+    const t = this.today();
+    S.streak = S.streak || { n: 0, last: '' };
+    if (S.streak.last === t) return false;
+    S.streak.n = S.streak.last === this.yesterday() ? S.streak.n + 1 : 1;
+    S.streak.last = t;
+    S.streak.best = Math.max(S.streak.best || 0, S.streak.n);
+    Store.touch();
+    return true;
+  },
+  snap() {
+    this.before = {
+      ready: Exam.readiness().expected,
+      solid: Object.keys(S.progress).filter(k => SRS.status(k) === 3).length,
+      seen: Object.keys(S.progress).length
+    };
+  },
+  // what changed, in words, and only the parts that actually moved
+  since() {
+    if (!this.before) return '';
+    const now = {
+      ready: Exam.readiness().expected,
+      solid: Object.keys(S.progress).filter(k => SRS.status(k) === 3).length,
+      seen: Object.keys(S.progress).length
+    };
+    const bits = [];
+    const dR = Math.round(now.ready * 100) - Math.round(this.before.ready * 100);
+    if (dR > 0) bits.push('expected mark up ' + dR + ' point' + (dR === 1 ? '' : 's') + ', to ' + Math.round(now.ready * 100) + '%');
+    const dS = now.solid - this.before.solid;
+    if (dS > 0) bits.push(dS + ' more mastered');
+    const dN = now.seen - this.before.seen;
+    if (dN > 0) bits.push(dN + ' met for the first time');
+    const streak = (S.streak && S.streak.n) || 0;
+    if (streak > 1) bits.push(streak + ' days in a row');
+    return bits.join(' · ');
+  },
+  // the few moments worth stopping for, each said once
+  milestone() {
+    S.hit = S.hit || {};
+    const r = Exam.readiness(), say = (id, text) => {
+      if (S.hit[id]) return null;
+      S.hit[id] = Date.now(); Store.touch();
+      return text;
+    };
+    const streak = (S.streak && S.streak.n) || 0;
+    if (streak >= 7) { const m = say('streak7', 'Seven days running. That is the part most people skip.'); if (m) return m; }
+    if (streak >= 3) { const m = say('streak3', 'Three days running.'); if (m) return m; }
+    if ((S.exam && S.exam.best) === 100) { const m = say('perfect', 'A perfect mock paper.'); if (m) return m; }
+    if (r.expected >= 0.9) { const m = say('r90', 'Your expected mark is over 90%.'); if (m) return m; }
+    if (r.expected >= 0.75) { const m = say('r75', 'Your expected mark just passed 75%.'); if (m) return m; }
+    if (r.expected >= 0.5) { const m = say('r50', 'Halfway: you would expect to get half the paper right.'); if (m) return m; }
+    const vk = Verbs.all().map(v => Verbs.key(v.v, 'g'));
+    if (vk.length && vk.every(k => confidence(k) > 0.7)) {
+      const m = say('verbs', 'All thirteen verbs, grouped right from memory.'); if (m) return m;
+    }
+    return null;
+  },
+  // one line under a finished drill, never more
+  line(host) {
+    const bits = this.since(), m = this.milestone();
+    if (!bits && !m) return;
+    const p = document.createElement('p');
+    p.className = 'gain' + (m ? ' big' : '');
+    p.textContent = m ? m + (bits ? ' · ' + bits : '') : bits;
+    host.appendChild(p);
+  }
+};
+
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();
