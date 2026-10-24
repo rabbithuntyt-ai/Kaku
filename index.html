@@ -321,6 +321,21 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .sub { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
 .msg { min-height: 2.9em; margin: 2px 0 6px; font-size: 15px; line-height: 1.45; color: var(--muted); }
 .msg.bad { color: var(--red); }
+.marks { display: grid; gap: 7px; }
+.mark { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.mark span { flex: 1; }
+.mark input { width: 72px; padding: 6px 8px; font: inherit; border: 1px solid var(--trace); border-radius: 8px;
+              background: transparent; color: inherit; }
+.mark i { font-style: normal; color: var(--muted); font-size: 13px; min-width: 34px; }
+.hrow { display: grid; grid-template-columns: auto 1fr auto; gap: 9px; align-items: center; font-size: 13px; padding: 4px 0; }
+.hbar { height: 6px; border-radius: 3px; background: var(--trace); overflow: hidden; }
+.hbar i { display: block; height: 100%; background: var(--red); }
+.untouched { margin: 10px 0; }
+.untouched-row { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--trace); border-radius: 10px; margin-bottom: 6px; }
+.untouched-row b { font-size: 14.5px; }
+.untouched-row > span { font-size: 12.5px; color: var(--muted); }
+.uwords { font-size: 14px !important; color: var(--ink-soft) !important; }
+
 .streak { margin: 2px 0 8px; font-size: 13px; color: var(--red); font-weight: 600; }
 .gain { margin-top: 10px; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; color: var(--muted);
         background: color-mix(in srgb, var(--trace) 30%, transparent); }
@@ -783,6 +798,14 @@ if ('serviceWorker' in navigator) {
         <p class="field-note" id="aiNote">Rules: instant, offline, no downloads — it follows what you say but never improvises. Model here: a small model on your own graphics card, downloaded once, then free and offline forever. Claude: the best Japanese, needs internet, spends your Claude usage.</p>
       </div>
       <div class="field">
+        <div class="field-label">Review schedule</div>
+        <div class="seg" data-key="cram">
+          <button type="button" data-v="off">Spaced</button>
+          <button type="button" data-v="on">Cram</button>
+        </div>
+        <p class="field-note">Spaced waits until something is due, which is how it stays learned. Cram ignores the schedule and goes straight for whatever you are weakest on — for the day or two before an exam.</p>
+      </div>
+      <div class="field">
         <div class="field-label">Theme</div>
         <div class="skins" id="skinPicker"></div>
       </div>
@@ -979,6 +1002,16 @@ if ('serviceWorker' in navigator) {
       <div class="ready" id="examReady"></div>
       <div class="actions" id="examStart"></div>
       <div class="parts" id="examParts"></div>
+      <div class="untouched" id="examUntouched"></div>
+      <details class="settings" id="examMarks">
+        <summary>What you scored so far</summary>
+        <p class="note">The quizzes you have already sat are better evidence than a cold start. Put them in and the figures above start from the truth; as you answer questions here, the app's own view takes over.</p>
+        <div class="marks" id="marksList"></div>
+      </details>
+      <details class="settings" id="examHist" hidden>
+        <summary>Mock papers you have sat</summary>
+        <div id="histList"></div>
+      </details>
       <details class="settings" id="examSet">
         <summary>Exam details</summary>
         <div class="field">
@@ -999,6 +1032,19 @@ if ('serviceWorker' in navigator) {
       <p class="msg" id="examMsg" aria-live="polite"></p>
       <div class="actions" id="examActions"></div>
     </div>
+  </section>
+
+  <section id="kwrite" hidden aria-label="Writing katakana by hand">
+    <button class="back" id="kwBack" type="button">Back</button>
+    <p class="eyebrow" id="kwProg"></p>
+    <h2 class="k-head" id="kwWord"></h2>
+    <p class="note" id="kwSoFar"></p>
+    <p class="msg" id="kwMsg" aria-live="polite"></p>
+    <div class="board-wrap"><div class="stage">
+      <div class="order" id="kwOrder" aria-label="Stroke order, one stroke at a time" role="img"></div>
+      <div class="board" id="kwBoard"></div>
+    </div></div>
+    <div class="actions" id="kwActions"></div>
   </section>
 
   <section id="verbs" hidden aria-label="Lesson 3 verbs">
@@ -1662,7 +1708,7 @@ const strokeCache = {};
 const strokesOf = (ch) => strokeCache[ch] || (strokeCache[ch] = KVG[ch].s.map(Core.buildStroke));
 
 // ---------------------------------------------------------------- state + storage
-const DEFAULTS = { rows: ['a','k','s','t','n','h','m','y','r','w'], script: 'b', mix: 'both', prompt: 'sound', strict: 'normal', len: 15, fresh: 5, lessons: [], numbands: [], skin: 'genki', mode: 'auto', ai: 'off', sitting: '1' };
+const DEFAULTS = { rows: ['a','k','s','t','n','h','m','y','r','w'], script: 'b', mix: 'both', prompt: 'sound', strict: 'normal', len: 15, fresh: 5, lessons: [], numbands: [], skin: 'genki', mode: 'auto', ai: 'off', sitting: '1', cram: 'off' };
 const MODES = { write: ['w'], read: ['r'], both: ['w', 'r'] };
 const blankRec = () => ({ b: 0, due: 0, last: 0, n: 0, ok: 0, lapses: 0 });
 const KEY = 'kaku-hiragana-v1';
@@ -1670,7 +1716,15 @@ let S = { v: 1, updatedAt: 0, settings: { ...DEFAULTS }, progress: {}, custom: {
 
 function sanitize(o) {
   const out = { v: 1, updatedAt: +o.updatedAt || 0, settings: { ...DEFAULTS }, progress: {}, custom: {},
-    exam: (o.exam && typeof o.exam === 'object') ? { best: Math.max(0, Math.min(100, +o.exam.best || 0)), last: Math.max(0, Math.min(100, +o.exam.last || 0)), at: +o.exam.at || 0, runs: Math.max(0, +o.exam.runs || 0) } : undefined,
+    exam: (o.exam && typeof o.exam === 'object') ? {
+      best: Math.max(0, Math.min(100, +o.exam.best || 0)), last: Math.max(0, Math.min(100, +o.exam.last || 0)),
+      at: +o.exam.at || 0, runs: Math.max(0, +o.exam.runs || 0),
+      quiz: (o.exam.quiz && typeof o.exam.quiz === 'object') ? Object.keys(o.exam.quiz).reduce((a, k) => {
+        const v = +o.exam.quiz[k]; if (isFinite(v) && v >= 0) a[k] = v; return a; }, {}) : {},
+      history: Array.isArray(o.exam.history) ? o.exam.history
+        .filter(h => Array.isArray(h) && h.length === 2 && isFinite(+h[0]) && isFinite(+h[1]))
+        .map(h => [+h[0], Math.max(0, Math.min(100, +h[1]))]).slice(-20) : []
+    } : undefined,
     streak: (o.streak && typeof o.streak === 'object') ? { n: Math.max(0, +o.streak.n || 0), last: String(o.streak.last || '').slice(0, 12), best: Math.max(0, +o.streak.best || 0) } : undefined,
     hit: (o.hit && typeof o.hit === 'object') ? o.hit : undefined,
     met: Array.isArray(o.met) ? o.met.filter(w => typeof w === 'string' && VOCAB['v:' + w]).slice(0, 400) : [] };
@@ -1686,6 +1740,7 @@ function sanitize(o) {
   if (Array.isArray(st.numbands)) out.settings.numbands = st.numbands.filter(id => NBYID[id]);
   if (SKINS[st.skin]) out.settings.skin = st.skin;
   if (['auto', 'light', 'dark'].includes(st.mode)) out.settings.mode = st.mode;
+  if (['on', 'off'].includes(st.cram)) out.settings.cram = st.cram;
   if (['1', '2'].includes(st.sitting)) out.settings.sitting = st.sitting;
   if (['on', 'off', 'brain', 'claude'].includes(st.ai)) out.settings.ai = st.ai === 'on' ? 'claude' : st.ai;
   // the user's own word lists, kept per lesson
@@ -1857,7 +1912,16 @@ function plan(only) {
   if (!items.length) return null;
   const now = Date.now(), N = S.settings.len;
   const due = [];
-  for (const ch of items) for (const m of modesOf(ch)) if (SRS.due(ch, m, now)) due.push({ ch, kind: kindOf(ch, m), at: S.progress[ch][m].due });
+  // The review boxes space things out over days because that is how things stick. With an exam
+  // in two days that is the wrong master: something you got right this morning is still the
+  // thing you are least sure of. Cramming drops the schedule and sorts by weakest instead.
+  const cram = S.settings.cram === 'on';
+  for (const ch of items) for (const m of modesOf(ch)) {
+    const seen = S.progress[ch] && S.progress[ch][m] && S.progress[ch][m].n > 0;
+    if (cram ? seen : SRS.due(ch, m, now)) {
+      due.push({ ch, kind: kindOf(ch, m), at: cram ? confidence(ch) : S.progress[ch][m].due });
+    }
+  }
   due.sort((a, b) => a.at - b.at);
   // new kana and new words take turns, so neither stream starves the other
   const cap = Math.min(S.settings.fresh, N), fresh = [];
@@ -2216,7 +2280,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3378,8 +3442,11 @@ $('talkBtn').addEventListener('click', () => Talk.open());
 $('examBtn').addEventListener('click', () => Exam.open());
 $('gridBtn').addEventListener('click', () => Grid.open());
 $('verbsBtn').addEventListener('click', () => Verbs.open());
-for (const [id, fn] of [['examBack', 1], ['gridBack', 1], ['verbsBack', 1]]) {
-  $(id).addEventListener('click', () => { show('home'); App.refresh(); });
+for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack']) {
+  $(id).addEventListener('click', () => {
+    if (Exam.timer) { clearInterval(Exam.timer); Exam.timer = null; }
+    show('home'); App.refresh();
+  });
 }
 $('tBack').addEventListener('click', () => (Talk.scene && !$('tRoom').hidden) ? Talk.open() : Talk.close());
 $('tMic').addEventListener('click', () => Talk.mic());
@@ -5902,14 +5969,57 @@ const Exam = {
     if (part === 'ex') return (EXAM.exchange || []).map((x, i) => 'x:e' + i);
     return [];
   },
+  // The quizzes already sat, and which part of the midterm each one tells us about. The
+  // hiragana quiz is left out: it tests writing kana, which the midterm assumes rather than
+  // marks. L3 was never quizzed, so Parts IV and V borrow from the L1 and L2 papers at a
+  // discount — they are evidence about this student, not about this material.
+  QUIZZES: [
+    { id: 'kata', n: 'Katakana quiz', max: 20, feeds: { kata: 1 } },
+    { id: 'l1', n: 'L1 review quiz', max: 18, feeds: { vg: 0.5, ex: 0.5, build: 0.3 } },
+    { id: 'l2', n: 'L2 review quiz', max: 20, feeds: { vg: 0.5, ex: 0.5, build: 0.3 } },
+    { id: 'hira', n: 'Hiragana quiz', max: 15, feeds: {} }
+  ],
+  // what the quizzes say about a part, and how much they should be trusted
+  fromQuizzes(part) {
+    const got = (S.exam && S.exam.quiz) || {};
+    let num = 0, den = 0;
+    for (const q of this.QUIZZES) {
+      const w = q.feeds[part];
+      if (!w || !(q.id in got)) continue;
+      num += (got[q.id] / q.max) * w;
+      den += w;
+    }
+    if (!den) return null;
+    // Weight is how much of this part the quizzes actually speak for, capped at all of it.
+    // Part IV is Lesson 3 conjugation and was never quizzed, so its evidence is partial and
+    // the rest of it stays at a guess rather than borrowing confidence it has not earned.
+    const w = Math.min(1, den);
+    return { p: (num / den) * w + 0.25 * (1 - w), weight: w };
+  },
   // How likely a single question of this part is to be right. An item never attempted is not
-  // assumed hopeless and not assumed fine: 0.25 is roughly a guess on four options.
+  // assumed hopeless and not assumed fine: 0.25 is roughly a guess on four options. A quiz you
+  // have already sat is better evidence than that, so it stands in until the app has watched
+  // you answer enough questions of its own to know better.
   partChance(part) {
     const keys = this.keys(part);
     if (!keys.length) return 0.25;
-    let total = 0;
-    for (const k of keys) total += Math.max(0.25, confidence(k));
-    return Math.max(0.05, Math.min(0.995, total / keys.length));
+    let total = 0, seen = 0;
+    for (const k of keys) {
+      const c = confidence(k);
+      if (c > 0) seen++;
+      total += Math.max(0.25, c);
+    }
+    const app = total / keys.length;
+    const quiz = this.fromQuizzes(part);
+    let out = app;
+    if (quiz) {
+      // the app's own view takes over as it gathers evidence; a quarter of the part answered
+      // is enough to trust it on its own
+      const trust = Math.min(1, seen / Math.max(4, keys.length * 0.25));
+      out = app * trust + quiz.p * (1 - trust);
+      out = Math.max(out, app);
+    }
+    return Math.max(0.05, Math.min(0.995, out));
   },
   // Two numbers, because they answer different questions. The expected mark is what you would
   // probably get; the perfect-paper chance is every question going right at once, which is what
@@ -5955,8 +6065,13 @@ const Exam = {
     $('examParts').querySelectorAll('[data-part]').forEach(b => {
       b.addEventListener('click', () => this.run(b.dataset.part));
     });
+    this.paintMarks();
+    this.paintHistory();
+    this.paintUntouched();
     setActions($('examStart'), [
       { label: 'Sit the whole paper', primary: true, act: () => this.run(null) },
+      { label: 'Under exam conditions', act: () => this.run(null, true) },
+      { label: 'Write katakana by hand', act: () => KWrite.open(true) },
       { label: 'Weakest part first', act: () => {
         const worst = r.parts.slice().sort((a, b) => a.chance - b.chance)[0];
         this.run(worst.id);
@@ -5996,14 +6111,38 @@ Object.assign(Exam, {
           const v = 18 + Math.floor(Math.random() * 25);
           value = v; say = numberReading(v) + 'さい'; show = (x) => x + ' years old';
         }
+        // Part I is a hearing problem, not an arithmetic one, so the wrong answers are the ones
+        // that sound alike: しち and いち, なな and なな-じゅう, ろく and ろくじゅう, じゅう and じゅういち.
         const wrong = new Set();
-        while (wrong.size < 2) {
-          const d = f.kind === 'yen' ? [120, 350, 480, 640, 1200, 2500, 3800, 5000, 8000][Math.floor(Math.random() * 9)]
-            : f.kind === 'year' ? 1 + Math.floor(Math.random() * 4)
-            : f.kind === 'time' ? (1 + Math.floor(Math.random() * 12)) + (Math.random() < 0.4 ? ':30' : ':00')
-            : 18 + Math.floor(Math.random() * 25);
-          if (String(d) !== String(value)) wrong.add(String(d));
+        const near = (x) => {
+          const n = parseInt(String(x), 10);
+          const out = [];
+          if (n === 7) out.push(1, 17, 70); if (n === 1) out.push(7, 11);
+          if (n === 4) out.push(14, 40); if (n === 9) out.push(19, 90);
+          out.push(n + 10, n - 10, n * 10, Math.floor(n / 10) || n + 1, n + 1, n - 1);
+          return out.filter(v => v > 0 && v !== n);
+        };
+        if (f.kind === 'time') {
+          const h = parseInt(String(value), 10), half = String(value).endsWith('30');
+          for (const c of [h + ':' + (half ? '00' : '30'), ((h % 12) + 1) + (half ? ':30' : ':00'),
+                           (h === 7 ? 1 : h === 1 ? 7 : (h + 11) % 12 || 12) + (half ? ':30' : ':00')]) {
+            if (c !== String(value)) wrong.add(c);
+          }
+        } else if (f.kind === 'year') {
+          // there are only four school years, so a near-miss has to stay inside them
+          for (const c of [1, 2, 3, 4]) if (c !== value) wrong.add(String(c));
+        } else if (f.kind === 'yen') {
+          // the sound changes are the trap here: ろっぴゃく, はっぴゃく, さんびゃく
+          const prices = [120, 350, 480, 640, 1200, 2500, 3800, 5000, 8000, 300, 600, 800];
+          for (const c of Exam.shuffle(prices)) if (c !== value) wrong.add(String(c));
+        } else {
+          // an age that no classmate could be is not a near-miss, it is a free mark
+          for (const c of near(value)) if (c >= 15 && c <= 60) wrong.add(String(c));
         }
+        const bag = [...wrong];
+        while (bag.length < 2) bag.push(String(parseInt(String(value), 10) + bag.length + 2));
+        wrong.clear();
+        for (const c of Exam.shuffle(bag).slice(0, 2)) wrong.add(c);
         const opts = this.shuffle([String(value)].concat([...wrong]));
         out.push({ kind: 'mc', key: 'n:' + (NBANDS[0] && NBANDS[0].id), q: f.q, say: f.frame.replace('{}', say),
                    opts: opts.map(show), raw: opts, a: opts.indexOf(String(value)),
@@ -6061,6 +6200,7 @@ Object.assign(Exam, {
   },
   // Marked the way the paper is: the shape has to be right, but spacing and the full stop are
   // not what is being tested, and neither is whether you wrote it in kanji or kana.
+  usedKanji(given) { return /[\u4e00-\u9faf]/.test(String(given || '')); },
   right(item, given) {
     if (item.kind === 'mc') return given === item.a;
     const tidy = (x) => toKana(String(x || '')).replace(/[\s　。、．，]/g, '');
@@ -6071,7 +6211,11 @@ Object.assign(Exam, {
 
 // ---------------------------------------------------------------- sitting the paper
 Object.assign(Exam, {
-  run(partId) {
+  // strict: sixty minutes, no marking until the end, exactly like the room. Useful once, to
+  // find out whether you are fast enough; useless as a way to revise, because being told what
+  // you got wrong is the part that teaches you.
+  run(partId, strict) {
+    this.strict = !!strict;
     const parts = partId ? this.PARTS.filter(p => p.id === partId) : this.PARTS;
     this.queue = [];
     for (const p of parts) {
@@ -6082,7 +6226,22 @@ Object.assign(Exam, {
     Gains.snap();
     $('examHome').hidden = true;
     $('examRun').hidden = false;
+    if (this.timer) clearInterval(this.timer);
+    if (this.strict) {
+      this.endsAt = Date.now() + 60 * 60 * 1000;
+      this.timer = setInterval(() => this.tick(), 1000);
+    }
     this.ask();
+  },
+  tick() {
+    if (!this.strict) return;
+    const left = Math.max(0, this.endsAt - Date.now());
+    const m = Math.floor(left / 60000), sec = Math.floor(left % 60000 / 1000);
+    const clock = m + ':' + String(sec).padStart(2, '0');
+    $('examProg').textContent = 'Question ' + (this.i + 1) + ' of ' + this.queue.length +
+      ' \u00b7 ' + clock + ' left';
+    $('examProg').className = 'note' + (left < 5 * 60000 ? ' bad' : '');
+    if (left <= 0) { clearInterval(this.timer); this.timer = null; this.finish(true); }
   },
   ask() {
     const it = this.queue[this.i];
@@ -6161,10 +6320,22 @@ Object.assign(Exam, {
     this.log.push({ part: it.part.n, q: it.q, good, want: it.a, why: it.why });
     if (it.key) SRS.update(it.key, 'r', good ? 'perfect' : 'weak');
     Store.touch();
+    // The paper says answers in Japanese, no kanji. Marking it wrong would be harsher than the
+    // exam and would hide whether the Japanese was right; saying nothing rehearses the habit
+    // that loses the marks. So: the mark stands, and the rule gets said.
+    const kanji = it.kind !== 'mc' && this.usedKanji(given);
+    if (this.strict) {
+      this.i++;
+      if (this.i >= this.queue.length) return this.finish();
+      return this.ask();
+    }
     $('examMsg').textContent = good ? 'Right.' : (it.kind === 'mc'
       ? 'Not that one. ' + it.why
       : 'The answer is ' + (it.alt && it.alt.length ? it.a + ' (or ' + it.alt.join(', ') + ')' : it.a) + '.');
-    $('examMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    if (kanji) {
+      $('examMsg').textContent += ' Written in kanji, though \u2014 on Monday it has to be kana.';
+    }
+    $('examMsg').className = 'msg ' + (kanji ? 'bad' : good ? 'good' : 'bad');
     $('examBody').querySelectorAll('.opt').forEach((b, j) => {
       if (j === it.a) b.classList.add('is-right');
       else if (!good && b.textContent === String(given)) b.classList.add('is-wrong');
@@ -6177,8 +6348,10 @@ Object.assign(Exam, {
       act: () => { this.i++; this.ask(); }
     }]);
   },
-  finish() {
+  finish(ranOut) {
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
     const total = this.queue.length, pct = total ? Math.round(this.ok / total * 100) : 0;
+    const unanswered = this.queue.filter(q => !q.done).length;
     const byPart = {};
     for (const l of this.log) {
       const b = byPart[l.part] || (byPart[l.part] = { ok: 0, n: 0 });
@@ -6191,11 +6364,15 @@ Object.assign(Exam, {
       S.exam.last = pct;
       S.exam.at = Date.now();
       S.exam.runs = (S.exam.runs || 0) + 1;
+      S.exam.history = (S.exam.history || []).concat([[Date.now(), pct]]).slice(-20);
       Store.touch();
     }
     const missed = this.log.filter(l => !l.good);
     $('examPart').textContent = this.whole ? 'Mock paper finished' : 'Part finished';
-    $('examProg').textContent = '';
+    $('examProg').textContent = ranOut
+      ? 'Time. ' + unanswered + ' left unanswered, which counts as wrong on the day.'
+      : (this.strict ? 'Sat under exam conditions.' : '');
+    $('examProg').className = 'note' + (ranOut ? ' bad' : '');
     $('examQ').innerHTML = '<div class="score"><span class="score-n">' + pct + '%</span>' +
       '<span class="score-l">' + this.ok + ' of ' + total + ' right' +
       (this.whole && pct >= best && this.ok > 0 ? ' — your best yet' : '') + '</span></div>';
@@ -6547,7 +6724,167 @@ const Gains = {
   }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+Object.assign(Exam, {
+  // the marks already in the bag
+  paintMarks() {
+    const got = (S.exam && S.exam.quiz) || {};
+    $('marksList').innerHTML = this.QUIZZES.map(q =>
+      '<label class="mark"><span>' + esc(q.n) + '</span>' +
+      '<input type="number" min="0" max="' + q.max + '" step="0.5" data-quiz="' + q.id + '" ' +
+      'value="' + (q.id in got ? got[q.id] : '') + '" placeholder="?"> <i>/ ' + q.max + '</i></label>'
+    ).join('');
+    $('marksList').querySelectorAll('[data-quiz]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        S.exam = S.exam || {}; S.exam.quiz = S.exam.quiz || {};
+        const q = this.QUIZZES.find(x => x.id === inp.dataset.quiz);
+        const v = parseFloat(inp.value);
+        if (isFinite(v) && v >= 0) S.exam.quiz[q.id] = Math.min(q.max, v);
+        else delete S.exam.quiz[q.id];
+        Store.touch();
+        this.paint();
+        App.refresh();
+      });
+    });
+  },
+  paintHistory() {
+    const h = (S.exam && S.exam.history) || [];
+    $('examHist').hidden = h.length < 1;
+    if (!h.length) return;
+    const best = Math.max.apply(null, h.map(x => x[1]));
+    $('histList').innerHTML = h.slice().reverse().map(([at, pct]) => {
+      const d = new Date(at);
+      return '<div class="hrow"><span>' + d.getDate() + '/' + (d.getMonth() + 1) + ' ' +
+        String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + '</span>' +
+        '<span class="hbar"><i style="width:' + pct + '%"></i></span>' +
+        '<span>' + pct + '%' + (pct === best ? ' ★' : '') + '</span></div>';
+    }).join('') + (h.length > 1
+      ? '<p class="field-note">First ' + h[0][1] + '%, latest ' + h[h.length - 1][1] + '%.</p>' : '');
+  },
+  // The app knows what you have practised. What it has never shown you is the more useful
+  // thing two days out, because that is where the surprises live.
+  untouched() {
+    const out = {};
+    for (const k of Object.keys(VOCAB)) {
+      const v = VOCAB[k];
+      if (!v.c) continue;
+      if (confidence(k) > 0) continue;
+      (out[v.c] = out[v.c] || []).push(v);
+    }
+    return out;
+  },
+  paintUntouched() {
+    const u = this.untouched(), host = $('examUntouched');
+    const total = Object.values(u).reduce((a, x) => a + x.length, 0);
+    if (!total) {
+      host.innerHTML = '<p class="field-note">Every one of the 193 course words has been in front of you at least once.</p>';
+      return;
+    }
+    host.innerHTML = '<p class="sect">Never practised · ' + total + ' of 193</p>' +
+      COURSE_IDS.filter(id => u[id] && u[id].length).map(id =>
+        '<div class="untouched-row"><b>' + esc(COURSE[id].name) + '</b>' +
+        '<span>' + u[id].length + ' word' + (u[id].length === 1 ? '' : 's') + '</span>' +
+        '<span class="uwords">' + u[id].slice(0, 10).map(v => esc(v.w)).join('、') +
+        (u[id].length > 10 ? '…' : '') + '</span></div>').join('') +
+      '<div class="actions" id="untouchedGo"></div>';
+    const go = $('untouchedGo');
+    if (go) setActions(go, [{ label: 'Practise these first', primary: true, act: () => {
+      const keys = Object.values(u).flat().map(v => vkey(v.w));
+      Practice.start(keys.slice(0, Math.max(10, S.settings.len)));
+    } }]);
+  }
+});
+
+// ================================================================ writing katakana by hand
+// Part II of the paper is handwritten, and typing it rehearses recall but not the hand. The
+// characters that cost marks are the ones that differ by an angle — ツ and シ, ソ and ン — and
+// you only find out whether you know them apart by drawing them.
+const KWrite = {
+  board: null,
+  open(fromExam) {
+    show('kwrite');
+    if (!this.board) {
+      this.board = new Board($('kwBoard'));
+      this.fit = fitBoard(this.board, $('kwOrder'));
+    }
+    this.fromExam = !!fromExam;
+    this.queue = Exam.weakest(KATAKANA.map((k, i) => 'x:k' + i), 6).map(k => +k.slice(3));
+    this.i = 0; this.ok = 0; this.settled = -1; this.slipped = false;
+    Gains.snap();
+    this.ask();
+  },
+  ask() {
+    const idx = this.queue[this.i];
+    if (idx === undefined) return this.done();
+    const [kana, en] = KATAKANA[idx];
+    this.word = kana; this.en = en; this.chars = [...kana];
+    // a long vowel mark and a small character have no strokes to check, so they are written in
+    this.c = 0;
+    $('kwProg').textContent = 'Word ' + (this.i + 1) + ' of ' + this.queue.length;
+    $('kwWord').textContent = en;
+    this.step();
+  },
+  step() {
+    const done = this.chars.slice(0, this.c).join('');
+    $('kwSoFar').textContent = done ? 'So far: ' + done : 'Write it one character at a time.';
+    if (this.c >= this.chars.length) return this.wordDone();
+    const ch = this.chars[this.c];
+    if (!strokesOf(ch) || !strokesOf(ch).length) { this.c++; return this.step(); }
+    this.board.setChar(ch);
+    this.fit();
+    this.msg('Character ' + (this.c + 1) + ' of ' + this.chars.length + '.');
+    this.drill = new Drill(this.board, 'recall', {
+      onMsg: (t, tone) => this.msg(t, tone),
+      onDone: ({ misses }) => {
+        this.board.stamp(misses ? 'ok' : 'good');
+        if (misses) this.slipped = true;
+        this.c++;
+        setTimeout(() => this.step(), 420);
+      }
+    });
+    setActions($('kwActions'), [
+      { label: 'Show me', act: () => { this.slipped = true; this.board.reset(); this.board.demo(0); } },
+      { label: 'Skip this word', act: () => { this.slipped = true; this.c = this.chars.length; this.step(); } }
+    ]);
+  },
+  wordDone() {
+    // the drill for the last character is finished with; leaving it bound means a stray stroke
+    // on the board can still reach it
+    if (this.drill) { this.drill.over = true; this.drill = null; }
+    this.board.onStroke = null;
+    if (this.settled === this.i) return;      // one mark per word, however we got here
+    this.settled = this.i;
+    const clean = !this.slipped;
+    if (clean) this.ok++;
+    SRS.update('x:k' + this.queue[this.i], 'r', clean ? 'perfect' : 'weak');
+    Store.touch();
+    this.slipped = false;
+    this.board.inputOn = false;
+    this.msg(clean ? 'Written, and no hints. ' + this.word : 'That one is ' + this.word + '.', clean ? 'good' : '');
+    $('kwSoFar').textContent = this.word + ' — ' + this.en;
+    setActions($('kwActions'), [{
+      label: this.i + 1 >= this.queue.length ? 'How did I do?' : 'Next word', primary: true,
+      act: () => { this.i++; this.ask(); }
+    }]);
+  },
+  done() {
+    const pct = Math.round(this.ok / this.queue.length * 100);
+    $('kwProg').textContent = '';
+    $('kwWord').textContent = pct + '%';
+    $('kwSoFar').textContent = this.ok + ' of ' + this.queue.length + ' written without a hint.';
+    this.board.reset(); this.board.inputOn = false;
+    this.msg('');
+    const host = $('kwActions');
+    setActions(host, [
+      { label: 'Again', primary: true, act: () => this.open(this.fromExam) },
+      { label: this.fromExam ? 'Back to the midterm' : 'Back', act: () => { if (this.fromExam) Exam.open(); else { show('home'); App.refresh(); } } }
+    ]);
+    Gains.line(host.parentElement);
+    App.refresh();
+  },
+  msg(t, tone) { const n = $('kwMsg'); n.textContent = t || ''; n.className = 'msg' + (tone ? ' ' + tone : ''); }
+};
+
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

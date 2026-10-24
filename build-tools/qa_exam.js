@@ -302,6 +302,139 @@ const open = async (browser) => {
     await ctx.close();
   }
 
+  // ---- the eight improvements -----------------------------------------------------
+  {
+    const { ctx, page, errs } = await open(browser);
+
+    // 1. kanji is accepted but said, because the paper forbids it
+    const k = await page.evaluate(() => {
+      const E = window.__kaku.Exam;
+      return { flags: E.usedKanji('私はにくをたべません。'), clean: E.usedKanji('わたしはにくをたべません。'),
+               stillRight: E.right({ kind: 'type', a: 'わたしはにくをたべません。', alt: [] }, '私はにくをたべません。') };
+    });
+    ok(k.flags && !k.clean, 'kanji in an answer is noticed');
+    ok(k.stillRight, 'and still marked right, because the Japanese was right');
+
+    // 3. distractors you could actually mishear
+    const d = await page.evaluate(() => {
+      const E = window.__kaku.Exam, bad = [];
+      for (let r = 0; r < 60; r++) for (const i of E.make('listen', 4)) {
+        if (new Set(i.opts).size !== 3) bad.push('dupe ' + i.opts.join('/'));
+        const ages = i.opts.filter((o) => /years old/.test(o)).map((o) => parseInt(o, 10));
+        if (ages.some((a) => a < 15 || a > 60)) bad.push('age ' + i.opts.join('/'));
+        if (i.opts.some((o) => /undefined|NaN/.test(o))) bad.push('broken ' + i.opts.join('/'));
+      }
+      return bad;
+    });
+    ok(d.length === 0, 'over 240 listening questions no option set is broken or implausible');
+
+    // 2. the quizzes already sat
+    const q = await page.evaluate(() => {
+      const K = window.__kaku, S = K.S();
+      const cold = K.Exam.readiness();
+      S.exam = { quiz: { kata: 15, l1: 15, l2: 17 } };
+      const warm = K.Exam.readiness();
+      return { cold: cold.expected, warm: warm.expected,
+               kata: warm.parts.find((x) => x.id === 'kata').chance,
+               build: warm.parts.find((x) => x.id === 'build').chance,
+               listen: warm.parts.find((x) => x.id === 'listen').chance };
+    });
+    ok(q.warm > q.cold + 0.3, 'real quiz marks move the expected mark off its cold start (' +
+      Math.round(q.cold * 100) + '% to ' + Math.round(q.warm * 100) + '%)');
+    ok(Math.abs(q.kata - 0.75) < 0.02, 'Part II reads straight off the katakana quiz');
+    ok(Math.abs(q.listen - 0.25) < 0.02, 'Part I stays at a guess, because no quiz covered numbers');
+    ok(q.build < q.kata + 0.2 && q.build < 0.75,
+      'and Part IV is discounted, because Lesson 3 was never quizzed (' + Math.round(q.build * 100) + '%)');
+
+    // 4. what you have never once practised
+    const u = await page.evaluate(() => {
+      const K = window.__kaku;
+      const before = Object.values(K.Exam.untouched()).reduce((a, x) => a + x.length, 0);
+      const first = Object.values(K.Exam.untouched())[0][0];
+      const key = Object.keys(K.VOCAB).find((x) => K.VOCAB[x].w === first.w);
+      K.SRS.update(key, 'r', 'perfect');
+      return { before, after: Object.values(K.Exam.untouched()).reduce((a, x) => a + x.length, 0) };
+    });
+    ok(u.before === 193, 'from nothing, all 193 course words are untouched');
+    ok(u.after === u.before - 1, 'and practising one takes it off the list');
+
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
+    await ctx.close();
+  }
+
+  // ---- cram, exam conditions, and writing by hand -----------------------------------
+  {
+    const { ctx, page, errs } = await open(browser);
+
+    // 8. the schedule is the wrong master two days out
+    const c = await page.evaluate(() => {
+      const K = window.__kaku, S = K.S();
+      S.settings.lessons = ['0', '1'];
+      const keys = K.LBYID['1'].keys.slice(0, 10);
+      // answered, and genuinely not due again for days — which is exactly the state the
+      // schedule puts you in the day after a good session, and the wrong one before an exam
+      for (const k of keys) {
+        K.SRS.update(k, 'r', 'perfect');
+        for (const m of ['r', 'p']) if (S.progress[k] && S.progress[k][m]) {
+          S.progress[k][m].due = Date.now() + 5 * 86400000;
+        }
+      }
+      S.settings.cram = 'off';
+      const spaced = K.plan(keys);
+      S.settings.cram = 'on';
+      const cram = K.plan(keys);
+      return { spaced: spaced ? spaced.dueCount : 0, cram: cram ? cram.dueCount : 0,
+               spacedQ: spaced ? spaced.queue.length : 0, cramQ: cram ? cram.queue.length : 0 };
+    });
+    ok(c.spaced === 0, 'the schedule says nothing is due for days, and means it');
+    ok(c.cram === 10, 'cramming counts all ten as due anyway (' + c.cram + ')');
+    ok(c.cramQ > 0 && c.spacedQ > 0, 'and either way a session still has something in it');
+
+    // 6. sixty minutes, marked at the end
+    await page.click('#examBtn');
+    await page.waitForTimeout(200);
+    const labels = await page.$$eval('#examStart button', (n) => n.map((x) => x.textContent));
+    ok(labels.some((l) => /exam conditions/i.test(l)), 'the paper can be sat under exam conditions');
+    await page.evaluate(() => window.__kaku.Exam.run(null, true));
+    await page.waitForTimeout(1200);
+    const strict = await page.evaluate(() => {
+      const E = window.__kaku.Exam;
+      const before = document.getElementById('examProg').textContent;
+      E.answer(E.queue[0].a);
+      return { before, msg: document.getElementById('examMsg').textContent, moved: E.i === 1 };
+    });
+    ok(/\d+:\d\d left/.test(strict.before), 'with a clock running: ' + strict.before);
+    ok(strict.msg === '' && strict.moved, 'and nothing is revealed until the end');
+    const out = await page.evaluate(async () => {
+      const E = window.__kaku.Exam;
+      E.endsAt = Date.now() - 1;
+      await new Promise((r) => setTimeout(r, 1200));
+      return document.getElementById('examProg').textContent;
+    });
+    ok(/Time\./.test(out) && /unanswered/.test(out), 'running out of time ends it and says what it cost');
+
+    // 5. Part II is handwritten on the day
+    const hw = await page.evaluate(async () => {
+      const K = window.__kaku, W = K.KWrite;
+      W.open(true);
+      await new Promise((r) => setTimeout(r, 250));
+      const words = W.queue.map((i) => K.KATAKANA[i][0]);
+      const before = Object.keys(K.S().progress).filter((x) => x.startsWith('x:k')).length;
+      W.c = W.chars.length; W.slipped = false;
+      W.wordDone(); W.wordDone();
+      return { words, n: W.queue.length,
+               marked: Object.keys(K.S().progress).filter((x) => x.startsWith('x:k')).length - before,
+               freed: W.drill === null && W.board.onStroke === null };
+    });
+    ok(hw.n === 6, 'it sets six words to write');
+    ok(hw.words.every((w) => /^[゠-ヿーA-Z]+$/.test(w)), 'all of them katakana: ' + hw.words.join(' '));
+    ok(hw.marked === 1, 'a word is marked once however the finish is reached');
+    ok(hw.freed, 'and the board is let go of, so a stray stroke cannot reach a finished drill');
+
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);
