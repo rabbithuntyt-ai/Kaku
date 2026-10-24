@@ -270,6 +270,38 @@ const open = async (browser) => {
     await ctx.close();
   }
 
+  // ---- a machine with no Japanese voice -------------------------------------------
+  // Windows ships Japanese speech only with the language pack. Without it the listening part
+  // would be a silent button and five marks you cannot attempt.
+  {
+    const ctx = await browser.newContext({ viewport: { width: 430, height: 940 } });
+    await ctx.route(/fonts\.(googleapis|gstatic)/, (r) => r.abort());
+    await ctx.addInitScript(() => {
+      window.SpeechSynthesisUtterance = class { constructor(t) { this.text = t; } };
+      const ss = window.speechSynthesis;
+      ss.getVoices = () => [{ name: 'Microsoft David', lang: 'en-US' }];
+      ss.cancel = () => {}; ss.speak = () => {};
+    });
+    const page = await ctx.newPage();
+    const errs = [];
+    page.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
+    await page.goto('file://' + __dirname + '/test.html', { waitUntil: 'load' });
+    await page.waitForTimeout(2800);
+    await page.click('#examBtn');
+    await page.waitForTimeout(200);
+    await page.click('.part[data-part="listen"]');
+    await page.waitForTimeout(350);
+    const seen = await page.evaluate(() => ({
+      text: document.getElementById('examQ').textContent,
+      opts: document.querySelectorAll('.opt').length
+    }));
+    ok(/no Japanese voice/.test(seen.text), 'it says the machine cannot speak Japanese');
+    ok(/[\u3040-\u30ff]/.test(seen.text), 'and writes the line out instead of playing nothing');
+    ok(seen.opts === 3, 'so the five marks are still answerable');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);

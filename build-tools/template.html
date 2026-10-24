@@ -6083,7 +6083,15 @@ Object.assign(Exam, {
     $('examMsg').textContent = ''; $('examMsg').className = 'msg';
     const body = $('examBody');
     body.textContent = '';
-    if (it.say) {
+    if (it.say && !Speech.available()) {
+      // Windows ships Japanese speech only with the language pack, and without it this part
+      // would be a silent button and five unanswerable marks. Shown instead, and said so: it
+      // becomes a reading question, which is not the same practice but is not a dead end.
+      $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>' +
+        '<div class="ex-line">' + esc(it.say) + '</div>' +
+        '<div class="ex-hint">This machine has no Japanese voice, so the line is written out. ' +
+        'In the exam it is read aloud, twice.</div>';
+    } else if (it.say) {
       // listening: the statement is spoken, never shown, and read twice like the real paper
       $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>';
       this.heard = 0;
