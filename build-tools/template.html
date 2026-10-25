@@ -319,6 +319,17 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .sub { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
 .msg { min-height: 2.9em; margin: 2px 0 6px; font-size: 15px; line-height: 1.45; color: var(--muted); }
 .msg.bad { color: var(--red); }
+.tgroup { margin: 16px 0 4px; }
+.tgroup-h { margin: 0 0 7px; font-size: 12px; letter-spacing: .05em; text-transform: uppercase;
+            color: var(--ink-soft); font-weight: 650; }
+.tgroup-h span { display: block; text-transform: none; letter-spacing: 0; font-size: 12.5px;
+                 font-weight: 400; color: var(--muted); margin-top: 1px; }
+.first { border: 1px solid var(--trace); border-radius: 13px; padding: 14px 15px; margin: 4px 0 10px; }
+.first-l { margin: 0 0 9px; font-size: 14.5px; line-height: 1.55; color: var(--muted); }
+.first-l:first-child { color: var(--ink); font-size: 15.5px; }
+.vlink { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--red);
+         text-decoration: none; border-bottom: 1px solid currentColor; }
+
 .clgroup { margin-bottom: 14px; }
 .clrow { display: grid; gap: 3px; text-align: left; width: 100%; padding: 11px 13px; margin-bottom: 6px;
          border: 1px solid var(--trace); border-radius: 12px; background: transparent; color: inherit;
@@ -707,58 +718,77 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
     <p class="wifi-line" id="wifiLine" hidden></p>
     <p class="streak" id="streakLine" hidden></p>
 
+    <div class="first" id="firstRun" hidden>
+      <p class="first-l">Kaku is a practice app for the Japanese you are actually being taught — JAPA 100 at VIU, following Genki.</p>
+      <p class="first-l">Three ways in. Any of them is a reasonable place to begin.</p>
+      <div class="actions" id="firstActions"></div>
+    </div>
+
     <div class="start">
       <button class="btn primary" id="startBtn" type="button">Start practice</button>
       <p class="note" id="startNote"></p>
       <div class="mix" id="mixChips" aria-label="What this session covers"></div>
     </div>
 
-    <nav class="tiles" aria-label="Study sections">
-      <button class="tile wide exam-tile" id="examBtn" type="button">
-        <span class="t-main">Midterm mock <span class="t-when" id="examWhen"></span></span>
-        <span class="t-sub" id="examSub">The five parts of the real paper, marked as you go</span>
-        <span class="meter"><i id="examMeter"></i></span>
-      </button>
-      <button class="tile" id="lessonsBtn" type="button">
-        <span class="t-main">Lessons</span>
-        <span class="t-sub" id="lessonsSub">Grammar notes and vocabulary</span>
-        <span class="meter"><i id="lessonsMeter"></i></span>
-      </button>
-      <button class="tile" id="vocabBtn" type="button">
-        <span class="t-main">Vocabulary</span>
-        <span class="t-sub" id="vocabSub">Every word in one list</span>
-        <span class="meter"><i id="vocabMeter"></i></span>
-      </button>
-      <button class="tile" id="kanjiBtn" type="button">
-        <span class="t-main">Kanji</span>
-        <span class="t-sub" id="kanjiSub">Stroke order for the 79 in JLPT N5</span>
-      </button>
-      <button class="tile" id="numbersBtn" type="button">
-        <span class="t-main">Numbers</span>
-        <span class="t-sub" id="numbersSub">1 to 100,000</span>
-        <span class="meter"><i id="numbersMeter"></i></span>
-      </button>
-      <button class="tile wide" id="classesBtn" type="button">
+    <section class="tgroup" aria-label="Understand it">
+      <p class="tgroup-h">Understand it<span>Read the idea first, then check it landed</span></p>
+      <nav class="tiles">
+<button class="tile wide" id="classesBtn" type="button">
         <span class="t-main">Catch-up classes</span>
         <span class="t-sub" id="classesSub">Every idea the course taught, explained then checked</span>
         <span class="meter"><i id="classesMeter"></i></span>
       </button>
-      <button class="tile" id="verbsBtn" type="button">
+<button class="tile" id="lessonsBtn" type="button">
+        <span class="t-main">Lessons</span>
+        <span class="t-sub" id="lessonsSub">Grammar notes and vocabulary</span>
+        <span class="meter"><i id="lessonsMeter"></i></span>
+      </button>
+      </nav>
+    </section>
+    <section class="tgroup" aria-label="Practise it">
+      <p class="tgroup-h">Practise it<span>The things you get better at by repetition</span></p>
+      <nav class="tiles">
+<button class="tile" id="vocabBtn" type="button">
+        <span class="t-main">Vocabulary</span>
+        <span class="t-sub" id="vocabSub">Every word in one list</span>
+        <span class="meter"><i id="vocabMeter"></i></span>
+      </button>
+<button class="tile" id="verbsBtn" type="button">
         <span class="t-main">Verbs</span>
         <span class="t-sub" id="verbsSub">Lesson 3 by group, meaning and ます form</span>
         <span class="meter"><i id="verbsMeter"></i></span>
       </button>
-      <button class="tile" id="gridBtn" type="button">
+<button class="tile" id="gridBtn" type="button">
         <span class="t-main">こそあど</span>
         <span class="t-sub" id="gridSub">これ, この, ここ — the grid, drilled one decision at a time</span>
         <span class="meter"><i id="gridMeter"></i></span>
       </button>
-      <button class="tile wide" id="talkBtn" type="button">
+<button class="tile" id="kanjiBtn" type="button">
+        <span class="t-main">Kanji</span>
+        <span class="t-sub" id="kanjiSub">Stroke order for the 79 in JLPT N5</span>
+      </button>
+<button class="tile" id="numbersBtn" type="button">
+        <span class="t-main">Numbers</span>
+        <span class="t-sub" id="numbersSub">1 to 100,000</span>
+        <span class="meter"><i id="numbersMeter"></i></span>
+      </button>
+      </nav>
+    </section>
+    <section class="tgroup" aria-label="Try it for real">
+      <p class="tgroup-h">Try it for real<span>Where you find out what actually stuck</span></p>
+      <nav class="tiles">
+<button class="tile wide exam-tile" id="examBtn" type="button">
+        <span class="t-main">Midterm mock <span class="t-when" id="examWhen"></span></span>
+        <span class="t-sub" id="examSub">The five parts of the real paper, marked as you go</span>
+        <span class="meter"><i id="examMeter"></i></span>
+      </button>
+<button class="tile wide" id="talkBtn" type="button">
         <span class="t-main">Talking practice</span>
         <span class="t-sub" id="talkSub">Say your lessons out loud, one scene at a time</span>
         <span class="meter"><i id="talkMeter"></i></span>
       </button>
-    </nav>
+      </nav>
+    </section>
 
     <details class="settings" id="confidence">
       <summary>How you are doing</summary>
@@ -5808,6 +5838,37 @@ const App = {
         : st + ' days in a row' + ((S.streak.best > st) ? ' \u00b7 best ' + S.streak.best : '') + '.';
     }
 
+    // Grouping is right for someone new, but it buries the exam for someone who has one in
+    // two days. So when the midterm is close, the group with it in moves to the front.
+    const groups = [...document.querySelectorAll('.tgroup')];
+    const soon = Exam.daysLeft() >= 0 && Exam.daysLeft() <= 7;
+    const real = groups.find(g => g.getAttribute('aria-label') === 'Try it for real');
+    if (real && real.parentElement) {
+      const want = soon ? 0 : 2;
+      const now = groups.indexOf(real);
+      if (now !== want) {
+        const parent = real.parentElement;
+        if (soon) parent.insertBefore(real, groups[0]);
+        else parent.insertBefore(real, groups[groups.length - 1].nextSibling);
+      }
+    }
+
+    // Someone opening this for the first time has no progress to read and no reason to prefer
+    // one of nine tiles over another. Until there is something to show, say what the thing is
+    // and offer three honest starting points instead.
+    const touched = Object.keys(S.progress).length;
+    const first = $('firstRun');
+    first.hidden = touched > 0;
+    $('startBtn').hidden = touched === 0;
+    $('startNote').hidden = touched === 0;
+    if (!touched) {
+      setActions($('firstActions'), [
+        { label: 'Learn the kana', primary: true, act: () => Practice.start() },
+        { label: 'Read a class first', act: () => Class.open() },
+        { label: 'See what the midterm asks', act: () => Exam.open() }
+      ]);
+    }
+
     const clKeys = CLASSES.map(c => Class.key(c.id, 'k'));
     const clC = clKeys.length ? clKeys.reduce((a, k) => a + confidence(k), 0) / clKeys.length : 0;
     const clDone = CLASSES.filter(c => confidence(Class.key(c.id, 'k')) > 0.5).length;
@@ -6951,7 +7012,9 @@ const Class = {
     const byLesson = {};
     for (const c of CLASSES) (byLesson[c.lesson] = byLesson[c.lesson] || []).push(c);
     $('clRows').innerHTML = COURSE_IDS.filter(id => byLesson[id]).map(id =>
-      '<div class="clgroup"><p class="sect">' + esc(COURSE[id].name) + '</p>' +
+      '<div class="clgroup"><p class="sect">' + esc(COURSE[id].name) +
+      (COURSE[id].video ? ' <a class="vlink" target="_blank" rel="noopener" href="' +
+        esc(COURSE[id].video[1]) + '">\u25b6 ' + esc(COURSE[id].video[0]) + '</a>' : '') + '</p>' +
       byLesson[id].map(c => {
         const r = this.readiness(c);
         const state = r.known > 0.5 ? 'done' : r.read > 0 ? 'part' : '';

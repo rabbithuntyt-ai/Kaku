@@ -13,6 +13,14 @@ def w(word, meaning, reading=None):
     return (word, reading or word, meaning)
 
 
+# The vocabulary shorts the class was set, linked rather than copied. These are the exact
+# playlists the slides hyperlink to, pulled out of the decks.
+VIDEO = {
+    '1': ('Genki I Lesson 1 vocabulary', 'https://www.youtube.com/playlist?list=PLfVZ5kf9bZqA'),
+    '2': ('Genki I Lesson 2 vocabulary', 'https://www.youtube.com/playlist?list=PLFvx05s1Um5g'),
+    '3': ('Genki I Lesson 3 vocabulary', 'https://www.youtube.com/playlist?list=PLK259d25Fw_A'),
+}
+
 COURSE = {
     # Class 1: greetings and numbers 1-100
     '0': dict(name='Greetings & numbers', tb='Class 1', words=[

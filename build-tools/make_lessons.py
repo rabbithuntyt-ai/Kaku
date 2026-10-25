@@ -6,7 +6,7 @@ from content_c import L as C
 from content_drills import D as DRILLS
 from verify import check
 
-from content_course import COURSE, KATAKANA
+from content_course import COURSE, KATAKANA, VIDEO
 from content_exam import GRAMMAR, BUILD, EXCHANGE, LISTEN, KOSOADO, VERBS, VERB_GROUPS
 from content_class import C as CLASSES
 from content_scenes import SCENES
@@ -69,7 +69,8 @@ for l in lessons:
     out.append(dict(id=l['id'], title=l['title'], sub=l['sub'], kanji=l['kanji'], drills=drills,
                     grammar=[dict(t=g['t'], b=g['b'], e=g['e']) for g in l['grammar']],
                     vocab=v, **({'scene': scene} if scene else {})))
-course_meta = {k: dict(name=c['name'], tb=c['tb'], n=len(c['words'])) for k, c in COURSE.items()}
+course_meta = {k: dict(name=c['name'], tb=c['tb'], n=len(c['words']),
+                      **({'video': list(VIDEO[k])} if k in VIDEO else {})) for k, c in COURSE.items()}
 exam = dict(grammar=GRAMMAR, build=BUILD, exchange=EXCHANGE, listen=LISTEN,
             kosoado=dict(cols=[list(c) for c in KOSOADO['cols']],
                          rows=[list(r) for r in KOSOADO['rows']],

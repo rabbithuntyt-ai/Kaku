@@ -36,11 +36,14 @@ const rows = (p) => p.$$eval('#vList .wrow', rs => rs.map(r => r.textContent.rep
   ok(/L1, L2/.test(chips[1]), 'home: words chip names the lessons (' + chips[1] + ')');
   ok(/100 to 999/.test(chips[2]), 'home: numbers chip names the band');
   const tiles = await p.$$eval('.tile .t-main', bs => bs.map(x => x.textContent));
-  ok(tiles[0].startsWith('Midterm mock'), 'home: the midterm comes first, because it has a date on it');
-  ok(tiles.join(',').includes('Lessons,Vocabulary,Kanji,Numbers'), 'home: the study sections follow, in order');
-  ok(tiles.some((t) => t.startsWith('Verbs')) && tiles.some((t) => t.startsWith('こそあど')),
-     'home: and the two the midterm leans on have their own way in');
-  ok(tiles[tiles.length - 1] === 'Talking practice', 'home: talking practice last');
+  const groups = await p.$$eval('.tgroup-h', n => n.map(x => x.firstChild.textContent));
+  ok(groups.join(' / ') === 'Try it for real / Understand it / Practise it',
+     'home: with the exam days away, the group holding it comes first');
+  ok(tiles[0].startsWith('Midterm mock'), 'home: so the midterm is the first tile');
+  ok(tiles.some((t) => t.startsWith('Catch-up')) && tiles.some((t) => t.startsWith('Lessons')),
+     'home: the reading comes under Understand it');
+  ok(['Vocabulary', 'Verbs', 'Kanji', 'Numbers'].every((t) => tiles.some((x) => x.startsWith(t))),
+     'home: and the repetition under Practise it');
   ok(/5 of \d+ words mastered/.test(await p.textContent('#vocabSub')), 'home: vocabulary tile counts what is mastered');
   await p.click('.mixchip:nth-child(2)');
   ok(await p.evaluate(() => document.body.dataset.screen) === 'lessons', 'home: the words chip opens the lessons');

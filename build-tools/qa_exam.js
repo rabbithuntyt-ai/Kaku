@@ -522,6 +522,43 @@ const open = async (browser) => {
     await ctx.close();
   }
 
+  // ---- opening it for the first time ------------------------------------------------
+  // Nine tiles and a progress panel reading zero is not a way in. Until there is something
+  // to show, say what the thing is and offer a few honest starting points.
+  {
+    const { ctx, page, errs } = await open(browser);
+    const cold = await page.evaluate(() => ({
+      first: !document.getElementById('firstRun').hidden,
+      startHidden: document.getElementById('startBtn').hidden,
+      ways: [...document.querySelectorAll('#firstActions button')].map((x) => x.textContent),
+      groups: [...document.querySelectorAll('.tgroup-h')].map((x) => x.firstChild.textContent)
+    }));
+    ok(cold.first, 'a first run opens on what the app is, not on the tiles');
+    ok(cold.startHidden, 'and does not offer to resume something that has not started');
+    ok(cold.ways.length === 3, 'with three ways in: ' + cold.ways.join(', '));
+    ok(cold.groups.length === 3 && cold.groups.includes('Understand it') &&
+       cold.groups.includes('Practise it') && cold.groups.includes('Try it for real'),
+      'and the nine tiles are grouped by what they are for: ' + cold.groups.join(' / '));
+
+    const warm = await page.evaluate(() => {
+      window.__kaku.SRS.update('あ', 'w', 'perfect');
+      window.__kaku.App.refresh();
+      return { first: !document.getElementById('firstRun').hidden,
+               start: !document.getElementById('startBtn').hidden };
+    });
+    ok(!warm.first && warm.start, 'once there is progress the ordinary home comes back');
+
+    // the class videos are linked, not bundled
+    await page.click('#classesBtn');
+    await page.waitForTimeout(250);
+    const vids = await page.$$eval('.vlink', (a) => a.map((x) => x.href));
+    ok(vids.length === 3, 'the three vocabulary playlists the class set are linked');
+    ok(vids.every((v) => /^https:\/\/www\.youtube\.com\/playlist\?list=/.test(v)),
+      'as links out, so nothing of anyone else’s is copied in');
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
+    await ctx.close();
+  }
+
   await browser.close();
   console.log('\n' + pass + ' checks passed' + (fail ? ', ' + fail + ' FAILED' : ''));
   process.exit(fail ? 1 : 0);
