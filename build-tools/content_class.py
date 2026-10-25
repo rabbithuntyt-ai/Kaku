@@ -513,3 +513,90 @@ C.append(dict(
              why='That is the other half of the pair.'),
     ],
 ))
+
+# ---------------------------------------------------------------- for someone starting at zero
+C.insert(0, dict(
+    id='writing', lesson='0', t='Three writing systems, and why',
+    idea='Japanese uses three sets of characters at once. You need two of them for this course.',
+    body=[
+        'This is the thing that puts people off before they start, so it is worth getting '
+        'straight on day one. Japanese writes with three systems mixed together in the same '
+        'sentence, and they are not alternatives — each does a different job.',
+        'Hiragana is the rounded one. It is the backbone: grammar, endings, and any Japanese '
+        'word you do not write another way. Forty-six basic characters. This is where you start '
+        'and it is what Lesson 1 drills.',
+        'Katakana is the angular one. Same sounds, different shapes, used for words borrowed from '
+        'other languages — コーヒー, テレビ, ペン. Another forty-six, learned in Lesson 2.',
+        'Kanji are the Chinese characters, and there are thousands. They start in Lesson 3 and '
+        'carry on for years. Your midterm does not test them and in fact forbids them: you write '
+        'your answers in kana.',
+        'So the job in front of you is two alphabets of forty-six, not thousands of anything. '
+        'Each character is one sound and the sound never changes, which is kinder than English.',
+    ],
+    shape=[
+        ('ひらがな', 'rounded — grammar and native words'),
+        ('カタカナ', 'angular — borrowed words'),
+        ('漢字', 'Chinese characters — later, and not on your midterm'),
+    ],
+    ex=[
+        ['おはようございます。', 'Good morning.', 'All hiragana.'],
+        ['コーヒーをのみます。', 'I drink coffee.',
+         'コーヒー is katakana because the word was borrowed; the rest is hiragana.'],
+    ],
+    slips=[
+        ['Learning all three at once', 'Hiragana first, properly',
+         'Katakana arrives in Lesson 2 and kanji in Lesson 3. Taking them in order is the course design, not impatience.'],
+    ],
+    check=[
+        dict(q='Which system do you learn first, and which does your midterm forbid?',
+             o=['Katakana first; hiragana forbidden', 'Hiragana first; kanji forbidden',
+                'Kanji first; katakana forbidden', 'All three at once'], a=1,
+             why='Hiragana is Lesson 1. The midterm says answers in Japanese, no kanji.'),
+        dict(q='コーヒー is written in katakana because:',
+             o=['It is a formal word', 'It is borrowed from another language',
+                'It is a verb', 'It is a name'], a=1,
+             why='Katakana marks borrowed words.'),
+    ],
+))
+
+C.insert(2, dict(
+    id='kanaextra', lesson='0', t='The marks that change a kana',
+    idea='A few small additions turn the basic kana into every other sound Japanese has.',
+    body=[
+        'Once you have the basic set, four small devices cover the rest, and all of them are '
+        'written smaller or as marks beside the character.',
+        'Two strokes in the top right — dakuten — voice the consonant: か becomes が, さ becomes '
+        'ざ, た becomes だ, は becomes ば. A small circle — handakuten — only goes on the は row '
+        'and makes p: は becomes ぱ.',
+        'A small ゃゅょ after an i-row character squeezes two sounds into one beat: きゃ, しゅ, '
+        'ちょ. Written full size they would be two beats, which is a different word.',
+        'A small っ doubles the consonant after it and is held as a beat of silence: ざっし is not '
+        'ざし. And a long vowel just adds the vowel kana — おばあさん against おばさん — which in '
+        'katakana is written with a bar instead: コーヒー.',
+        'The small ones are genuinely smaller on the page. Writing them full size changes the word.',
+    ],
+    shape=[
+        ('゛', 'dakuten — voices it: か→が'),
+        ('゜', 'handakuten — only on は: は→ぱ'),
+        ('ゃゅょ', 'small — one beat with the kana before it'),
+        ('っ', 'small — doubles the next consonant'),
+    ],
+    ex=[
+        ['がくせい', 'student', 'Dakuten on か.'],
+        ['ざっし', 'magazine', 'Dakuten and a small っ.'],
+        ['じゅう', 'ten', 'Small ゅ — one beat, not two.'],
+        ['コーヒー', 'coffee', 'Katakana writes its long vowels with a bar.'],
+    ],
+    slips=[
+        ['じゆう', 'じゅう', 'Full-size ゆ makes it two beats and a different word.'],
+        ['ざし', 'ざっし', 'Without the small っ the consonant is not doubled — and it is not a word.'],
+    ],
+    check=[
+        dict(q='The small circle (handakuten) goes on which row only?',
+             o=['か row', 'さ row', 'は row', 'た row'], a=2, why='Only は, making ぱぴぷぺぽ.'),
+        dict(q='じゅう and じゆう differ how?',
+             o=['Not at all', 'One is one beat, the other is two',
+                'One is katakana', 'One is a kanji reading'], a=1,
+             why='The small ゅ joins the beat before it; full size is its own beat.'),
+    ],
+))

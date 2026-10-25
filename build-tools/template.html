@@ -698,6 +698,122 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
   .actions { grid-column: 1; align-self: end; }
   .board-wrap { grid-column: 2; grid-row: 1 / 5; padding: 8px 0; }
 }
+
+/* ---------------------------------------------------------------- the route through */
+.pnow { border: 1px solid var(--red); border-radius: 14px; padding: 13px 14px; margin: 4px 0 12px;
+  background: color-mix(in srgb, var(--red) 7%, var(--sheet)); }
+.pnow .where { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--red); }
+.pnow .pn-t { display: block; font-weight: 650; font-size: 17px; margin: 3px 0 4px; }
+.pnow .pn-w { display: block; font-size: 13.5px; line-height: 1.5; color: var(--muted); }
+.pnow .pn-m { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 5px; }
+.pbar { display: flex; gap: 3px; margin: 10px 0 2px; }
+.pbar i { flex: 1; height: 5px; border-radius: 3px; background: var(--trace); }
+.pbar i.on { background: var(--red); }
+.pbar i.half { background: color-mix(in srgb, var(--red) 45%, var(--trace)); }
+.pstage { margin: 16px 0 6px; }
+.pstage-h { margin: 0 0 8px; }
+.pstage-h b { display: block; font-size: 13px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-soft); }
+.pstage-h span { display: block; font-size: 12.5px; color: var(--ink-soft); margin-top: 1px; }
+.pstep { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: start;
+  width: 100%; text-align: left; padding: 9px 11px; margin-bottom: 5px; border-radius: 11px;
+  border: 1px solid var(--trace); background: var(--sheet); color: var(--ink); font: inherit; cursor: pointer; }
+.pstep:hover { border-color: var(--ink-soft); }
+.pstep .num { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.pstep .ps-t { font-weight: 600; font-size: 14.5px; }
+.pstep .ps-w { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.pstep .ps-s { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft);
+  white-space: nowrap; padding-top: 3px; }
+.pstep.done { border-left: 3px solid var(--good); }
+.pstep.done .ps-s { color: var(--good); }
+.pstep.part { border-left: 3px solid var(--ink-soft); }
+.pstep.here { border-color: var(--red); background: color-mix(in srgb, var(--red) 6%, var(--sheet)); }
+.pstep.here .ps-s { color: var(--red); }
+.pstep.locked { opacity: .55; }
+.pstep.check { border-style: dashed; }
+.pkind { display: inline-block; font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--ink-soft); border: 1px solid var(--trace); border-radius: 5px; padding: 0 4px; margin-right: 6px; }
+
+.cl-v { display: block; font-size: 10.5px; color: var(--ink-soft); text-transform: none; letter-spacing: 0; }
+.ex-face { font: 600 54px/1.1 var(--kana); text-align: center; margin: 14px 0 4px;
+  font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .stage .shot, .shot mark { animation: none !important; }
+}
+
+/* ---------------------------------------------------------------- the video lesson */
+.film { display: grid; gap: 10px; }
+.stage { position: relative; border: 1px solid var(--trace); border-radius: 14px; background: var(--sheet);
+  min-height: 300px; padding: 18px 16px; display: grid; align-content: center; overflow: hidden; }
+.stage .shot { display: grid; gap: 10px; animation: shotin .45s ease both; }
+@keyframes shotin { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+.shot .eyeb { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--red); }
+.shot h3 { margin: 0; font-size: 22px; line-height: 1.3; }
+.shot .say { font-size: 16px; line-height: 1.6; margin: 0; }
+.shot .big { font: 600 27px/1.45 var(--kana); margin: 0; }
+.shot .mid { font: 600 21px/1.5 var(--kana); margin: 0; }
+.shot .en { font-size: 14.5px; color: var(--muted); margin: 0; }
+.shot .nt { font-size: 13px; color: var(--ink-soft); margin: 0; }
+.shot mark { background: color-mix(in srgb, var(--red) 22%, transparent); color: inherit;
+  border-radius: 4px; padding: 0 2px; animation: pulse 1.1s ease-in-out 2; }
+@keyframes pulse { 0%, 100% { background: color-mix(in srgb, var(--red) 22%, transparent); }
+  50% { background: color-mix(in srgb, var(--red) 52%, transparent); } }
+.shot .pair { display: grid; gap: 4px; }
+.shot .pair .x { font: 600 20px var(--kana); color: var(--muted); text-decoration: line-through; }
+.shot .pair .o { font: 600 22px var(--kana); color: var(--ink); }
+.shot .rows { display: grid; gap: 6px; }
+.shot .rows .r { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline;
+  padding: 7px 10px; border: 1px solid var(--trace); border-radius: 9px; opacity: .35; }
+.shot .rows .r.lit { opacity: 1; border-color: var(--red); }
+.shot .rows .r b { font: 600 18px var(--kana); }
+.shot .rows .r span { font-size: 13px; color: var(--muted); }
+.filmbar { display: flex; gap: 3px; }
+.filmbar i { flex: 1; height: 4px; border-radius: 2px; background: var(--trace); transition: background .2s; }
+.filmbar i.seen { background: var(--ink-soft); }
+.filmbar i.now { background: var(--red); }
+.filmfoot { display: flex; align-items: center; gap: 8px; }
+.filmfoot .pos { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.filmfoot .spacer { flex: 1; }
+.fbtn { border: 1px solid var(--trace); background: var(--sheet); color: var(--ink); border-radius: 10px;
+  padding: 8px 12px; font: 600 13px var(--ui); cursor: pointer; }
+.fbtn:hover { border-color: var(--ink-soft); }
+.fbtn.play { border-color: var(--red); color: var(--red); min-width: 86px; }
+.fbtn:disabled { opacity: .4; cursor: default; }
+
+.coach { margin-top: 14px; border-top: 1px solid var(--trace); padding-top: 11px; }
+.coach-h { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 8px; }
+.coach-c { display: grid; gap: 2px; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 6px;
+  border: 1px solid var(--trace); border-left: 3px solid var(--red); border-radius: 10px;
+  background: var(--sheet); color: var(--ink); font: inherit; cursor: pointer; }
+.coach-c:hover { border-color: var(--ink-soft); border-left-color: var(--red); }
+.coach-c .cc-t { font-weight: 620; font-size: 14.5px; }
+.coach-c .cc-i { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.coach-c .cc-n { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--red); margin-top: 2px; }
+
+/* ---------------------------------------------------------------- the question box */
+.ask { margin-top: 18px; border-top: 1px solid var(--trace); padding-top: 12px; }
+.ask-h { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 7px; }
+.ask-row { display: flex; gap: 7px; }
+.ask-row input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--trace); border-radius: 10px;
+  background: var(--sheet); color: var(--ink); font: 400 15px var(--ui); }
+.ask-row input:focus { outline: none; border-color: var(--red); }
+.ask-tips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.ask-tip { font: 400 12px var(--ui); color: var(--muted); background: transparent; cursor: pointer;
+  border: 1px solid var(--trace); border-radius: 20px; padding: 4px 9px; }
+.ask-tip:hover { border-color: var(--ink-soft); color: var(--ink); }
+.ask-out { margin-top: 10px; font-size: 14.5px; line-height: 1.6; }
+.ask-out .qline { font-weight: 620; margin: 0 0 6px; }
+.ask-out .aline { margin: 0 0 8px; white-space: pre-wrap; }
+.ask-out .src { font-size: 12px; color: var(--ink-soft); }
+.ask-out .quote { border-left: 2px solid var(--trace); padding-left: 10px; margin: 0 0 9px; }
+.ask-out .quote b { display: block; font-size: 12px; color: var(--ink-soft); font-weight: 600; margin-bottom: 2px; }
+.ask-busy { font-size: 13px; color: var(--muted); }
+.ask-out .quote .ask-open { display: inline-block; margin-top: 7px; border: 1px solid var(--trace);
+  border-radius: 8px; background: transparent; color: var(--red); font: 600 12px var(--ui);
+  padding: 5px 10px; cursor: pointer; }
+.ask-out .quote .ask-open:hover { border-color: var(--red); }
+
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
@@ -720,7 +836,7 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 
     <div class="first" id="firstRun" hidden>
       <p class="first-l">Kaku is a practice app for the Japanese you are actually being taught — JAPA 100 at VIU, following Genki.</p>
-      <p class="first-l">Three ways in. Any of them is a reasonable place to begin.</p>
+      <p class="first-l">If you have never written a kana, take the route: it is the course in the order it was taught, and it tells you what to do next every time you come back.</p>
       <div class="actions" id="firstActions"></div>
     </div>
 
@@ -730,6 +846,16 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
       <div class="mix" id="mixChips" aria-label="What this session covers"></div>
     </div>
 
+    <section class="tgroup" aria-label="Find your way">
+      <p class="tgroup-h">Find your way<span>If you do not know where to start, start here</span></p>
+      <nav class="tiles">
+<button class="tile wide" id="pathBtn" type="button">
+        <span class="t-main">Start here <span class="t-when" id="pathWhen"></span></span>
+        <span class="t-sub" id="pathSub">The whole course in order, from the writing system up</span>
+        <span class="meter"><i id="pathMeter"></i></span>
+      </button>
+      </nav>
+    </section>
     <section class="tgroup" aria-label="Understand it">
       <p class="tgroup-h">Understand it<span>Read the idea first, then check it landed</span></p>
       <nav class="tiles">
@@ -1053,6 +1179,7 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
       <div class="ready" id="examReady"></div>
       <div class="actions" id="examStart"></div>
       <div class="parts" id="examParts"></div>
+      <div id="examCoach"></div>
       <div class="untouched" id="examUntouched"></div>
       <details class="settings" id="examMarks">
         <summary>What you scored so far</summary>
@@ -1098,6 +1225,38 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
       <p class="idea" id="clIdea"></p>
       <div id="clBody"></div>
       <div class="actions" id="clActions"></div>
+      <div id="clAsk"></div>
+    </div>
+  </section>
+
+  <section id="path" hidden aria-label="The route through">
+    <button class="back" id="pathBack" type="button">Back</button>
+    <h2 class="k-head">Start here</h2>
+    <p class="note" id="pathNote"></p>
+    <div class="pnow" id="pathNow"></div>
+    <div class="actions" id="pathActions"></div>
+    <div class="pbar" id="pathBar" aria-hidden="true"></div>
+    <p class="note" id="pathCount"></p>
+    <div id="pathList"></div>
+  </section>
+
+  <section id="film" hidden aria-label="Video lesson">
+    <button class="back" id="fmBack" type="button">Back</button>
+    <p class="eyebrow" id="fmEyebrow"></p>
+    <h2 class="k-head" id="fmTitle"></h2>
+    <div class="film">
+      <div class="filmbar" id="fmBar" aria-hidden="true"></div>
+      <div class="stage" id="fmStage" aria-live="polite"></div>
+      <div class="filmfoot">
+        <button class="fbtn" id="fmPrev" type="button">Back</button>
+        <button class="fbtn play" id="fmPlay" type="button">Play</button>
+        <button class="fbtn" id="fmNext" type="button">Next</button>
+        <span class="spacer"></span>
+        <span class="pos" id="fmPos"></span>
+      </div>
+      <p class="note" id="fmNote"></p>
+      <div class="actions" id="fmActions"></div>
+      <div id="fmAsk"></div>
     </div>
   </section>
 
@@ -1242,6 +1401,7 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
     <div class="results" id="sResults"></div>
     <ul class="marks" id="sMarks"></ul>
     <p class="note" id="sNext"></p>
+      <div id="sCoach"></div>
     <div class="actions">
       <button class="btn primary" id="sAgain" type="button">Practise again</button>
       <button class="btn" id="sHome" type="button">Back to chart</button>
@@ -2058,6 +2218,7 @@ const Speech = {
       const ja = vs.filter(v => /^ja([-_]|$)/i.test(v.lang || ''));
       this.voice = ja.find(v => /kyoko|o-ren|otoya|haruka|nanami|google/i.test(v.name)) || ja[0] || null;
       this.noJa = ja.length === 0;
+      this.enVoice = null;
       App.voicesChanged();
     };
     pick();
@@ -2067,6 +2228,43 @@ const Speech = {
     setTimeout(() => { pick(); if (!this.voice && !this.noJa) { let n = 0; try { n = window.speechSynthesis.getVoices().length; } catch (e) {} if (!n) { this.noJa = true; App.voicesChanged(); } } }, 2600);
   },
   available() { return this.ok && !this.noJa; },
+  // The video lessons need two voices: the Japanese one for the examples, and whatever English
+  // voice the machine has for the explanation. Neither is guaranteed, and a missing one is not
+  // a failure — that line is read on the screen instead and the beat waits long enough for it.
+  enVoice: null,
+  pickEn() {
+    if (!this.ok) return null;
+    if (this.enVoice) return this.enVoice;
+    let vs = [];
+    try { vs = window.speechSynthesis.getVoices() || []; } catch (e) {}
+    const en = vs.filter(v => /^en([-_]|$)/i.test(v.lang || ''));
+    this.enVoice = en.find(v => /samantha|daniel|karen|moira|google (uk|us)|zira|david|aria|jenny/i.test(v.name))
+      || en[0] || null;
+    return this.enVoice;
+  },
+  // one line, with a callback when it is done so the next beat can follow it. Returns null when
+  // nothing was said, which is the caller's signal to wait on the clock instead.
+  utter(text, lang, onEnd) {
+    if (!this.ok || !text) return null;
+    const ja = lang === 'ja';
+    if (ja && this.noJa) return null;
+    const v = ja ? this.voice : this.pickEn();
+    if (!ja && !v) return null;
+    try {
+      const ss = window.speechSynthesis;
+      const u = new SpeechSynthesisUtterance(String(text));
+      u.lang = ja ? 'ja-JP' : ((v && v.lang) || 'en-US');
+      if (v) u.voice = v;
+      u.rate = ja ? 0.85 : 1;
+      let fired = false;
+      const go = () => { if (fired) return; fired = true; if (onEnd) onEnd(); };
+      u.onend = go; u.onerror = go;
+      if (ss.speaking || ss.pending) ss.cancel();
+      ss.speak(u);
+      return u;
+    } catch (e) { return null; }
+  },
+  stop() { try { window.speechSynthesis.cancel(); } catch (e) {} },
   // a whole line of dialogue, a touch slower and without the single-character fixes
   line(text, btn) {
     if (!this.available() || !text) return;
@@ -2347,7 +2545,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3510,9 +3708,11 @@ $('examBtn').addEventListener('click', () => Exam.open());
 $('gridBtn').addEventListener('click', () => Grid.open());
 $('verbsBtn').addEventListener('click', () => Verbs.open());
 $('classesBtn').addEventListener('click', () => Class.open());
-for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack']) {
+$('pathBtn').addEventListener('click', () => Path.open());
+for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack']) {
   $(id).addEventListener('click', () => {
     if (Exam.timer) { clearInterval(Exam.timer); Exam.timer = null; }
+    if (typeof Film !== 'undefined') Film.leave();
     show('home'); App.refresh();
   });
 }
@@ -3577,6 +3777,13 @@ const Summary = {
     let waiting = 0;
     for (const ch of allPool()) { if (res[ch]) continue; for (const m of modesOf(ch)) if (SRS.due(ch, m, now)) waiting++; }
     const weak = grades.filter(g => g === 'weak').length;
+    const coach = $('sCoach');
+    if (coach) {
+      coach.innerHTML = '';
+      const log = order.filter(c => isDrill(c) && worst(res[c]) === 'weak')
+        .map(c => ({ key: c, good: false, q: DRILL[c].q, why: DRILL[c].why, want: DRILL[c].a }));
+      Coach.after(coach, log, 'The sentences that went wrong are explained here');
+    }
     $('sNext').textContent = waiting
       ? `${waiting} more card${waiting > 1 ? 's are' : ' is'} due. Practise again to work through ${waiting > 1 ? 'them' : 'it'}.`
       : weak ? `The ${weak > 1 ? 'ones' : 'one'} marked with a triangle will come up first next time.`
@@ -4926,6 +5133,24 @@ const Brain = {
     }
     return text.trim();
   },
+  // The conversation wants three tagged lines. A question about the course wants prose, and
+  // more room to answer in, so it gets its own call rather than bending the other one.
+  async answer(rules, question, onText) {
+    const out = await this.engine.chat.completions.create({
+      messages: [{ role: 'system', content: rules }, { role: 'user', content: question }],
+      temperature: 0.3, max_tokens: 240, stream: true,
+      frequency_penalty: 0.35, presence_penalty: 0.2
+    });
+    let text = '';
+    for await (const chunk of out) {
+      const bit = (chunk.choices && chunk.choices[0] && chunk.choices[0].delta && chunk.choices[0].delta.content) || '';
+      if (!bit) continue;
+      text += bit;
+      if (looping(text)) { try { await out.controller.abort(); } catch (e) {} break; }
+      if (onText) onText(text);
+    }
+    return text.trim();
+  },
   // a small model does better with three lines than with JSON
   parse(text) {
     const lines = String(text).split('\n').map(l => l.trim()).filter(Boolean);
@@ -5863,11 +6088,20 @@ const App = {
     $('startNote').hidden = touched === 0;
     if (!touched) {
       setActions($('firstActions'), [
-        { label: 'Learn the kana', primary: true, act: () => Practice.start() },
-        { label: 'Read a class first', act: () => Class.open() },
+        { label: 'Show me the route', primary: true, act: () => Path.open() },
+        { label: 'Straight to the kana', act: () => Practice.start() },
         { label: 'See what the midterm asks', act: () => Exam.open() }
       ]);
     }
+
+    // the route: where you are in it, and how far through
+    const at = Path.here(), pOverall = Path.overall();
+    const pDone = PATH.filter(s => Path.done(s)).length, pLive = PATH.filter(s => !Path.locked(s)).length;
+    $('pathWhen').textContent = pDone ? 'step ' + (at.n + 1) + ' of ' + PATH.length : '';
+    $('pathSub').textContent = pDone
+      ? 'Next: ' + at.t + ' \u00b7 ' + pDone + ' of ' + pLive + ' steps done'
+      : 'The whole course in order, from the writing system up';
+    meter('pathMeter', pOverall);
 
     const clKeys = CLASSES.map(c => Class.key(c.id, 'k'));
     const clC = clKeys.length ? clKeys.reduce((a, k) => a + confidence(k), 0) / clKeys.length : 0;
@@ -6172,6 +6406,20 @@ const Exam = {
     $('examParts').querySelectorAll('[data-part]').forEach(b => {
       b.addEventListener('click', () => this.run(b.dataset.part));
     });
+    // The part bars say which section is weak. On their own that is still only a verdict, so
+    // the section that needs the work names what to read for it — from the last paper you sat
+    // when there is one, because that is evidence, and from what the section is made of when
+    // there is not.
+    const worst = r.parts.slice().sort((a, b) => a.chance - b.chance)[0];
+    $('examCoach').innerHTML = '';
+    if (worst && worst.chance < 0.85) {
+      const last = (S.exam && S.exam.coach) || [];
+      const hits = last.length ? Coach.byIds(last, 3) : Coach.forPart(worst.id);
+      Coach.line($('examCoach'), hits, last.length
+        ? 'From the last paper you sat — where those misses are explained'
+        : 'Part ' + ['I', 'II', 'III', 'IV', 'V'][this.PARTS.findIndex(x => x.id === worst.id)] +
+          ' is the weak one. This is what teaches it.');
+    }
     this.paintMarks();
     this.paintHistory();
     this.paintUntouched();
@@ -6321,8 +6569,21 @@ Object.assign(Exam, {
   // strict: sixty minutes, no marking until the end, exactly like the room. Useful once, to
   // find out whether you are fast enough; useless as a way to revise, because being told what
   // you got wrong is the part that teaches you.
+  // A prepared list of questions, sat through the same screen. The checkpoints build their own
+  // and hand them over here rather than carrying a second copy of this machinery.
+  runQueue(queue, custom) {
+    this.strict = false; this.custom = custom || null;
+    this.queue = queue; this.i = 0; this.ok = 0; this.log = []; this.whole = false;
+    Gains.snap();
+    show('exam');
+    $('examHome').hidden = true;
+    $('examRun').hidden = false;
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+    this.ask();
+  },
   run(partId, strict) {
     this.strict = !!strict;
+    this.custom = null;
     const parts = partId ? this.PARTS.filter(p => p.id === partId) : this.PARTS;
     this.queue = [];
     for (const p of parts) {
@@ -6353,8 +6614,10 @@ Object.assign(Exam, {
   ask() {
     const it = this.queue[this.i];
     if (!it) return this.finish();
-    const n = ['I', 'II', 'III', 'IV', 'V'][this.PARTS.findIndex(p => p.id === it.part.id)];
-    $('examPart').textContent = 'Part ' + n + ' · ' + it.part.n;
+    const pi = this.PARTS.findIndex(p => p.id === it.part.id);
+    $('examPart').textContent = pi >= 0
+      ? 'Part ' + ['I', 'II', 'III', 'IV', 'V'][pi] + ' · ' + it.part.n
+      : (this.custom ? this.custom.title + ' · ' + it.part.n : it.part.n);
     $('examProg').textContent = 'Question ' + (this.i + 1) + ' of ' + this.queue.length;
     $('examMsg').textContent = ''; $('examMsg').className = 'msg';
     const body = $('examBody');
@@ -6393,6 +6656,8 @@ Object.assign(Exam, {
       $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>' +
         '<div class="given">' + it.words.map(w => '<span>' + esc(w) + '</span>').join('') + '</div>' +
         '<div class="ex-hint">Order them, add the particles, and put the verb in its polite form.</div>';
+    } else if (it.face) {
+      $('examQ').innerHTML = '<b>' + esc(it.q) + '</b><div class="ex-face">' + esc(it.face) + '</div>';
     } else {
       $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>';
     }
@@ -6424,7 +6689,7 @@ Object.assign(Exam, {
     it.done = true;
     const good = this.right(it, given);
     if (good) { this.ok++; Gains.mark(); }
-    this.log.push({ part: it.part.n, q: it.q, good, want: it.a, why: it.why });
+    this.log.push({ part: it.part.n, key: it.key, q: it.q, good, want: it.a, why: it.why });
     if (it.key) SRS.update(it.key, 'r', good ? 'perfect' : 'weak');
     Store.touch();
     // The paper says answers in Japanese, no kanji. Marking it wrong would be harsher than the
@@ -6465,6 +6730,7 @@ Object.assign(Exam, {
       b.n++; if (l.good) b.ok++;
     }
     const best = this.whole ? Math.max(pct, (S.exam && S.exam.best) || 0) : ((S.exam && S.exam.best) || 0);
+    if (this.whole && this.strict) { S.exam = S.exam || {}; S.exam.strict = true; }
     if (this.whole) {
       S.exam = S.exam || {};
       S.exam.best = best;
@@ -6475,7 +6741,8 @@ Object.assign(Exam, {
       Store.touch();
     }
     const missed = this.log.filter(l => !l.good);
-    $('examPart').textContent = this.whole ? 'Mock paper finished' : 'Part finished';
+    $('examPart').textContent = this.custom ? this.custom.title + ' · marked'
+      : this.whole ? 'Mock paper finished' : 'Part finished';
     $('examProg').textContent = ranOut
       ? 'Time. ' + unanswered + ' left unanswered, which counts as wrong on the day.'
       : (this.strict ? 'Sat under exam conditions.' : '');
@@ -6489,10 +6756,19 @@ Object.assign(Exam, {
         '<div class="miss"><b>' + esc(l.q) + '</b><span>' + esc(String(l.why || l.want)) + '</span></div>').join('') : '');
     $('examMsg').textContent = '';
     Gains.line($('examBody'));
-    setActions($('examActions'), [
-      { label: 'Again', primary: true, act: () => this.run(this.whole ? null : this.queue[0].part.id) },
-      { label: 'Back to the midterm', act: () => this.open() }
-    ]);
+    const hits = Coach.after($('examBody'), this.log, 'Where the misses are explained');
+    if (this.whole && hits.length) { S.exam = S.exam || {}; S.exam.coach = hits.map(h => h.c.id); Store.touch(); }
+    if (this.custom) {
+      const c = this.custom;
+      if (c.done) c.done(pct, this.ok, total);
+      if (c.after) { $('examMsg').textContent = c.after(pct); $('examMsg').className = 'msg ' + (pct >= 60 ? 'good' : 'bad'); }
+      setActions($('examActions'), c.actions ? c.actions(pct) : [{ label: 'Done', primary: true, act: () => this.open() }]);
+    } else {
+      setActions($('examActions'), [
+        { label: 'Again', primary: true, act: () => this.run(this.whole ? null : this.queue[0].part.id) },
+        { label: 'Back to the midterm', act: () => this.open() }
+      ]);
+    }
     App.refresh();
   }
 });
@@ -6605,6 +6881,8 @@ const Grid = {
     $('gridBody').innerHTML = '';
     $('gridMsg').textContent = '';
     Gains.line($('gridBody'));
+    if (pct < 85) Coach.line($('gridBody'), Coach.byIds(['kosoado'], 1),
+      'The grid itself, explained again');
     setActions($('gridNext'), [
       { label: 'Again', primary: true, act: () => this.run() },
       { label: 'Back to the grid', act: () => { $('gridRun').hidden = true; this.paint(); } }
@@ -6746,6 +7024,9 @@ const Verbs = {
     $('vBody').innerHTML = '';
     $('vMsg').textContent = '';
     Gains.line($('vBody'));
+    if (pct < 85) Coach.line($('vBody'),
+      Coach.byIds(this.kind === 'f' ? ['masu', 'vgroups'] : ['vgroups'], 2),
+      'What decides the answer');
     setActions($('vNext'), [
       { label: 'Again', primary: true, act: () => this.run(this.kind) },
       { label: 'Back to the list', act: () => { $('verbsRun').hidden = true; this.paint(); } }
@@ -6974,6 +7255,9 @@ const KWrite = {
     }]);
   },
   done() {
+    // writing them by hand marks the same review items as typing them, so the route keeps its
+    // own tally of having sat down and done it rather than pretending the two are one skill
+    S.path = S.path || {}; S.path.hand = (S.path.hand || 0) + 1; Store.touch();
     const pct = Math.round(this.ok / this.queue.length * 100);
     $('kwProg').textContent = '';
     $('kwWord').textContent = pct + '%';
@@ -7021,7 +7305,8 @@ const Class = {
         return '<button class="clrow ' + state + '" type="button" data-cl="' + esc(c.id) + '">' +
           '<span class="cl-t">' + esc(c.t) + '</span>' +
           '<span class="cl-i">' + esc(c.idea) + '</span>' +
-          '<span class="cl-s">' + (r.known > 0.5 ? 'Checked' : r.read > 0 ? 'Read' : 'Not yet') + '</span>' +
+          '<span class="cl-s">' + (r.known > 0.5 ? 'Checked' : r.read > 0 ? 'Read' : 'Not yet') +
+          '<span class="cl-v">watch or read</span></span>' +
           '</button>';
       }).join('') + '</div>').join('');
     $('clRows').querySelectorAll('[data-cl]').forEach(b =>
@@ -7030,6 +7315,7 @@ const Class = {
   read(id) {
     const c = this.cur = CLASSES.find(x => x.id === id);
     if (!c) return;
+    show('classes');
     $('clList').hidden = true;
     $('clOne').hidden = false;
     $('clEyebrow').textContent = COURSE[c.lesson] ? COURSE[c.lesson].name : '';
@@ -7051,11 +7337,13 @@ const Class = {
     Store.touch();
     setActions($('clActions'), [
       { label: 'Check I understood', primary: true, act: () => this.check() },
+      { label: 'Watch it instead', act: () => Film.open(c.id, 'classes') },
       { label: 'Hear the examples', act: () => c.ex.forEach(([jp], i) => {
         if (/[぀-ヿ]/.test(jp)) setTimeout(() => Speech.line(jp.split('→')[0]), i * 2200);
       }) },
       { label: 'Back to the classes', act: () => this.open() }
     ]);
+    Ask.mount('clAsk', { kind: 'class', id: c.id, name: c.t });
     window.scrollTo(0, 0);
   },
   check() {
@@ -7071,6 +7359,7 @@ const Class = {
     $('clIdea').textContent = 'Question ' + (this.i + 1) + ' of ' + this.q.length;
     const order = Exam.shuffle(q.o.map((o, j) => j));
     this.a = order.indexOf(q.a);
+    $('clAsk').innerHTML = '';
     $('clBody').innerHTML = '<div class="cue"><b>' + esc(q.q) + '</b></div><div class="opts" id="clOpts"></div>' +
       '<p class="msg" id="clMsg" aria-live="polite"></p>';
     const wrap = $('clOpts');
@@ -7112,6 +7401,12 @@ const Class = {
       { label: 'Back to the classes', act: () => this.open() }
     ]);
     Gains.line($('clBody'));
+    if (!all) {
+      const log = this.q.map((q, i) => ({ key: '', good: false, q: q.q, why: q.why }));
+      const hits = Coach.from(log).filter(h => h.c.id !== c.id);
+      Coach.line($('clBody'), hits, 'These lean on the same idea');
+    }
+    Ask.mount('clAsk', { kind: 'class', id: c.id, name: c.t });
     App.refresh();
   },
   // each class hands off to whichever drill actually practises it
@@ -7125,7 +7420,975 @@ const Class = {
   }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+// ================================================================ the route through
+// Nine tiles is the right home screen once you know what you want from them. On the first day
+// it is nine equally plausible doors and no reason to open any particular one. This is the
+// order instead: the course's own order, from "what even is this writing" to the paper itself.
+//
+// Every step is a pointer at something that already exists — a class, a lesson's words, a
+// section of the mock paper. Nothing here is a second copy of the material, and nothing here
+// keeps its own score: how far along a step is gets read off the same review records as the
+// rest of the app, so work done by wandering in through a tile still counts here.
+const PATH = (LESSONS && LESSONS.path) || [];
+const PSTAGES = (LESSONS && LESSONS.stages) || [];
+const PBYID = {};
+PATH.forEach((s, i) => { s.n = i; PBYID[s.id] = s; });
+const PKIND = { class: 'class', kana: 'writing', words: 'words', drill: 'drill', nums: 'numbers',
+  kata: 'katakana', kwrite: 'by hand', grid: 'grid', verbs: 'verbs', part: 'exam part', talk: 'out loud',
+  check: 'test', exam: 'mock paper', keep: 'review', final: 'final' };
+
+const Path = {
+  key(id) { return 'x:p' + (PBYID[id] ? PBYID[id].n : -1); },
+  avg(keys) { return keys.length ? keys.reduce((a, k) => a + confidence(k), 0) / keys.length : 0; },
+  share(keys, bar) { return keys.length ? keys.filter(k => confidence(k) > bar).length / keys.length : 0; },
+  rowChars(ids) {
+    return (ids || []).flatMap(id => { const r = ROWS.find(x => x.id === id); return r ? r.chars.split('') : []; });
+  },
+  gridKeys() { return (EXAM.kosoado && EXAM.kosoado.rows || []).flatMap(r => r[2].map((w, i) => 'x:s' + (r[0] + i))); },
+  verbKeys() { return Verbs.all().flatMap(v => ['g', 'm', 'f'].map(x => Verbs.key(v.v, x))); },
+  sceneKeys(id) {
+    const les = LBYID[id];
+    if (!les || !les.scene) return [];
+    return [...new Set(les.scene.turns.flatMap(t => (t.teaches || []).map(vkey)))].filter(k => VOCAB[k]);
+  },
+  // how far through a step you are, 0 to 1
+  prog(st) {
+    switch (st.k) {
+      case 'class': return confidence(Class.key(st.ref, 'k'));
+      case 'kana': return this.share(this.rowChars(st.ref), 0.4);
+      case 'words': return LBYID[st.ref] ? this.share(LBYID[st.ref].keys, 0.4) : 0;
+      case 'drill': return LBYID[st.ref] ? this.share(LBYID[st.ref].dkeys, 0.3) : 0;
+      case 'nums': return this.avg((st.ref || []).filter(id => NBYID[id]));
+      case 'kata': return this.avg(KATAKANA.map((k, i) => 'x:k' + i));
+      case 'kwrite': return Math.min(1, ((S.path && S.path.hand) || 0) / 2);
+      case 'grid': return this.avg(this.gridKeys());
+      case 'verbs': return this.avg(this.verbKeys());
+      case 'part': return this.share(Exam.keys(st.ref), 0.4);
+      case 'talk': {
+        const keys = this.sceneKeys(st.ref);
+        return keys.length ? keys.filter(k => modeConfidence(k, 'p') > 0.3).length / keys.length : 0;
+      }
+      case 'check': return Math.min(1, ((S.path && S.path.checks && S.path.checks[st.id]) || 0) / 85);
+      case 'exam': {
+        const runs = (S.exam && S.exam.runs) || 0;
+        if (st.ref === 'strict') return (S.exam && S.exam.strict) ? 1 : 0;
+        return runs ? Math.min(1, ((S.exam && S.exam.best) || 0) / 100 + 0.25) : 0;
+      }
+      // review never finishes, and the final does not exist yet
+      case 'keep': return 0;
+      default: return 0;
+    }
+  },
+  done(st) {
+    if (st.k === 'final' || st.k === 'keep') return false;
+    if (st.k === 'check') return (((S.path && S.path.checks && S.path.checks[st.id]) || 0) >= 80);
+    if (st.k === 'exam') return this.prog(st) > 0;
+    return this.prog(st) >= 0.75;
+  },
+  locked(st) { return st.k === 'final'; },
+  // where you are: the first thing not finished. Steps already done further along do not pull
+  // the marker forward, because the order is the point.
+  here() {
+    for (const st of PATH) if (!this.done(st) && !this.locked(st)) return st;
+    return PATH[PATH.length - 1];
+  },
+  overall() {
+    const live = PATH.filter(s => !this.locked(s));
+    return live.length ? live.reduce((a, s) => a + Math.min(1, this.prog(s)), 0) / live.length : 0;
+  },
+  stageOf(st) { return PSTAGES.find(g => g.id === st.stage) || PSTAGES[0]; },
+  open(focus) {
+    show('path');
+    this.paint(focus);
+  },
+  paint() {
+    const at = this.here(), stage = this.stageOf(at);
+    const doneN = PATH.filter(s => this.done(s)).length, liveN = PATH.filter(s => !this.locked(s)).length;
+    $('pathNote').textContent = 'The course in the order it was taught, each step pointing at the ' +
+      'part of Kaku that drills it. You can jump about, but if you do not know where to start, ' +
+      'start at the top and come back to this screen each time.';
+    $('pathNow').innerHTML = '<span class="where">You are here · ' + esc(stage.n) + '</span>' +
+      '<b class="pn-t">' + esc(at.t) + '</b>' +
+      '<span class="pn-w">' + esc(at.why) + '</span>' +
+      '<span class="pn-m">' + (at.mins ? 'about ' + at.mins + ' minutes' : 'when the study guide arrives') +
+      ' · step ' + (at.n + 1) + ' of ' + PATH.length + '</span>';
+    setActions($('pathActions'), [
+      { label: at.k === 'check' ? 'Sit the checkpoint' : this.prog(at) > 0.05 ? 'Carry on with this' : 'Start this',
+        primary: true, act: () => this.go(at.id) },
+      { label: 'Skip to the next thing', act: () => {
+          const i = PATH.indexOf(at), nx = PATH.slice(i + 1).find(s => !this.locked(s));
+          if (nx) this.go(nx.id);
+        } }
+    ]);
+    const bar = PATH.filter(s => !this.locked(s)).map(s => {
+      const p = this.prog(s);
+      return '<i class="' + (this.done(s) ? 'on' : p > 0.15 ? 'half' : '') + '"></i>';
+    }).join('');
+    $('pathBar').innerHTML = bar;
+    $('pathCount').textContent = doneN + ' of ' + liveN + ' steps done · ' +
+      Math.round(this.overall() * 100) + '% of the way through';
+    $('pathList').innerHTML = PSTAGES.map(g => {
+      const steps = g.steps.map(id => PBYID[id]).filter(Boolean);
+      const gd = steps.filter(s => this.done(s)).length;
+      return '<section class="pstage"><p class="pstage-h"><b>' + esc(g.n) + '</b>' +
+        '<span>' + esc(g.sub) + ' · ' + gd + '/' + steps.length + '</span></p>' +
+        steps.map(s => {
+          const p = this.prog(s), fin = this.done(s), lock = this.locked(s);
+          const cls = ['pstep', s.k === 'check' ? 'check' : '', fin ? 'done' : p > 0.15 ? 'part' : '',
+                       s === at ? 'here' : '', lock ? 'locked' : ''].filter(Boolean).join(' ');
+          const state = lock ? 'Locked' : fin ? 'Done' : s === at ? 'You are here'
+            : p > 0.15 ? Math.round(p * 100) + '%' : '';
+          return '<button class="' + cls + '" type="button" data-st="' + esc(s.id) + '">' +
+            '<span class="num">' + (s.n + 1) + '</span>' +
+            '<span><span class="ps-t"><span class="pkind">' + esc(PKIND[s.k] || s.k) + '</span>' +
+            esc(s.t) + '</span><span class="ps-w">' + esc(s.why) + '</span></span>' +
+            '<span class="ps-s">' + esc(state) + '</span></button>';
+        }).join('') + '</section>';
+    }).join('');
+    $('pathList').querySelectorAll('[data-st]').forEach(b =>
+      b.addEventListener('click', () => this.go(b.dataset.st)));
+  },
+  // every step is a door to something that already exists; this is the only place that knows
+  // which door
+  go(id) {
+    const st = PBYID[id];
+    if (!st) return;
+    S.path = S.path || {};
+    S.path.at = id; S.path.seen = (S.path.seen || []).filter(x => x !== id).concat([id]).slice(-60);
+    Store.touch();
+    const learn = (opt) => {
+      if (!opt) return;
+      for (const k in opt) S.settings[k] = opt[k];
+    };
+    switch (st.k) {
+      case 'class': return Film.open(st.ref, 'path');
+      case 'kana': {
+        S.settings.rows = st.ref.slice();
+        learn(st.opt);
+        App.refresh();
+        return Practice.start(this.rowChars(st.ref).map(c => S.settings.script === 'k' ? (PAIR[c] || c) : c));
+      }
+      case 'words': {
+        if (!S.settings.lessons.includes(st.ref)) { S.settings.lessons = S.settings.lessons.concat([st.ref]); Store.touch(); }
+        App.refresh();
+        return Practice.start(LBYID[st.ref] ? LBYID[st.ref].keys : []);
+      }
+      case 'drill': return Practice.start(LBYID[st.ref] ? LBYID[st.ref].dkeys : []);
+      case 'nums': {
+        S.settings.numbands = [...new Set(S.settings.numbands.concat(st.ref))];
+        Store.touch(); App.refresh();
+        return Practice.start(st.ref.slice());
+      }
+      case 'kata': { Exam.open(); return Exam.run('kata'); }
+      case 'kwrite': return KWrite.open(true);
+      case 'grid': return Grid.open();
+      case 'verbs': return Verbs.open();
+      case 'part': { Exam.open(); return Exam.run(st.ref); }
+      case 'talk': { show('talk'); return Talk.pick(st.ref); }
+      case 'check': return Check.run(st);
+      case 'exam': { Exam.open(); return Exam.run(null, st.ref === 'strict'); }
+      case 'keep': {
+        const words = ['0', '1', '2', '3'].flatMap(x => LBYID[x] ? LBYID[x].keys : []);
+        return Practice.start(this.rowChars(ROWS.map(r => r.id)).concat(words));
+      }
+      case 'final': {
+        $('pathNow').innerHTML = '<span class="where">Not yet</span>' +
+          '<b class="pn-t">The final exam</b><span class="pn-w">There is nothing honest to build ' +
+          'here until the study guide exists — guessing at the sections would give you a ' +
+          'readiness number that means nothing. Hand the guide over when you get it and this ' +
+          'becomes the same thing the midterm is: the real sections, sat for real, with the two ' +
+          'numbers underneath.</span>';
+        return;
+      }
+    }
+  }
+};
+
+// ================================================================ the checkpoints
+// A test every few steps, drawing only on what the path has already covered, shuffled so it is
+// never the same paper twice. The pool grows as you go, so the last checkpoint before the
+// midterm is, by construction, the midterm's own material.
+const Check = {
+  // everything covered by the steps before this one
+  pool(st) {
+    const upto = PATH.indexOf(st);
+    const acc = { kana: [], words: [], nums: [], cls: [], kata: false, grid: false, verbs: false,
+                  gram: false, build: false, exch: false };
+    for (let j = 0; j < upto; j++) {
+      const c = PATH[j].covers || {};
+      for (const k of ['kana', 'words', 'nums', 'cls']) if (c[k]) acc[k] = acc[k].concat(c[k]);
+      for (const k of ['kata', 'grid', 'verbs', 'gram', 'build', 'exch']) if (c[k]) acc[k] = true;
+    }
+    acc.kana = [...new Set(acc.kana)]; acc.words = [...new Set(acc.words)];
+    acc.nums = [...new Set(acc.nums)]; acc.cls = [...new Set(acc.cls)];
+    return acc;
+  },
+  part(n) { return { id: 'check', n: n }; },
+  // --- the question makers. Each returns items the exam runner already knows how to ask.
+  kanaQ(chars, n) {
+    const out = [];
+    for (const ch of Exam.pick(chars, n)) {
+      const near = String((LOOK && LOOK[ch]) || '').split('').filter(c => chars.includes(c));
+      if (Math.random() < 0.5) {
+        const wrong = Exam.pick([...new Set(near.concat(chars))].filter(c => c !== ch && ROMAJI[c] !== ROMAJI[ch]), 3);
+        const opts = Exam.shuffle([ROMAJI[ch]].concat(wrong.map(c => ROMAJI[c])));
+        out.push({ kind: 'mc', key: ch, face: ch, q: 'Which sound is this?', opts,
+                   a: opts.indexOf(ROMAJI[ch]), why: ch + ' is ' + ROMAJI[ch] + '.',
+                   part: this.part('Reading kana') });
+      } else {
+        const wrong = Exam.pick([...new Set(near.concat(chars))].filter(c => c !== ch && ROMAJI[c] !== ROMAJI[ch]), 3);
+        const opts = Exam.shuffle([ch].concat(wrong));
+        out.push({ kind: 'mc', key: ch, q: 'Which kana is ' + ROMAJI[ch] + '?', opts,
+                   a: opts.indexOf(ch), why: ROMAJI[ch] + ' is ' + ch + '.',
+                   part: this.part('Reading kana') });
+      }
+    }
+    return out;
+  },
+  wordQ(keys, n) {
+    const out = [];
+    for (const k of Exam.weakest(keys, n)) {
+      const v = VOCAB[k];
+      if (!v) continue;
+      if (Math.random() < 0.55) {
+        const others = Exam.pick(keys.filter(x => x !== k && VOCAB[x] && VOCAB[x].m !== v.m), 3).map(x => VOCAB[x].w);
+        const opts = Exam.shuffle([v.w].concat(others));
+        out.push({ kind: 'mc', key: k, q: v.m, opts, a: opts.indexOf(v.w), why: v.w + ' = ' + v.m,
+                   part: this.part('Vocabulary') });
+      } else {
+        const others = Exam.pick(keys.filter(x => x !== k && VOCAB[x] && VOCAB[x].m !== v.m), 3).map(x => VOCAB[x].m);
+        const opts = Exam.shuffle([v.m].concat(others));
+        out.push({ kind: 'mc', key: k, face: v.w, q: 'What does this mean?', opts,
+                   a: opts.indexOf(v.m), why: v.w + ' = ' + v.m, part: this.part('Vocabulary') });
+      }
+    }
+    return out;
+  },
+  numQ(bands, n) {
+    const out = [];
+    const live = bands.filter(id => NBYID[id]);
+    for (let i = 0; i < n && live.length; i++) {
+      const id = live[i % live.length];
+      const v = randomNumber(id);
+      const say = numberReading(v);
+      const near = new Set();
+      for (let t = 0; t < 14 && near.size < 3; t++) {
+        const c = randomNumber(id);
+        if (c !== v) near.add(numberReading(c));
+      }
+      if (near.size < 3) continue;
+      const opts = Exam.shuffle([say].concat([...near]));
+      out.push({ kind: 'mc', key: id, face: String(v), q: 'How do you say this?', opts,
+                 a: opts.indexOf(say), why: v + ' is ' + say + '.', part: this.part('Numbers') });
+    }
+    return out;
+  },
+  classQ(ids, n) {
+    const bag = [];
+    for (const id of ids) {
+      const c = CLASSES.find(x => x.id === id);
+      if (!c) continue;
+      for (const q of c.check) bag.push([c, q]);
+    }
+    return Exam.pick(bag, n).map(([c, q]) => {
+      const order = Exam.shuffle(q.o.map((o, j) => j));
+      return { kind: 'mc', key: Class.key(c.id, 'k'), q: q.q, opts: order.map(j => q.o[j]),
+               a: order.indexOf(q.a), why: q.why, part: this.part('Grammar') };
+    });
+  },
+  gridQ(n) {
+    const d = Grid.data();
+    return Exam.pick(d.cues, n).map(([rowId, colId, text]) => {
+      const row = d.rows.find(r => r[0] === rowId);
+      const colIdx = d.cols.findIndex(c => c[0] === colId);
+      const answer = row[2][colIdx];
+      const opts = Exam.shuffle(Math.random() < 0.6 ? row[2].slice() : d.rows.map(r => r[2][colIdx]));
+      return { kind: 'mc', key: 'x:s' + (rowId + colIdx), q: text, opts, a: opts.indexOf(answer),
+               why: answer + ' — ' + row[3] + ' ' + d.cols[colIdx][2] + '.',
+               part: this.part('こそあど') };
+    });
+  },
+  verbQ(n) {
+    const out = [];
+    for (const v of Exam.pick(Verbs.all(), n)) {
+      if (Math.random() < 0.5) {
+        const opts = Verbs.groups().map(g => g[1]);
+        out.push({ kind: 'mc', key: Verbs.key(v.v, 'g'), face: v.v, q: 'Which group?', opts,
+                   a: Verbs.groups().findIndex(g => g[0] === v.g), why: v.note,
+                   part: this.part('Verbs') });
+      } else {
+        const tempt = (v.g === 'u' && v.v.endsWith('る')) ? v.v.slice(0, -1) + 'ます' : '';
+        const wrong = Exam.pick(Verbs.all().filter(x => x.ms !== v.ms && x.ms !== tempt).map(x => x.ms), tempt ? 2 : 3);
+        const opts = Exam.shuffle([v.ms].concat(tempt ? [tempt] : []).concat(wrong));
+        out.push({ kind: 'mc', key: Verbs.key(v.v, 'f'), face: v.v, q: 'Polite form?', opts,
+                   a: opts.indexOf(v.ms), why: v.note, part: this.part('Verbs') });
+      }
+    }
+    return out;
+  },
+  gramQ(n) {
+    const bank = EXAM.grammar || [];
+    const idx = Exam.weakest(bank.map((x, i) => 'x:g' + i), n).map(k => +k.slice(3));
+    return idx.map(i => {
+      const g = bank[i];
+      const order = Exam.shuffle(g.o.map((o, j) => j));
+      return { kind: 'mc', key: 'x:g' + i, q: g.q, opts: order.map(j => g.o[j]),
+               a: order.indexOf(g.a), why: g.why, part: this.part('Grammar') };
+    });
+  },
+  // the mix: weighted by what is in the pool, with the newest material asked about most
+  build(st) {
+    const p = this.pool(st), want = (st.ref && st.ref.n) || 12;
+    const chars = p.kana.length ? this.rowCharsOf(p.kana) : [];
+    const wordKeys = p.words.flatMap(id => LBYID[id] ? LBYID[id].keys : []);
+    const bags = [];
+    if (chars.length) bags.push(['kana', 3]);
+    if (wordKeys.length) bags.push(['words', 4]);
+    if (p.nums.length) bags.push(['nums', 2]);
+    if (p.cls.length) bags.push(['cls', 3]);
+    if (p.kata) bags.push(['kata', 2]);
+    if (p.grid) bags.push(['grid', 2]);
+    if (p.verbs) bags.push(['verbs', 2]);
+    if (p.gram) bags.push(['gram', 3]);
+    if (p.build) bags.push(['build', 2]);
+    if (p.exch) bags.push(['exch', 2]);
+    const total = bags.reduce((a, b) => a + b[1], 0) || 1;
+    const seen = new Set();
+    const fresh = (items) => items.filter(x => {
+      const sig = x.q + '|' + (x.face || '') + '|' + (x.opts || []).join(',');
+      if (seen.has(sig)) return false;
+      seen.add(sig); return true;
+    });
+    let out = [];
+    const draw = (kind, n) => {
+      if (kind === 'kana') return this.kanaQ(chars, n);
+      if (kind === 'words') return this.wordQ(wordKeys, n);
+      if (kind === 'nums') return this.numQ(p.nums, n);
+      if (kind === 'cls') return this.classQ(p.cls, n);
+      if (kind === 'kata') return Exam.make('kata', n).map(x => Object.assign(x, { part: this.part('Katakana') }));
+      if (kind === 'grid') return this.gridQ(n);
+      if (kind === 'verbs') return this.verbQ(n);
+      if (kind === 'gram') return this.gramQ(n);
+      if (kind === 'build') return Exam.make('build', n).map(x => Object.assign(x, { part: this.part('Writing sentences') }));
+      if (kind === 'exch') return Exam.make('ex', n).map(x => Object.assign(x, { part: this.part('Exchanges') }));
+      return [];
+    };
+    for (const [kind, w] of bags) {
+      const n = Math.max(1, Math.round(want * w / total));
+      out = out.concat(fresh(draw(kind, n)));
+    }
+    // A bag can be smaller than its share — the first checkpoint has one class behind it and
+    // two questions in it. Rather than hand over a short paper, ask the other bags for more.
+    for (let round = 0; round < 4 && out.length < want; round++) {
+      const before = out.length;
+      for (const [kind] of bags) {
+        if (out.length >= want) break;
+        out = out.concat(fresh(draw(kind, want - out.length)));
+      }
+      if (out.length === before) break;
+    }
+    return Exam.shuffle(out.filter(Boolean)).slice(0, want);
+  },
+  rowCharsOf(rowIds) {
+    const hira = Path.rowChars(rowIds);
+    // once katakana has been met, half the kana questions come from the other script
+    const metKata = Path.done(PBYID['kata-read'] || {}) || confidence('ア') > 0;
+    return metKata ? hira.concat(hira.map(c => PAIR[c]).filter(Boolean)) : hira;
+  },
+  run(st) {
+    const queue = this.build(st);
+    if (!queue.length) {
+      Path.open();
+      $('pathNow').innerHTML = '<span class="where">Nothing to test yet</span>' +
+        '<b class="pn-t">' + esc(st.t) + '</b><span class="pn-w">This checkpoint samples what the ' +
+        'steps above it covered, and none of them have been started. Do one of those first.</span>';
+      return;
+    }
+    Exam.runQueue(queue, {
+      title: st.t,
+      done: (pct) => {
+        SRS.update(Path.key(st.id), 'r', pct >= 85 ? 'perfect' : pct >= 60 ? 'good' : 'weak');
+        S.path = S.path || {}; S.path.checks = S.path.checks || {};
+        const had = S.path.checks[st.id] || 0;
+        S.path.checks[st.id] = Math.max(had, pct);
+        S.path.last = { id: st.id, pct: pct, at: Date.now() };
+        Store.touch();
+      },
+      after: (pct) => pct >= 85
+        ? 'That is the standard the paper is marked at. Move on.'
+        : pct >= 60
+        ? 'Enough to go on with, but the misses above are the ones to look at before the next block.'
+        : 'Worth going back over this block before the next one — the next block assumes it.',
+      actions: (pct) => [
+        { label: 'Sit it again', primary: pct < 85, act: () => this.run(st) },
+        { label: 'Carry on', primary: pct >= 85, act: () => {
+            const nx = PATH.slice(PATH.indexOf(st) + 1).find(s => !Path.locked(s));
+            if (nx) Path.go(nx.id); else Path.open();
+          } },
+        { label: 'Back to the route', act: () => Path.open() }
+      ]
+    });
+  }
+};
+
+// ================================================================ the video lessons
+// Not filmed. Each class is cut into beats — a title card, a paragraph at a time, the pattern
+// revealed row by row, the examples one by one with the thing being taught lit up, then the
+// mistake written wrong and right — and the machine reads them out while they appear. The
+// English narration uses whatever English voice the computer has; the Japanese uses the same
+// voice the rest of Kaku speaks with. With no voices at all it still plays as captions on a
+// timer, which is the same lesson without the reading aloud.
+const Film = {
+  cur: null, beats: [], i: 0, playing: false, token: 0, timer: null, from: 'classes',
+  // the kana and short patterns this class is about, so they can be highlighted in the examples
+  marks(c) {
+    const out = [];
+    // 'は: the topic' is about は; 'こ・そ・あ・ど: two decisions' is about all four
+    // the middle dot is punctuation, not a kana: leaving it in makes こ・そ・あ・ど one
+    // seven-character word rather than the four it is
+    const head = String(c.t).split(':')[0].replace(/[・、,\u3000]/g, ' ');
+    for (const m of (head.match(/[ぁ-ゟァ-ヿー]+/g) || [])) {
+      if (m.length <= 6) out.push(m);
+    }
+    for (const [a] of c.shape) {
+      for (const piece of String(a).split(/[・、,\s\u3000]+/)) {
+        const w = piece.trim();
+        if (w && w.length <= 4 && /^[ぁ-ゟァ-ヿー]+$/.test(w)) out.push(w);
+      }
+    }
+    // a single kana that only ever appears as the start of a longer mark is not worth lighting
+    // up on its own: こ would otherwise fire inside half the words in the こそあど examples
+    const all = [...new Set(out)];
+    return all.filter(m => m.length > 1 || !all.some(x => x !== m && x.startsWith(m)));
+  },
+  // longest match first, left to right, so これ lights up as one word rather than as こ and れ
+  lit(jp, marks) {
+    const s = String(jp);
+    if (!marks.length) return esc(s);
+    const sorted = marks.slice().sort((a, b) => b.length - a.length);
+    let out = '', i = 0;
+    while (i < s.length) {
+      const hit = sorted.find(m => s.startsWith(m, i));
+      if (hit) { out += '<mark>' + esc(hit) + '</mark>'; i += hit.length; }
+      else { out += esc(s[i]); i++; }
+    }
+    return out;
+  },
+  readMs(text, ja) {
+    const s = String(text || '');
+    return ja ? Math.max(900, s.length * 170) : Math.max(1100, s.split(/\s+/).length * 310);
+  },
+  jp(s) { return /[぀-ヿ]/.test(String(s || '')); },
+  // the cut. Every frame comes out of the class itself; nothing is written twice.
+  cut(c) {
+    const m = this.marks(c), beats = [];
+    const lesson = COURSE[c.lesson] ? COURSE[c.lesson].name : '';
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">' + esc(lesson) + '</p><h3>' + esc(c.t) + '</h3>' +
+            '<p class="say">' + esc(c.idea) + '</p></div>',
+      voice: [{ t: c.idea, lang: 'en' }], hold: this.readMs(c.idea)
+    });
+    for (const para of c.body) {
+      beats.push({
+        html: '<div class="shot"><p class="eyeb">' + esc(c.t) + '</p><p class="say">' + esc(para) + '</p></div>',
+        voice: [{ t: para, lang: 'en' }], hold: this.readMs(para)
+      });
+    }
+    c.shape.forEach(([a, b], k) => {
+      const rows = c.shape.map(([x, y], j) =>
+        '<div class="r' + (j === k ? ' lit' : '') + '"><b>' + esc(x) + '</b><span>' + esc(y) + '</span></div>').join('');
+      const voice = [];
+      if (this.jp(a)) voice.push({ t: a, lang: 'ja' });
+      voice.push({ t: b, lang: 'en' });
+      beats.push({
+        html: '<div class="shot"><p class="eyeb">The shape</p><div class="rows">' + rows + '</div></div>',
+        voice, hold: this.readMs(b)
+      });
+    });
+    c.ex.forEach(([jp, en, note]) => {
+      const voice = [];
+      if (this.jp(jp)) voice.push({ t: toKana(String(jp).split('→')[0]), lang: 'ja' });
+      voice.push({ t: en, lang: 'en' });
+      if (note) voice.push({ t: note, lang: 'en' });
+      beats.push({
+        html: '<div class="shot"><p class="eyeb">In use</p>' +
+              '<p class="big">' + this.lit(toKana(jp), m) + '</p>' +
+              '<p class="en">' + esc(en) + '</p>' +
+              (note ? '<p class="nt">' + esc(note) + '</p>' : '') + '</div>',
+        voice, hold: this.readMs(en) + (note ? this.readMs(note) : 0)
+      });
+    });
+    c.slips.forEach(([bad, good, why]) => {
+      const voice = [];
+      if (this.jp(good)) voice.push({ t: toKana(String(good).split('(')[0]), lang: 'ja' });
+      voice.push({ t: why, lang: 'en' });
+      beats.push({
+        html: '<div class="shot"><p class="eyeb">The mistake people make</p>' +
+              '<div class="pair"><span class="x">' + esc(toKana(bad)) + '</span>' +
+              '<span class="o">' + this.lit(toKana(good), m) + '</span></div>' +
+              '<p class="nt">' + esc(why) + '</p></div>',
+        voice, hold: this.readMs(why)
+      });
+    });
+    const last = 'That is the whole of it. Three questions will tell you whether it landed.';
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">End of the class</p><h3>' + esc(c.t) + '</h3>' +
+            '<p class="say">' + esc(last) + '</p></div>',
+      voice: [{ t: last, lang: 'en' }], hold: 2600, end: true
+    });
+    return beats;
+  },
+  open(id, from) {
+    const c = CLASSES.find(x => x.id === id);
+    if (!c) return Class.open();
+    this.cur = c; this.from = from || 'classes';
+    this.beats = this.cut(c);
+    this.i = 0; this.playing = false;
+    show('film');
+    $('fmEyebrow').textContent = COURSE[c.lesson] ? COURSE[c.lesson].name : '';
+    $('fmTitle').textContent = c.t;
+    $('fmNote').textContent = Speech.ok
+      ? (Speech.available() ? '' : 'No Japanese voice on this machine, so the Japanese lines are shown rather than read.')
+      : 'This browser will not read aloud, so it plays as captions on a timer.';
+    if (!this.wired) {
+      this.wired = true;
+      $('fmPrev').addEventListener('click', () => this.step(-1));
+      $('fmNext').addEventListener('click', () => this.step(1));
+      $('fmPlay').addEventListener('click', () => this.toggle());
+    }
+    SRS.update(Class.key(c.id, 'r'), 'r', 'good');
+    Store.touch();
+    Ask.mount('fmAsk', { kind: 'class', id: c.id, name: c.t });
+    this.draw();
+  },
+  leave() {
+    this.token++; this.playing = false;
+    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+    Speech.stop();
+  },
+  toggle() {
+    if (this.playing) { this.leave(); this.draw(); return; }
+    this.playing = true;
+    if (this.beats[this.i] && this.beats[this.i].end) this.i = 0;
+    this.draw();
+  },
+  step(d) {
+    const was = this.playing;
+    this.leave();
+    this.i = Math.max(0, Math.min(this.beats.length - 1, this.i + d));
+    this.playing = was;
+    this.draw();
+  },
+  next() {
+    if (this.i + 1 >= this.beats.length) { this.leave(); this.draw(); return; }
+    this.i++;
+    this.draw();
+  },
+  draw() {
+    const b = this.beats[this.i];
+    if (!b) return;
+    this.token++;
+    const tok = this.token;
+    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+    Speech.stop();
+    $('fmStage').innerHTML = b.html;
+    $('fmBar').innerHTML = this.beats.map((x, j) =>
+      '<i class="' + (j === this.i ? 'now' : j < this.i ? 'seen' : '') + '"></i>').join('');
+    $('fmPos').textContent = (this.i + 1) + ' / ' + this.beats.length;
+    $('fmPlay').textContent = this.playing ? 'Pause' : b.end ? 'Again' : 'Play';
+    $('fmPrev').disabled = this.i === 0;
+    $('fmNext').disabled = this.i + 1 >= this.beats.length;
+    const c = this.cur;
+    setActions($('fmActions'), [
+      { label: 'Check I understood', primary: !!b.end, act: () => { this.leave(); Class.read(c.id); Class.check(); } },
+      { label: 'Read it as text', act: () => { this.leave(); Class.read(c.id); } },
+      { label: 'Say the examples again', act: () => { this.leave(); c.ex.forEach(([jp], k) => {
+          if (this.jp(jp)) setTimeout(() => Speech.line(toKana(String(jp).split('→')[0])), k * 2300);
+        }); } },
+      { label: this.from === 'path' ? 'Back to the route' : 'Back to the classes',
+        act: () => { this.leave(); this.from === 'path' ? Path.open() : Class.open(); } }
+    ]);
+    if (!this.playing) return;
+    const voices = (b.voice || []).slice();
+    const run = (silent) => {
+      if (tok !== this.token) return;
+      const v = voices.shift();
+      if (!v) return this.hold(tok, b, silent);
+      const u = Speech.utter(v.t, v.lang, () => run(silent));
+      if (!u) run(silent + this.readMs(v.t, v.lang === 'ja'));
+    };
+    run(0);
+  },
+  hold(tok, b, silent) {
+    if (tok !== this.token || !this.playing) return;
+    const wait = silent > 0 ? silent + 480 : 440;
+    this.timer = setTimeout(() => { if (tok === this.token && this.playing) this.next(); }, wait);
+  }
+};
+
+// ================================================================ ask it anything
+// A box at the bottom of a class. The question goes to the same on-device model that answers in
+// talking practice, with the relevant pieces of the course material pasted in front of it, so
+// the answer comes out of the notes rather than out of the model's memory of Japanese in
+// general — a half-gigabyte model left to its own devices will confidently teach you Lesson 12
+// grammar and kanji the exam marks wrong. With no model loaded the box still works: it finds
+// the passage that answers the question and shows it, and says that is what it did.
+const Ask = {
+  ctx: null, host: null, busy: false, _c: null,
+  TIPS: ['Why is it は and not が?', 'When do I use これ and when この?',
+         'What is the difference between に and で?', 'How do I make it negative?',
+         'Is this on the midterm?'],
+  corpus() {
+    if (this._c) return this._c;
+    const out = [];
+    for (const c of CLASSES) {
+      out.push({ id: c.id, kind: 'class', t: c.t,
+                 text: [c.idea].concat(c.body).join(' '),
+                 shape: c.shape.map(([a, b]) => a + ' — ' + b),
+                 ex: c.ex.map(([jp, en]) => toKana(jp) + ' = ' + en),
+                 slips: c.slips.map(([bad, good, why]) => 'not ' + toKana(bad) + ' but ' + toKana(good) + ': ' + why) });
+    }
+    for (const les of LESSONS.lessons) {
+      const onCourse = COURSE_IDS.includes(les.id);
+      for (const g of les.grammar) {
+        out.push({ id: 'g' + les.id + g.t, kind: 'lesson ' + (les.id === '0' ? 'basics' : les.id), t: g.t,
+                   text: g.b, shape: [], ex: (g.e || []).map(([jp, en]) => toKana(jp) + ' = ' + en),
+                   slips: [], off: !onCourse });
+      }
+    }
+    this._c = out;
+    return out;
+  },
+  // Half the questions worth asking are written in romaji — "why is it wa and not ga", "ni vs
+  // de" — and the material is written in kana, so the two never meet unless the romaji is turned
+  // back into kana first. The particles are spelled by their sound rather than their letter, so
+  // the particle list has to come before the general transliteration: wa is は, not わ.
+  terms(q) {
+    const low = String(q).toLowerCase();
+    const words = low.match(/[a-zÀ-ɏ]{2,}/g) || [];
+    const kana = (String(q).match(/[぀-ヿー]+/g) || []).slice();
+    const stop = new Set(['the', 'and', 'for', 'what', 'why', 'how', 'does', 'did', 'you', 'are', 'was',
+                          'with', 'this', 'that', 'when', 'which', 'use', 'using', 'mean', 'means',
+                          'between', 'difference', 'can', 'should', 'would', 'about', 'there', 'have',
+                          'it', 'is', 'in', 'on', 'of', 'to', 'do', 'be', 'me', 'my', 'vs', 'an',
+                          'if', 'or', 'at', 'so', 'as', 'not', 'but', 'one', 'two', 'say', 'says']);
+    for (const w of words) {
+      if (PARTICLE_WORD[w]) { kana.push(PARTICLE_WORD[w]); continue; }
+      if (w.length < 3) continue;
+      const k = romajiToKana(w);
+      if (k && /^[぀-ヿー]+$/.test(k)) kana.push(k);
+    }
+    return { words: [...new Set(words.filter(w => w.length > 2 && !stop.has(w)))],
+             kana: [...new Set(kana)] };
+  },
+  // which pieces of the notes are about this question
+  find(q, firstId) {
+    const t = this.terms(q), scored = [];
+    for (const d of this.corpus()) {
+      const hay = (d.t + ' ' + d.text + ' ' + d.shape.join(' ') + ' ' + d.ex.join(' ') + ' ' + d.slips.join(' ')).toLowerCase();
+      let s = 0;
+      for (const w of t.words) {
+        if (d.t.toLowerCase().includes(w)) s += 3;
+        if (hay.includes(w)) s += 1;
+      }
+      for (const k of t.kana) {
+        if (k.length < 1) continue;
+        if (d.t.includes(k)) s += 4 + k.length;
+        const n = hay.split(k).length - 1;
+        s += Math.min(4, n) * (1 + k.length * 0.4);
+      }
+      // base is what the question itself matched. Everything after it is preference, and
+      // preference must not be able to turn no match into a match.
+      const base = s;
+      if (d.id === firstId) s += 2.5;          // the class being read is the likeliest subject
+      if (d.kind === 'class') s *= 1.35;       // a class explains; a grammar note states
+      if (d.off) s *= 0.4;                     // and a lesson he is nowhere near is not the answer
+      if (s > 0) scored.push({ d, s, base });
+    }
+    scored.sort((a, b) => b.s - a.s);
+    // the class you are reading is worth a nudge, but a nudge is not evidence that the question
+    // is about it
+    this.matched = scored.some(x => x.base > 0);
+    const out = scored.slice(0, 3).map(x => x.d);
+    if (firstId) {
+      const own = this.corpus().find(d => d.id === firstId);
+      if (own && !out.includes(own)) out.unshift(own);
+    }
+    return out.slice(0, 3);
+  },
+  // a word asked about by name is answered from the word list, with or without a model
+  words(q) {
+    const kana = (String(q).match(/[぀-ヿー]{2,}/g) || []);
+    const out = [];
+    for (const k of kana) {
+      for (const key in VOCAB) {
+        const v = VOCAB[key];
+        if (v.w === k || v.r === k) { out.push(v); break; }
+      }
+    }
+    return out.slice(0, 4);
+  },
+  notes(docs, words, budget) {
+    const bits = [];
+    for (const v of words) bits.push(v.w + (v.r !== v.w ? ' (' + v.r + ')' : '') + ' means "' + v.m + '"' +
+      (v.c ? ', lesson ' + v.c + ' of the course' : '') + '.');
+    for (const d of docs) {
+      const lines = ['--- ' + d.t + ' (' + d.kind + ')', d.text];
+      for (const s of d.shape.slice(0, 7)) lines.push(s);
+      for (const e of d.ex.slice(0, 4)) lines.push(e);
+      for (const s of d.slips.slice(0, 2)) lines.push(s);
+      bits.push(lines.join('\n'));
+    }
+    const out = [];
+    let used = 0;
+    for (const b of bits) {
+      const n = roughTokens(b);
+      if (used + n > budget) break;
+      out.push(b); used += n;
+    }
+    return out.join('\n\n');
+  },
+  mount(hostId, ctx) {
+    const host = $(hostId);
+    if (!host) return;
+    this.ctx = ctx || null;
+    this.hostId = hostId;
+    const p = hostId;
+    host.innerHTML = '<div class="ask"><p class="ask-h">Ask about this</p>' +
+      '<div class="ask-row"><input type="text" id="' + p + 'In' + '" autocomplete="off" ' +
+      'autocapitalize="off" placeholder="Anything you did not follow"><button class="btn" type="button" id="' +
+      p + 'Go">Ask</button></div>' +
+      '<div class="ask-tips" id="' + p + 'Tips"></div>' +
+      '<div class="ask-out" id="' + p + 'Out"></div></div>';
+    const input = $(p + 'In');
+    $(p + 'Go').addEventListener('click', () => this.ask(input.value));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.ask(input.value); });
+    const tips = $(p + 'Tips');
+    for (const t of this.TIPS.slice(0, 3)) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'ask-tip'; b.textContent = t;
+      b.addEventListener('click', () => { input.value = t; this.ask(t); });
+      tips.appendChild(b);
+    }
+    $(p + 'Out').innerHTML = '';
+  },
+  out(html) {
+    const n = $(this.hostId + 'Out');
+    if (!n) return;
+    n.innerHTML = html;
+    n.querySelectorAll('[data-cls]').forEach(b =>
+      b.addEventListener('click', () => Film.open(b.dataset.cls, 'classes')));
+  },
+  // a passage, not an essay: the class itself is one tap away
+  gist(text) {
+    const s = String(text || '').trim();
+    if (s.length <= 240) return s;
+    const cut = s.slice(0, 240);
+    const stop = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('。'));
+    return (stop > 120 ? cut.slice(0, stop + 1) : cut.trim() + '…');
+  },
+  quotes(docs, words) {
+    return (words.length ? '<p class="quote"><b>From the word list</b>' + words.map(v =>
+        esc(v.w + (v.r !== v.w ? ' ・' + v.r : '') + ' — ' + v.m)).join('<br>') + '</p>' : '') +
+      docs.map(d => '<p class="quote"><b>' + esc(d.t) + ' · ' + esc(d.kind) +
+        (d.off ? ' · past your course' : '') + '</b>' +
+        esc(this.gist(d.text)) + (d.ex.length ? '<br>' + esc(d.ex[0]) : '') +
+        (d.kind === 'class' ? '<button class="ask-open" type="button" data-cls="' + esc(d.id) +
+          '">Play this class</button>' : '') + '</p>').join('');
+  },  async ask(q) {
+    q = String(q || '').trim();
+    if (!q || this.busy) return;
+    const own = this.ctx && this.ctx.kind === 'class' ? this.ctx.id : '';
+    const docs = this.find(q, own), words = this.words(q);
+    if (!words.length && (!this.matched || !docs.length)) {
+      return this.out('<p class="qline">' + esc(q) + '</p><p class="aline">Nothing in the course ' +
+        'material touches that one. The notes cover the three writing systems, the particles, ' +
+        'こそあど, the three verb groups, ます and ません, the ' +
+        'adverbs that need a negative, the numbers and the greetings. Ask about any of those and ' +
+        'it will have something to work from.</p>');
+    }
+    if (!Brain.ready()) return this.offer(q, docs, words);
+    this.busy = true;
+    this.out('<p class="qline">' + esc(q) + '</p><p class="ask-busy">Thinking…</p>');
+    const notes = this.notes(docs, words, 780);
+    const rules = 'You are a patient tutor for a first-term university Japanese course. The ' +
+      'student is three lessons in: Genki lessons 1 to 3, no kanji at all.\n' +
+      'Answer the question in plain English, in at most four short sentences. Be concrete.\n' +
+      'Use ONLY the course notes below. If they do not answer the question, say so plainly.\n' +
+      'Write any Japanese in hiragana or katakana. Never use kanji. Never use romaji.\n\n' +
+      'COURSE NOTES\n' + notes;
+    let text = '';
+    try {
+      text = await Brain.answer(rules, q, (partial) => {
+        this.out('<p class="qline">' + esc(q) + '</p><p class="aline">' + esc(toKana(partial)) + '</p>');
+      });
+    } catch (e) {
+      text = '';
+    }
+    this.busy = false;
+    const clean = toKana(String(text || '').trim());
+    if (!clean || looping(clean)) return this.offer(q, docs, words, true);
+    this.out('<p class="qline">' + esc(q) + '</p><p class="aline">' + esc(clean) + '</p>' +
+      '<p class="src">Answered by the model on this machine, from the course notes below. It is a ' +
+      'small model — if something it says contradicts the notes, the notes are right.</p>' +
+      this.quotes(docs, words));
+  },
+  // no model, or the model made a mess of it: the notes themselves, which is what it was reading
+  offer(q, docs, words, failed) {
+    const can = !Brain.why();
+    this.out('<p class="qline">' + esc(q) + '</p>' +
+      '<p class="src">' + (failed
+        ? 'The model on this machine did not manage a usable answer, so here is what it was reading.'
+        : can
+        ? 'No model is loaded, so this is the part of the course material that answers it. Load the model and it will answer in its own words instead.'
+        : 'This is the part of the course material that answers it.') + '</p>' +
+      this.quotes(docs, words));
+    const host = $(this.hostId + 'Out');
+    if (!host || !can || Brain.state === 'loading') return;
+    const act = document.createElement('div');
+    act.className = 'actions';
+    host.appendChild(act);
+    setActions(act, [{ label: 'Load the model and ask again', primary: true, act: () => this.load(q) }]);
+  },
+  async load(q) {
+    if (location.protocol === 'file:') {
+      if (!native || !native.pageFor) {
+        return this.out('<p class="src">This copy of Kaku cannot serve itself a page, which the ' +
+          'model needs. Opening Kaku from the desktop app fixes that.</p>');
+      }
+      this.out('<p class="ask-busy">Getting Kaku ready for the model…</p>');
+      let r = null;
+      try { r = await native.pageFor('brain'); } catch (e) { r = null; }
+      if (r && r.reloaded) return;
+      return this.out('<p class="src">Kaku could not serve itself a page, which the model needs. ' +
+        'Closing it and opening it again usually clears that.</p>');
+    }
+    const why = await Brain.check();
+    if (why) return this.out('<p class="src">' + esc(why) + '</p>');
+    this.out('<p class="ask-busy">Downloading the model. It only happens once.</p>');
+    let ok = false;
+    try {
+      ok = await Brain.load(Brain.best(), (text, p) => {
+        this.out('<p class="ask-busy">Loading the model — ' + Math.round((p || 0) * 100) + '%' +
+          (text ? ' · ' + esc(String(text).slice(0, 60)) : '') + '</p>');
+      });
+    } catch (e) { ok = false; }
+    if (!ok) {
+      return this.out('<p class="src">' + esc(Brain.note || 'The download stopped and did not say why.') +
+        ' Talking practice has the longer version of this, with the graphics options.</p>');
+    }
+    S.settings.ai = 'brain'; Store.touch();
+    this.ask(q);
+  }
+};
+
+// ================================================================ what to go back and read
+// A mark on its own is a verdict, not advice. Getting 40% on Part IV tells you that something
+// is wrong and nothing about what; the useful sentence is "read the particles class again".
+// So every test here ends by naming the class that teaches what it just watched you miss.
+//
+// Two routes to the answer, and the first one that fires wins. Some review keys belong to a
+// class outright — a こそあど question can only be the こそあど class — and for everything else
+// the question's own words are run through the same search the question box uses, which finds
+// the class whose material contains them.
+const Coach = {
+  PART_CLASS: {
+    listen: ['numbers'],
+    kata: ['writing', 'kanaextra'],
+    vg: ['particles', 'wa', 'kosoado', 'qwords'],
+    build: ['particles', 'masu', 'vgroups'],
+    ex: ['qwords', 'ka', 'neyo']
+  },
+  classFor(text, n) {
+    if (!text) return [];
+    return Ask.find(String(text), '').filter(d => d.kind === 'class').slice(0, n || 1).map(d => d.id);
+  },
+  byKey(key) {
+    const k = String(key || '');
+    if (/^x:ck\d+$/.test(k)) { const c = CLASSES[+k.slice(4)]; return c ? [c.id] : []; }
+    if (/^x:s\d+$/.test(k)) return ['kosoado'];
+    if (/^x:v[gf]\d+$/.test(k)) return ['vgroups', 'masu'];
+    if (/^x:v[mr]\d+$/.test(k)) return ['vgroups'];
+    if (/^n:\d+$/.test(k)) return ['numbers'];
+    if (/^x:k\d+$/.test(k)) return ['writing', 'kanaextra'];
+    if (k.length === 1 && /[぀-ヿ]/.test(k)) return ['writing', 'kanaextra'];
+    return [];
+  },
+  // the classes behind a list of missed questions, commonest first
+  from(log) {
+    const tally = new Map();
+    for (const l of (log || [])) {
+      if (l.good) continue;
+      // a word you did not know is not a thing a class explains; it is a word
+      if (/^v:/.test(String(l.key || ''))) continue;
+      const own = this.byKey(l.key);
+      const ids = own.length ? own.slice(0, 2)
+        : this.classFor([l.q, l.why, l.want].filter(Boolean).join(' '), 2);
+      for (const id of [...new Set(ids)]) tally.set(id, (tally.get(id) || 0) + 1);
+    }
+    return [...tally.entries()].sort((a, b) => b[1] - a[1])
+      .map(([id, n]) => ({ c: CLASSES.find(x => x.id === id), n }))
+      .filter(x => x.c).slice(0, 3);
+  },
+  // the lessons whose word lists the misses came from
+  wordMisses(log) {
+    const tally = new Map();
+    for (const l of (log || [])) {
+      if (l.good || !/^v:/.test(String(l.key || ''))) continue;
+      const v = VOCAB[l.key];
+      if (!v) continue;
+      tally.set(v.L, (tally.get(v.L) || 0) + 1);
+    }
+    return [...tally.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
+  },
+  byIds(ids, n) {
+    return [...new Set(ids || [])].map(id => ({ c: CLASSES.find(x => x.id === id), n: 0 }))
+      .filter(x => x.c).slice(0, n || 3);
+  },
+  // the block itself. Each one opens the video lesson, because that is the version that
+  // explains rather than assumes.
+  line(host, hits, lead) {
+    if (!host || !hits || !hits.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'coach';
+    wrap.innerHTML = '<p class="coach-h">' + esc(lead || 'Worth going back over before you try again') + '</p>' +
+      hits.map(h => '<button class="coach-c" type="button" data-coach="' + esc(h.c.id) + '">' +
+        '<span class="cc-t">' + esc(h.c.t) + '</span>' +
+        '<span class="cc-i">' + esc(h.c.idea) + '</span>' +
+        (h.n ? '<span class="cc-n">' + h.n + (h.n > 1 ? ' questions' : ' question') + ' from this one' +
+          '</span>' : '<span class="cc-n">explains this part</span>') + '</button>').join('');
+    host.appendChild(wrap);
+    wrap.querySelectorAll('[data-coach]').forEach(b =>
+      b.addEventListener('click', () => Film.open(b.dataset.coach, 'classes')));
+    return wrap;
+  },
+  // one call after a test: the classes behind the grammar misses, and the word lists behind
+  // the rest, which are two different kinds of not knowing something
+  after(host, log, lead) {
+    const hits = this.from(log);
+    this.line(host, hits, lead);
+    const words = this.wordMisses(log);
+    if (words.length && host) {
+      const wrap = document.createElement('div');
+      wrap.className = 'coach';
+      wrap.innerHTML = '<p class="coach-h">And the words themselves</p>' +
+        words.map(([L, n]) => '<button class="coach-c" type="button" data-les="' + esc(L) + '">' +
+          '<span class="cc-t">' + esc(LBYID[L] ? LBYID[L].title : 'Lesson ' + L) + '</span>' +
+          '<span class="cc-i">The word list, weakest first.</span>' +
+          '<span class="cc-n">' + n + (n > 1 ? ' words' : ' word') + ' missed from it</span></button>').join('');
+      host.appendChild(wrap);
+      wrap.querySelectorAll('[data-les]').forEach(b => b.addEventListener('click', () => {
+        Vocab.sort = 'weak';
+        Vocab.open(b.dataset.les);
+      }));
+    }
+    return hits;
+  },
+  // and for a part of the paper that is weak without anything having been sat yet
+  forPart(id) { return this.byIds(this.PART_CLASS[id] || [], 2); }
+};
+
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

@@ -9,6 +9,7 @@ from verify import check
 from content_course import COURSE, KATAKANA, VIDEO
 from content_exam import GRAMMAR, BUILD, EXCHANGE, LISTEN, KOSOADO, VERBS, VERB_GROUPS
 from content_class import C as CLASSES
+from content_path import PATH, PATH_STAGES
 from content_scenes import SCENES
 SCENE_BY_LESSON = {s['lesson']: {k: v for k, v in s.items() if k != 'lesson'} for s in SCENES}
 
@@ -77,7 +78,8 @@ exam = dict(grammar=GRAMMAR, build=BUILD, exchange=EXCHANGE, listen=LISTEN,
                          cues=[list(c) for c in KOSOADO['cues']],
                          lines=[list(l) for l in KOSOADO['lines']]),
             verbs=VERBS, verbgroups=[list(g) for g in VERB_GROUPS], classes=CLASSES)
-json.dump(dict(lessons=out, course=course_meta, katakana=[list(k) for k in KATAKANA], exam=exam),
+json.dump(dict(lessons=out, course=course_meta, katakana=[list(k) for k in KATAKANA], exam=exam,
+               path=PATH, stages=PATH_STAGES),
           open('lessons.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print('exam bank:', len(GRAMMAR), 'grammar |', len(BUILD), 'sentences |', len(EXCHANGE),
       'exchanges |', len(KOSOADO['cues']), 'kosoado cues')
@@ -125,6 +127,8 @@ for cl in CLASSES:
             if left:
                 exam_bad.append('CLASS ' + cl['id'] + ' ' + jp + ' -> ' + left)
     for wrong, right, why in cl['slips']:
+        if not any('\u3040' <= c <= '\u30ff' for c in right):
+            continue          # a slip can be about method rather than a sentence
         left = verify_scenes.leftover(right.split('(')[0], exam_forms)
         if left:
             exam_bad.append('CLASS slip ' + cl['id'] + ' ' + right + ' -> ' + left)
@@ -143,8 +147,32 @@ for item in GRAMMAR:
         exam_bad.append('GRAMMAR answer index out of range: ' + item['q'])
     if len(set(item['o'])) != len(item['o']):
         exam_bad.append('GRAMMAR repeated option: ' + item['q'])
+# the path is only pointers: every one of them has to land on something
+cl_ids = {c['id'] for c in CLASSES}
+les_ids = {l['id'] for l in out}
+part_ids = {'listen', 'kata', 'vg', 'build', 'ex'}
+row_ids = set('a k s t n h m y r w g z d b p'.split())
+band_ids = {'n:1', 'n:2', 'n:3', 'n:4', 'n:5'}
+for st in PATH:
+    r, k = st['ref'], st['k']
+    if k == 'class' and r not in cl_ids: exam_bad.append('PATH ' + st['id'] + ' -> no class ' + str(r))
+    if k in ('words', 'drill', 'talk') and r not in les_ids: exam_bad.append('PATH ' + st['id'] + ' -> no lesson ' + str(r))
+    if k == 'part' and r not in part_ids: exam_bad.append('PATH ' + st['id'] + ' -> no exam part ' + str(r))
+    if k == 'kana' and (not r or set(r) - row_ids): exam_bad.append('PATH ' + st['id'] + ' -> bad rows ' + str(r))
+    if k == 'nums' and (not r or set(r) - band_ids): exam_bad.append('PATH ' + st['id'] + ' -> bad bands ' + str(r))
+    for cid in st['covers'].get('cls', []):
+        if cid not in cl_ids: exam_bad.append('PATH ' + st['id'] + ' covers missing class ' + cid)
+    for lid in st['covers'].get('words', []):
+        if lid not in les_ids: exam_bad.append('PATH ' + st['id'] + ' covers missing lesson ' + lid)
+covered = {c for st in PATH for c in st['covers'].get('cls', [])}
+for cid in sorted(cl_ids - covered):
+    exam_bad.append('PATH misses class ' + cid)
+
 for p in exam_bad:
     print('  EXAM PROBLEM:', p)
+print('path:', len(PATH), 'steps in', len(PATH_STAGES), 'stages |',
+      sum(1 for s in PATH if s['k'] == 'check'), 'checkpoints |',
+      sum(s['mins'] for s in PATH), 'minutes end to end')
 print('exam bank checked against the course:', len(exam_bad), 'problem(s)')
 assert not exam_bad, f'{len(exam_bad)} exam line(s) use words the course has not taught'
 

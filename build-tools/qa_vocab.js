@@ -37,8 +37,8 @@ const rows = (p) => p.$$eval('#vList .wrow', rs => rs.map(r => r.textContent.rep
   ok(/100 to 999/.test(chips[2]), 'home: numbers chip names the band');
   const tiles = await p.$$eval('.tile .t-main', bs => bs.map(x => x.textContent));
   const groups = await p.$$eval('.tgroup-h', n => n.map(x => x.firstChild.textContent));
-  ok(groups.join(' / ') === 'Try it for real / Understand it / Practise it',
-     'home: with the exam days away, the group holding it comes first');
+  ok(groups[0] === 'Try it for real' && groups.includes('Find your way'),
+     'home: with the exam days away, the group holding it comes first (' + groups.join(' / ') + ')');
   ok(tiles[0].startsWith('Midterm mock'), 'home: so the midterm is the first tile');
   ok(tiles.some((t) => t.startsWith('Catch-up')) && tiles.some((t) => t.startsWith('Lessons')),
      'home: the reading comes under Understand it');
