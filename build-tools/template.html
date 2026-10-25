@@ -699,6 +699,15 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
   .board-wrap { grid-column: 2; grid-row: 1 / 5; padding: 8px 0; }
 }
 
+.exblock { margin: 4px 0 12px; }
+.exblock .ex-line { font: 600 18px/1.6 var(--kana); }
+.exblock .ex-line.reply { padding-left: 18px; color: var(--muted); }
+
+.blank-h { font: 700 11px var(--ui); letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-soft); margin: 12px 0 5px; }
+.opts.pair { margin: 4px 0 2px; }
+.opt.picked { border-color: var(--red); background: color-mix(in srgb, var(--red) 9%, transparent); }
+
 /* ---------------------------------------------------------------- Parts IV and V */
 .mktabs { display: flex; gap: 6px; margin: 2px 0 14px; }
 .mktab { flex: 1; display: grid; gap: 1px; padding: 9px 10px; border: 1px solid var(--trace);
@@ -6521,10 +6530,13 @@ const Exam = {
 Object.assign(Exam, {
   shuffle(a) { const x = a.slice(); for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; } return x; },
   pick(a, n) { return this.shuffle(a).slice(0, n); },
-  // weakest first, so a mock paper spends its questions where they are needed
+  // Weakest first, so a mock paper spends its questions where they are needed. The shuffle
+  // before the sort is not decoration: a sort is stable, so without it a bank where nothing
+  // has been practised yet — every item tied at zero — hands back its first few items every
+  // single time, and a bank of a hundred questions behaves like a bank of eighteen.
   weakest(keys, n) {
-    return keys.slice().sort((a, b) => confidence(a) - confidence(b)).slice(0, Math.max(n * 2, n))
-      .sort(() => Math.random() - 0.5).slice(0, n);
+    return this.shuffle(keys).sort((a, b) => confidence(a) - confidence(b))
+      .slice(0, Math.max(n * 2, n)).sort(() => Math.random() - 0.5).slice(0, n);
   },
   make(part, n) {
     const out = [];
@@ -6544,6 +6556,14 @@ Object.assign(Exam, {
         } else if (f.kind === 'year') {
           const v = 1 + Math.floor(Math.random() * 4);
           value = v; say = numberReading(v) + 'ねんせい'; show = (x) => ['first', 'second', 'third', 'fourth'][x - 1] + '-year';
+        } else if (f.kind === 'phone') {
+          // read one digit at a time, with の where the dash is — the shape the class showed
+          const DIG = ['ゼロ', 'いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう'];
+          const block = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10));
+          const groups = [block(3), block(4), block(4)];
+          value = groups.map(g => g.join('')).join('-');
+          say = groups.map(g => g.map(d => DIG[d]).join('')).join('の');
+          show = (x) => x;
         } else {
           const v = 18 + Math.floor(Math.random() * 25);
           value = v; say = numberReading(v) + 'さい'; show = (x) => x + ' years old';
@@ -6572,12 +6592,29 @@ Object.assign(Exam, {
           // the sound changes are the trap here: ろっぴゃく, はっぴゃく, さんびゃく
           const prices = [120, 350, 480, 640, 1200, 2500, 3800, 5000, 8000, 300, 600, 800];
           for (const c of Exam.shuffle(prices)) if (c !== value) wrong.add(String(c));
+        } else if (f.kind === 'phone') {
+          // the trap is one digit, not a different number entirely
+          const digits = String(value).split('');
+          for (let tries = 0; tries < 30 && wrong.size < 2; tries++) {
+            const copy = digits.slice();
+            const spots = copy.map((c, i) => i).filter(i => copy[i] !== '-');
+            const i = spots[Math.floor(Math.random() * spots.length)];
+            const j = spots[Math.floor(Math.random() * spots.length)];
+            copy[i] = String((+copy[i] + 1 + Math.floor(Math.random() * 8)) % 10);
+            if (j !== i) { const sw = copy[i]; copy[i] = copy[j]; copy[j] = sw; }
+            const c = copy.join('');
+            if (c !== String(value)) wrong.add(c);
+          }
         } else {
           // an age that no classmate could be is not a near-miss, it is a free mark
           for (const c of near(value)) if (c >= 15 && c <= 60) wrong.add(String(c));
         }
         const bag = [...wrong];
-        while (bag.length < 2) bag.push(String(parseInt(String(value), 10) + bag.length + 2));
+        while (bag.length < 2) {
+          bag.push(f.kind === 'phone'
+            ? String(value).replace(/\d/, (d) => String((+d + bag.length + 1) % 10))
+            : String(parseInt(String(value), 10) + bag.length + 2));
+        }
         wrong.clear();
         for (const c of Exam.shuffle(bag).slice(0, 2)) wrong.add(c);
         const opts = this.shuffle([String(value)].concat([...wrong]));
@@ -6601,8 +6638,16 @@ Object.assign(Exam, {
       for (const i of gIdx) {
         const g = EXAM.grammar[i];
         const order = this.shuffle(g.o.map((o, j) => j));
-        out.push({ kind: 'mc', key: 'x:g' + i, q: g.q, opts: order.map(j => g.o[j]),
-                   a: order.indexOf(g.a), why: g.why });
+        const item = { kind: 'mc', key: 'x:g' + i, q: g.q, opts: order.map(j => g.o[j]),
+                       a: order.indexOf(g.a), why: g.why };
+        // the review class's own sample had two blanks in one sentence, and both have to be
+        // right for the mark
+        if (g.o2) {
+          const o2 = this.shuffle(g.o2.map((o, j) => j));
+          item.opts2 = o2.map(j => g.o2[j]);
+          item.a2 = o2.indexOf(g.a2);
+        }
+        out.push(item);
       }
       // the rest are course words: see the meaning, choose the word
       const words = Object.keys(VOCAB).filter(k => VOCAB[k].c);
@@ -6639,6 +6684,9 @@ Object.assign(Exam, {
   // not what is being tested, and neither is whether you wrote it in kanji or kana.
   usedKanji(given) { return /[\u4e00-\u9faf]/.test(String(given || '')); },
   right(item, given) {
+    if (item.kind === 'mc' && item.opts2) {
+      return Array.isArray(given) && given[0] === item.a && given[1] === item.a2;
+    }
     if (item.kind === 'mc') return given === item.a;
     const tidy = (x) => toKana(String(x || '')).replace(/[\s　。、．，]/g, '');
     const got = tidy(given);
@@ -6730,9 +6778,12 @@ Object.assign(Exam, {
       setTimeout(() => hear.click(), 250);
     } else if (it.exchange) {
       const e = it.exchange;
+      const line = (which, text, cls) => text === undefined ? ''
+        : '<div class="ex-line' + (cls ? ' ' + cls : '') + '">' +
+          (e.ask === which ? '<span class="blank">?</span>' : esc(text)) + '</div>';
       $('examQ').innerHTML = '<b>Complete the exchange</b>' +
-        '<div class="ex-line">' + (e.ask === 'before' ? '<span class="blank">?</span>' : esc(e.before)) + '</div>' +
-        '<div class="ex-line reply">' + (e.ask === 'after' ? '<span class="blank">?</span>' : esc(e.after)) + '</div>' +
+        line('before', e.before) + line('after', e.after, 'reply') +
+        line('end', e.end) +
         (e.hint ? '<div class="ex-hint">' + esc(e.hint) + '</div>' : '');
     } else if (it.words) {
       $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>' +
@@ -6743,7 +6794,31 @@ Object.assign(Exam, {
     } else {
       $('examQ').innerHTML = '<b>' + esc(it.q) + '</b>';
     }
-    if (it.kind === 'mc') {
+    if (it.kind === 'mc' && it.opts2) {
+      // two blanks in one sentence. Pick one from each row; the mark needs both.
+      this.pick = [null, null];
+      const rows = [it.opts, it.opts2];
+      rows.forEach((list, r) => {
+        const head = document.createElement('p');
+        head.className = 'blank-h';
+        head.textContent = 'Blank ' + (r + 1);
+        const wrap = document.createElement('div');
+        wrap.className = 'opts pair';
+        list.forEach((o, j) => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'opt'; b.textContent = o;
+          b.addEventListener('click', () => {
+            if (this.queue[this.i].done) return;
+            this.pick[r] = j;
+            wrap.querySelectorAll('.opt').forEach((x, k) => x.classList.toggle('picked', k === j));
+            if (this.pick[0] !== null && this.pick[1] !== null) this.answer(this.pick.slice());
+          });
+          wrap.appendChild(b);
+        });
+        body.appendChild(head); body.appendChild(wrap);
+      });
+      setActions($('examActions'), []);
+    } else if (it.kind === 'mc') {
       const wrap = document.createElement('div');
       wrap.className = 'opts';
       it.opts.forEach((o, j) => {
@@ -6790,11 +6865,24 @@ Object.assign(Exam, {
       $('examMsg').textContent += ' Written in kanji, though \u2014 on Monday it has to be kana.';
     }
     $('examMsg').className = 'msg ' + (kanji ? 'bad' : good ? 'good' : 'bad');
-    $('examBody').querySelectorAll('.opt').forEach((b, j) => {
-      if (j === it.a) b.classList.add('is-right');
-      else if (!good && b.textContent === String(given)) b.classList.add('is-wrong');
-      b.disabled = true;
-    });
+    if (it.opts2) {
+      const rows = $('examBody').querySelectorAll('.opts.pair');
+      [it.a, it.a2].forEach((want, r) => {
+        if (!rows[r]) return;
+        rows[r].querySelectorAll('.opt').forEach((b, j) => {
+          b.classList.remove('picked');
+          if (j === want) b.classList.add('is-right');
+          else if (Array.isArray(given) && given[r] === j) b.classList.add('is-wrong');
+          b.disabled = true;
+        });
+      });
+    } else {
+      $('examBody').querySelectorAll('.opt').forEach((b, j) => {
+        if (j === it.a) b.classList.add('is-right');
+        else if (!good && b.textContent === String(given)) b.classList.add('is-wrong');
+        b.disabled = true;
+      });
+    }
     const input = $('examType');
     if (input) input.disabled = true;
     setActions($('examActions'), [{
@@ -8677,6 +8765,7 @@ Object.assign(Maker, {
   },
   askE2(it) {                                  // what kind of answer
     const right = this.kindWants(it.kind);
+    void 0;
     const others = Exam.shuffle(Object.keys(MKKINDS).filter(k => this.kindWants(k) !== right))
       .map(k => this.kindWants(k));
     const opts = Exam.shuffle([right].concat([...new Set(others)].slice(0, 3)));
@@ -8692,30 +8781,35 @@ Object.assign(Maker, {
              opts, a: opts.indexOf(right), item: it, why: this.kindTeach(it.kind) };
   },
   askE4(it) {                                  // fill the shape in
-    const miss = it.ask === 'after' ? it.after : it.before;
-    return { kind: 'type', q: it.ask === 'after' ? it.before : it.after,
+    return { kind: 'type', q: '',
              sub: 'The shape is ' + this.kindShape(it.kind) + '. ' +
                   (it.hint ? 'Say: ' + it.hint + '.' : ''),
              shape: this.kindShape(it.kind), a: it.a, alt: it.alt || [], item: it,
-             exchange: it, why: miss };
+             exchange: it, why: it.a };
   },
   askE5(it) {                                  // the real thing
-    return { kind: 'type', q: it.ask === 'after' ? it.before : it.after,
+    return { kind: 'type', q: '',
              sub: it.hint ? 'Write the missing line. ' + it.hint + '.' : 'Write the missing line.',
              a: it.a, alt: it.alt || [], item: it, exchange: it, why: it.a };
   },
   make(track, rung) {
-    const pool = track === 'sent' ? SENTS : EXCHS;
+    let pool = track === 'sent' ? SENTS : EXCHS;
+    // a reaction has no question word in it to find, so those sit out the first rung
+    if (track === 'exch' && rung === 0) {
+      const narrowed = pool.filter(e => e.kind !== 'react');
+      if (narrowed.length) pool = narrowed;
+    }
     if (!pool.length) return null;
-    const it = Exam.weakest(pool.map((x, i) => (track === 'sent' ? 'x:b' : 'x:e') + i), 1)
-      .map(k => pool[+k.slice(3)])[0] || Exam.pick(pool, 1)[0];
+    const all = track === 'sent' ? SENTS : EXCHS;
+    const it = Exam.weakest(pool.map(x => (track === 'sent' ? 'x:b' : 'x:e') + all.indexOf(x)), 1)
+      .map(k => all[+k.slice(3)])[0] || Exam.pick(pool, 1)[0];
     const fn = track === 'sent'
       ? [this.ask1, this.ask2, this.ask3, this.ask4, this.ask5][rung]
       : [this.askE1, this.askE2, this.askE3, this.askE4, this.askE5][rung];
     const q = fn.call(this, it);
     q.rung = rung; q.track = track;
     q.key = this.key(this.RUNGS[track][rung].id);
-    q.itemKey = (track === 'sent' ? 'x:b' : 'x:e') + pool.indexOf(it);
+    q.itemKey = (track === 'sent' ? 'x:b' : 'x:e') + all.indexOf(it);
     return q;
   }
 });
@@ -8913,6 +9007,16 @@ Object.assign(Maker, {
         { label: 'Clear', act: () => { this.placed = []; this.drawOrder(); } }
       ]);
     } else {
+      if (q.exchange) {
+        const e = q.exchange;
+        const line = (which, text, cls) => text === undefined ? ''
+          : '<div class="ex-line' + (cls ? ' ' + cls : '') + '">' +
+            (e.ask === which ? '<span class="blank">?</span>' : esc(text)) + '</div>';
+        const box = document.createElement('div');
+        box.className = 'exblock';
+        box.innerHTML = line('before', e.before) + line('after', e.after, 'reply') + line('end', e.end);
+        body.appendChild(box);
+      }
       if (q.words) {
         const given = document.createElement('div');
         given.className = 'given';

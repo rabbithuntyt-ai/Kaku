@@ -93,8 +93,10 @@ NUMBER = re.compile(r'^(いち|に|さん|よん|し|ご|ろく|なな|しち|�
 SMALL = {'は', 'を', 'が', 'に', 'へ', 'で', 'と', 'も', 'の', 'か', 'ね', 'よ', 'ん', 'て', 'た', 'だ', 'な', 'ば'}
 # a one-kana verb stem (し of する, み of みる) counts only when an ending follows it
 ENDS = set('たてまなよれだでろ')
-COUNTERS = r'(じ|はん|ふん|ぷん|えん|つ|にん|ねん|がつ|にち|かい|ばん|まい|さい|こ|さつ|ひき)'
-NUMBERISH = re.compile(r'^((いち|に|さん|よん|し|ご|ろく|なな|しち|はち|きゅう|く|じゅう|じっ|ひゃく|びゃく|ぴゃく|ろっ|はっ|はっぴゃく|ろっぴゃく|せん|ぜん|まん)+|'
+# はん may follow a time (よじはん), and the hours have their own readings: 4 o'clock is よじ,
+# 7 is しちじ, 9 is くじ. ねんせい is a counter in its own right on this course.
+COUNTERS = r'(じはん|じ|はん|ふん|ぷん|えん|つ|にん|ねんせい|ねん|がつ|にち|かい|ばん|まい|さい|こ|さつ|ひき)'
+NUMBERISH = re.compile(r'^((いち|に|さん|よん|よ|し|ご|ろく|なな|しち|はち|きゅう|く|じゅう|じっ|ひゃく|びゃく|ぴゃく|ろっ|はっ|はっぴゃく|ろっぴゃく|せん|ぜん|まん)+|'
                        r'[一二三四五六七八九十百千万〇]+)' + COUNTERS + r'?$')
 
 

@@ -60,6 +60,69 @@ const open = async (browser) => {
   }
 
   // ---- what the readiness figure means -----------------------------------------
+  // ---------------------------------------------------------------- the size of the bank
+  {
+    const { ctx, page, errs } = await open(browser);
+    const bank = await page.evaluate(() => ({
+      grammar: window.__kaku.Exam.keys('vg').filter(k => /^x:g/.test(k)).length,
+      build: window.__kaku.Exam.keys('build').length,
+      ex: window.__kaku.Exam.keys('ex').length,
+      twoBlank: window.__kaku.Exam.make('vg', 400).filter(x => x.opts2).length,
+      threeLine: window.__kaku.EXCHS.filter(e => e.end).length,
+      react: window.__kaku.EXCHS.filter(e => e.kind === 'react').length
+    }));
+    ok(bank.grammar >= 100, 'bank: Part III draws on ' + bank.grammar + ' grammar items');
+    ok(bank.build >= 70, 'bank: Part IV draws on ' + bank.build + ' sentences');
+    ok(bank.ex >= 60, 'bank: Part V draws on ' + bank.ex + ' exchanges');
+    ok(bank.twoBlank > 0, 'bank: some Part III questions have two blanks, as the real paper does');
+    ok(bank.threeLine >= 10 && bank.react >= 5,
+       'bank: ' + bank.threeLine + ' exchanges run to three lines, ' + bank.react +
+       ' of them missing the reaction');
+
+    const spread = await page.evaluate(() => {
+      const E = window.__kaku.Exam, seen = {}, dup = [];
+      for (let run = 0; run < 8; run++) {
+        const sig = [];
+        for (const part of E.PARTS) for (const it of E.make(part.id, part.q)) {
+          sig.push((it.key || '') + '|' + (it.q || '') + '|' + (it.say || ''));
+        }
+        if (sig.some((s, i) => sig.indexOf(s) !== i)) dup.push(run);
+        for (const s of sig) seen[s] = (seen[s] || 0) + 1;
+      }
+      return { dup, distinct: Object.keys(seen).length,
+               heavy: Object.keys(seen).filter(k => seen[k] > 3).length };
+    });
+    ok(spread.dup.length === 0, 'bank: a mock paper never asks the same question twice');
+    ok(spread.distinct >= 180, 'bank: eight papers in a row use ' + spread.distinct + ' different questions');
+    ok(spread.heavy <= 25, 'bank: and only ' + spread.heavy + ' of them come up more than three times');
+
+    const two = await page.evaluate(() => {
+      const E = window.__kaku.Exam;
+      const it = E.make('vg', 400).find(x => x.opts2);
+      return { both: E.right(it, [it.a, it.a2]),
+               firstOnly: E.right(it, [it.a, (it.a2 + 1) % it.opts2.length]),
+               single: E.right(it, it.a) };
+    });
+    ok(two.both && !two.firstOnly && !two.single,
+       'bank: a two-blank question is only right when both blanks are');
+
+    const phone = await page.evaluate(() => {
+      const E = window.__kaku.Exam;
+      for (let i = 0; i < 60; i++) {
+        const q = E.make('listen', 10).find(x => /でんわばんごう/.test(x.say || ''));
+        if (q) return { say: q.say, opts: q.opts, a: q.a, uniq: new Set(q.opts).size };
+      }
+      return null;
+    });
+    ok(phone && /の/.test(phone.say) && phone.opts.length === 3 && phone.uniq === 3,
+       'bank: phone numbers are read a digit at a time with の, against three near-misses');
+    ok(phone && phone.opts.every(o => /^[0-9-]+$/.test(o)),
+       'bank: and the options are written as digits, the way the paper prints them');
+
+    ok(errs.length === 0, 'no errors while generating ' + spread.distinct + ' questions');
+    await ctx.close();
+  }
+
   {
     const { ctx, page, errs } = await open(browser);
     const cold = await page.evaluate(() => {
@@ -253,7 +316,8 @@ const open = async (browser) => {
     for (let i = 0; i < 15; i++) {
       const a = await page.evaluate(() => {
         const q = window.__kaku.Exam.queue[window.__kaku.Exam.i];
-        return q ? q.a : null;
+        if (!q) return null;
+        return q.opts2 ? [q.a, q.a2] : q.a;      // a two-blank question needs both
       });
       if (a === null) break;
       await page.evaluate((x) => window.__kaku.Exam.answer(x), a);

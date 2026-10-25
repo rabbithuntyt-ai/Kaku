@@ -178,6 +178,10 @@ KINDS = {
     'yesnov': ([], 'yes or no, with a verb', 'はい、〜ます。／いいえ、〜ません。',
                'A verb question answers with the same verb: はい、のみます or いいえ、のみません. '
                'You do not repeat the whole sentence, only the verb.'),
+    'react':  ([], 'a reaction, not an answer', 'そうですか。／ありがとうございます。',
+               'Not every missing line is an answer. When the exchange runs to three lines the '
+               'last one is usually your reaction: そうですか to news, ありがとうございます when '
+               'they have helped you, じゃあ、これをください when you have decided to buy it.'),
     'whatdo': (['なにを'], 'a thing plus the verb', '〜を〜ます。',
                'なにを asks what you do something to. The answer puts the thing where なに was, '
                'keeps the を, and keeps the verb.'),

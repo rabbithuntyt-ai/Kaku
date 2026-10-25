@@ -190,10 +190,19 @@ EXCHANGE = [
 
 # Statements for Part I. The app speaks one and offers three numbers; `kind` picks the frame.
 LISTEN = [
+    # Part I is a hearing problem. The class's own sample had a time, a year of study and a
+    # phone number, so the frames cover all of them and vary the sentence they sit in.
     dict(kind='time', frame='いま、{}です。', q='What time is it?'),
+    dict(kind='time', frame='じゅぎょうは{}です。', q='What time is the class?'),
     dict(kind='age', frame='わたしは{}さいです。', q='How old are they?'),
+    dict(kind='age', frame='おとうとは{}さいです。', q='How old is the younger brother?'),
     dict(kind='yen', frame='これは{}えんです。', q='How much is it?'),
+    dict(kind='yen', frame='この かばんは{}えんです。', q='How much is the bag?'),
     dict(kind='year', frame='わたしは{}ねんせいです。', q='Which year student?'),
+    dict(kind='year', frame='ロバートさんは{}ねんせいです。', q='Which year is Robert in?'),
+    dict(kind='phone', frame='でんわばんごうは{}です。', q='What is the phone number?'),
+    dict(kind='phone', frame='おねえさんの でんわばんごうは{}です。',
+         q="What is the older sister's phone number?"),
 ]
 
 

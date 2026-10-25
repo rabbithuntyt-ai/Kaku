@@ -11,6 +11,7 @@ from content_exam import GRAMMAR, BUILD, EXCHANGE, LISTEN, KOSOADO, VERBS, VERB_
 from content_class import C as CLASSES
 from content_path import PATH, PATH_STAGES
 from content_build import PARTS, JOBS, KINDS, EXQ, ORDER
+from content_bank import MORE_GRAMMAR, MORE_BUILD, MORE_EXCHANGE
 from content_scenes import SCENES
 SCENE_BY_LESSON = {s['lesson']: {k: v for k, v in s.items() if k != 'lesson'} for s in SCENES}
 
@@ -78,7 +79,60 @@ course_meta = {k: dict(name=c['name'], tb=c['tb'], n=len(c['words']),
 # marks it; each exchange ships with the kind of answer its question word demands. Both are
 # checked here rather than trusted: a breakdown has to rebuild its own sentence, character for
 # character, or the build fails.
+# The rest of the bank. Part III grows by the items in content_bank; Part IV's new sentences
+# are authored AS their breakdowns, so the sentence, the word list and the working are all
+# generated from one source and cannot disagree with each other.
 VBY = {v['v']: v for v in VERBS}
+GRAMMAR = GRAMMAR + MORE_GRAMMAR
+
+
+def assemble(en, neg, parts):
+    text, words = '', []
+    for chunk, par, job in parts:
+        if job == 'verb':
+            v = VBY[chunk]
+            text += v['mn'] if neg else v['ms']
+            words.append(chunk)
+        else:
+            text += chunk + par
+            words.append(chunk)
+    text += '。'
+    # the words are given scrambled on the paper: object first, then the topic, then the verb
+    rank = {'object': 0, 'topic': 1, 'verb': 2}
+    given = [w for _, w in sorted(zip(parts, words), key=lambda z: rank.get(z[0][2], 3))]
+    # へ is accepted for a destination, and the に on a named day or period may be dropped
+    alts = set()
+    if any(p[2] == 'dest' for p in parts):
+        swap, done = '', False
+        for chunk, par, job in parts:
+            if job == 'verb':
+                swap += VBY[chunk]['mn'] if neg else VBY[chunk]['ms']
+            elif job == 'dest' and not done:
+                swap += chunk + 'へ'; done = True
+            else:
+                swap += chunk + par
+        alts.add(swap + '。')
+    if any(p[2] == 'when' for p in parts):
+        drop = ''
+        for chunk, par, job in parts:
+            if job == 'verb':
+                drop += VBY[chunk]['mn'] if neg else VBY[chunk]['ms']
+            else:
+                drop += chunk + ('' if job == 'when' else par)
+        alts.add(drop + '。')
+    alts.discard(text)
+    out = dict(w=given, en=en, a=text, parts=[list(x) for x in parts], neg=1 if neg else 0)
+    if alts:
+        out['alt'] = sorted(alts)
+    return out
+
+
+for en, neg, parts in MORE_BUILD:
+    BUILD.append(assemble(en, neg, parts))
+    PARTS[BUILD[-1]['a']] = parts
+EXCHANGE = EXCHANGE + MORE_EXCHANGE
+for item in MORE_EXCHANGE:
+    EXQ[item['before']] = item['kind']
 build_bad = []
 for item in BUILD:
     parts = PARTS.get(item['a'])
@@ -104,7 +158,7 @@ for item in BUILD:
     item['parts'] = [list(x) for x in parts]
     item['neg'] = 1 if neg else 0
 for item in EXCHANGE:
-    kind = EXQ.get(item['before'])
+    kind = item.get('kind') or EXQ.get(item['before'])
     if not kind:
         build_bad.append('no question kind for ' + item['before'])
     elif kind not in KINDS:

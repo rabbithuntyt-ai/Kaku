@@ -30,7 +30,8 @@ const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { 
     rebuild: window.__kaku.SENTS.filter(s =>
       s.parts.map(x => window.__kaku.Maker.piece(s, x)).join('') + '。' !== s.a).map(s => s.a)
   }));
-  ok(data.sents === 28 && data.exchs === 19, 'content: all 28 sentences and 19 exchanges carry their working');
+  ok(data.sents >= 70 && data.exchs >= 60,
+     'content: ' + data.sents + ' sentences and ' + data.exchs + ' exchanges carry their working');
   ok(data.everyPart && data.everyKind, 'content: every sentence has a breakdown, every exchange a question kind');
   ok(data.rebuild.length === 0, 'content: every breakdown rebuilds its own sentence exactly' +
      (data.rebuild.length ? ' — ' + data.rebuild[0] : ''));
@@ -138,13 +139,14 @@ const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { 
     const by = (q) => E.find(x => x.before === q);
     const yes = by('まいにち コーヒーを のみますか。');
     const whose = by('これは だれの ぼうしですか。');
-    const price = by('この かばんは いくらですか。');
+    const price = E.find(x => x.kind === 'price');
     const where = by('どこで べんきょうしますか。');
     return {
       right:  M.checkEx(yes, yes.a),
       noYes:  M.checkEx(yes, 'のみます。'),
       noNo:   M.checkEx(whose, 'ソラさんぼうしです。'),
       noYen:  M.checkEx(price, 'ごせんです。'),
+      priceQ: price.before,
       noVerb: M.checkEx(where, 'としょかんです。')
     };
   });
