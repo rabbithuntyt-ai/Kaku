@@ -123,6 +123,24 @@ BUILD = [
          a='おとうさんはまいばんしんぶんをよみます。'),
     dict(w=['にほんご', 'わたし', 'べんきょうする', 'たいてい', 'うち'],
          en='I usually study Japanese at home.', a='わたしはたいていうちでにほんごをべんきょうします。'),
+    # Modelled on the workbook pages the study guide points at: WB 33 (Noun を Verb) and
+    # WB 34 (Verbs with Places), which is the closest thing to Part IV the course has set.
+    dict(w=['としょかん', 'たなかさん', 'いく'], en='Mr. Tanaka will go to the library.',
+         a='たなかさんはとしょかんにいきます。', alt=['たなかさんはとしょかんへいきます。']),
+    dict(w=['にほん', 'ともだち', 'くる'], en='My friend will come to Japan.',
+         a='ともだちはにほんにきます。', alt=['ともだちはにほんへきます。']),
+    dict(w=['おんがく', 'すずきさん', 'きく', 'うち'], en='Mr. Suzuki listens to music at home.',
+         a='すずきさんはうちでおんがくをききます。'),
+    dict(w=['にほんご', 'わたし', 'はなす', 'うち'], en='I speak Japanese at home.',
+         a='わたしはうちでにほんごをはなします。'),
+    dict(w=['ひるごはん', 'わたし', 'たべる', 'がっこう'], en="I don't eat lunch at school.",
+         a='わたしはがっこうでひるごはんをたべません。'),
+    dict(w=['サッカー', 'わたし', 'する', 'しゅうまつ'], en='I play soccer at the weekend.',
+         a='わたしはしゅうまつにサッカーをします。', alt=['わたしはしゅうまつサッカーをします。']),
+    dict(w=['ロック', 'わたしのおとうと', 'きく', 'よく'], en='My younger brother often listens to rock.',
+         a='わたしのおとうとはよくロックをききます。'),
+    dict(w=['おさけ', 'わたし', 'のむ', 'あまり'], en="I don't drink much alcohol.",
+         a='わたしはあまりおさけをのみません。'),
 ]
 
 # ---------------------------------------------------------------- V. completing exchanges
@@ -159,6 +177,15 @@ EXCHANGE = [
          a='おなまえはなんですか。', hint='ask their name'),
     dict(before='だいがくは どこですか。', after='アリゾナだいがくです。', ask='before',
          a='だいがくはどこですか。', hint='ask which university'),
+    # The workbook's own shape (WB 28): ここ/そこ/あそこ answers, and だれの questions.
+    dict(before='たけしさんは どこですか。', after='あそこです。', ask='after',
+         a='あそこです。', hint='over there, away from you both'),
+    dict(before='これは だれの ぼうしですか。', after='それはたけしさんのぼうしです。', ask='after',
+         a='それはたけしさんのぼうしです。', hint="Takeshi's hat"),
+    dict(before='それは だれの さいふですか。', after='これはわたしのさいふです。', ask='before',
+         a='それはだれのさいふですか。', hint='ask whose wallet that is, in their hand'),
+    dict(before='あれは だれの かさですか。', after='あれはメアリーさんのかさです。', ask='before',
+         a='あれはだれのかさですか。', hint='ask whose umbrella that is, over there'),
 ]
 
 # Statements for Part I. The app speaks one and offers three numbers; `kind` picks the frame.

@@ -319,6 +319,32 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .sub { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
 .msg { min-height: 2.9em; margin: 2px 0 6px; font-size: 15px; line-height: 1.45; color: var(--muted); }
 .msg.bad { color: var(--red); }
+.clgroup { margin-bottom: 14px; }
+.clrow { display: grid; gap: 3px; text-align: left; width: 100%; padding: 11px 13px; margin-bottom: 6px;
+         border: 1px solid var(--trace); border-radius: 12px; background: transparent; color: inherit;
+         font: inherit; cursor: pointer; }
+.clrow:hover { border-color: var(--ink-soft); }
+.clrow.part { border-left: 3px solid var(--ink-soft); }
+.clrow.done { border-left: 3px solid var(--red); }
+.cl-t { font-weight: 620; font-size: 15.5px; }
+.cl-i { font-size: 13px; color: var(--muted); }
+.cl-s { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.idea { font-size: 16.5px; line-height: 1.5; margin: 6px 0 14px; padding-left: 12px;
+        border-left: 3px solid var(--red); color: var(--ink); }
+.cl-p { font-size: 15px; line-height: 1.6; margin: 0 0 11px; }
+.shape { display: grid; gap: 5px; margin-bottom: 4px; }
+.sh { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: baseline;
+      padding: 7px 11px; border: 1px solid var(--trace); border-radius: 9px; }
+.sh b { font-size: 16px; }
+.sh span { font-size: 13px; color: var(--muted); }
+.clex { padding: 8px 0; border-bottom: 1px solid var(--trace); }
+.clex b { display: block; font-size: 17px; }
+.clex .en { display: block; font-size: 13.5px; color: var(--muted); }
+.clex .nt, .slip .nt { display: block; font-size: 12.5px; color: var(--ink-soft); margin-top: 2px; }
+.slip { padding: 8px 0; border-bottom: 1px solid var(--trace); }
+.slip .x { display: block; font-size: 16px; color: var(--muted); text-decoration: line-through; }
+.slip .o { display: block; font-size: 17px; color: var(--ink); }
+
 .marks { display: grid; gap: 7px; }
 .mark { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .mark span { flex: 1; }
@@ -712,6 +738,11 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
         <span class="t-sub" id="numbersSub">1 to 100,000</span>
         <span class="meter"><i id="numbersMeter"></i></span>
       </button>
+      <button class="tile wide" id="classesBtn" type="button">
+        <span class="t-main">Catch-up classes</span>
+        <span class="t-sub" id="classesSub">Every idea the course taught, explained then checked</span>
+        <span class="meter"><i id="classesMeter"></i></span>
+      </button>
       <button class="tile" id="verbsBtn" type="button">
         <span class="t-main">Verbs</span>
         <span class="t-sub" id="verbsSub">Lesson 3 by group, meaning and ます form</span>
@@ -1021,6 +1052,22 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
       <div id="examBody"></div>
       <p class="msg" id="examMsg" aria-live="polite"></p>
       <div class="actions" id="examActions"></div>
+    </div>
+  </section>
+
+  <section id="classes" hidden aria-label="Catch-up classes">
+    <button class="back" id="clBack" type="button">Back</button>
+    <div id="clList">
+      <h2 class="k-head">Catch-up classes</h2>
+      <p class="note">One short class per idea the course has taught, in the order it taught them. Each one explains the thing, shows it working, names the mistake people make, and then checks whether it landed.</p>
+      <div class="clrows" id="clRows"></div>
+    </div>
+    <div id="clOne" hidden>
+      <p class="eyebrow" id="clEyebrow"></p>
+      <h2 class="k-head" id="clTitle"></h2>
+      <p class="idea" id="clIdea"></p>
+      <div id="clBody"></div>
+      <div class="actions" id="clActions"></div>
     </div>
   </section>
 
@@ -2270,7 +2317,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3432,7 +3479,8 @@ $('talkBtn').addEventListener('click', () => Talk.open());
 $('examBtn').addEventListener('click', () => Exam.open());
 $('gridBtn').addEventListener('click', () => Grid.open());
 $('verbsBtn').addEventListener('click', () => Verbs.open());
-for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack']) {
+$('classesBtn').addEventListener('click', () => Class.open());
+for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack']) {
   $(id).addEventListener('click', () => {
     if (Exam.timer) { clearInterval(Exam.timer); Exam.timer = null; }
     show('home'); App.refresh();
@@ -5760,6 +5808,14 @@ const App = {
         : st + ' days in a row' + ((S.streak.best > st) ? ' \u00b7 best ' + S.streak.best : '') + '.';
     }
 
+    const clKeys = CLASSES.map(c => Class.key(c.id, 'k'));
+    const clC = clKeys.length ? clKeys.reduce((a, k) => a + confidence(k), 0) / clKeys.length : 0;
+    const clDone = CLASSES.filter(c => confidence(Class.key(c.id, 'k')) > 0.5).length;
+    $('classesSub').textContent = clDone
+      ? clDone + ' of ' + CLASSES.length + ' checked off'
+      : CLASSES.length + ' short classes \u2014 explained, then checked';
+    meter('classesMeter', clC);
+
     // the midterm, the grid and the verbs
     const rd = Exam.readiness(), left = Exam.daysLeft();
     $('examWhen').textContent = left > 1 ? 'in ' + left + ' days' : left === 1 ? 'tomorrow'
@@ -6874,7 +6930,139 @@ const KWrite = {
   msg(t, tone) { const n = $('kwMsg'); n.textContent = t || ''; n.className = 'msg' + (tone ? ' ' + tone : ''); }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+// ================================================================ catch-up classes
+// Drilling something you do not understand only makes you quicker at guessing. These come
+// first: the idea, then the shape, then examples that contrast, then the mistake people
+// actually make, then a check. Only after that does it hand you to the drill.
+const CLASSES = (EXAM && EXAM.classes) || [];
+const Class = {
+  key(id, kind) { return 'x:c' + kind + CLASSES.findIndex(c => c.id === id); },
+  // read is for having been through it, know is for having answered the check
+  readiness(c) {
+    return { read: confidence(this.key(c.id, 'r')), known: confidence(this.key(c.id, 'k')) };
+  },
+  open() {
+    show('classes');
+    $('clOne').hidden = true;
+    $('clList').hidden = false;
+    this.paint();
+  },
+  paint() {
+    const byLesson = {};
+    for (const c of CLASSES) (byLesson[c.lesson] = byLesson[c.lesson] || []).push(c);
+    $('clRows').innerHTML = COURSE_IDS.filter(id => byLesson[id]).map(id =>
+      '<div class="clgroup"><p class="sect">' + esc(COURSE[id].name) + '</p>' +
+      byLesson[id].map(c => {
+        const r = this.readiness(c);
+        const state = r.known > 0.5 ? 'done' : r.read > 0 ? 'part' : '';
+        return '<button class="clrow ' + state + '" type="button" data-cl="' + esc(c.id) + '">' +
+          '<span class="cl-t">' + esc(c.t) + '</span>' +
+          '<span class="cl-i">' + esc(c.idea) + '</span>' +
+          '<span class="cl-s">' + (r.known > 0.5 ? 'Checked' : r.read > 0 ? 'Read' : 'Not yet') + '</span>' +
+          '</button>';
+      }).join('') + '</div>').join('');
+    $('clRows').querySelectorAll('[data-cl]').forEach(b =>
+      b.addEventListener('click', () => this.read(b.dataset.cl)));
+  },
+  read(id) {
+    const c = this.cur = CLASSES.find(x => x.id === id);
+    if (!c) return;
+    $('clList').hidden = true;
+    $('clOne').hidden = false;
+    $('clEyebrow').textContent = COURSE[c.lesson] ? COURSE[c.lesson].name : '';
+    $('clTitle').textContent = c.t;
+    $('clIdea').textContent = c.idea;
+    $('clBody').innerHTML =
+      c.body.map(b => '<p class="cl-p">' + esc(b) + '</p>').join('') +
+      (c.shape.length ? '<p class="sect">The shape</p><div class="shape">' +
+        c.shape.map(([a, b]) => '<div class="sh"><b>' + esc(a) + '</b><span>' + esc(b) + '</span></div>').join('') +
+        '</div>' : '') +
+      '<p class="sect">In use</p>' + c.ex.map(([jp, en, note]) =>
+        '<div class="clex"><b>' + esc(jp) + '</b><span class="en">' + esc(en) + '</span>' +
+        (note ? '<span class="nt">' + esc(note) + '</span>' : '') + '</div>').join('') +
+      (c.slips.length ? '<p class="sect">The mistake people make</p>' + c.slips.map(([bad, good, why]) =>
+        '<div class="slip"><span class="x">' + esc(bad) + '</span>' +
+        '<span class="o">' + esc(good) + '</span>' +
+        '<span class="nt">' + esc(why) + '</span></div>').join('') : '');
+    SRS.update(this.key(c.id, 'r'), 'r', 'good');
+    Store.touch();
+    setActions($('clActions'), [
+      { label: 'Check I understood', primary: true, act: () => this.check() },
+      { label: 'Hear the examples', act: () => c.ex.forEach(([jp], i) => {
+        if (/[぀-ヿ]/.test(jp)) setTimeout(() => Speech.line(jp.split('→')[0]), i * 2200);
+      }) },
+      { label: 'Back to the classes', act: () => this.open() }
+    ]);
+    window.scrollTo(0, 0);
+  },
+  check() {
+    const c = this.cur;
+    this.q = Exam.shuffle(c.check.slice());
+    this.i = 0; this.ok = 0;
+    this.ask();
+  },
+  ask() {
+    const c = this.cur, q = this.q[this.i];
+    if (!q) return this.checked();
+    $('clTitle').textContent = c.t;
+    $('clIdea').textContent = 'Question ' + (this.i + 1) + ' of ' + this.q.length;
+    const order = Exam.shuffle(q.o.map((o, j) => j));
+    this.a = order.indexOf(q.a);
+    $('clBody').innerHTML = '<div class="cue"><b>' + esc(q.q) + '</b></div><div class="opts" id="clOpts"></div>' +
+      '<p class="msg" id="clMsg" aria-live="polite"></p>';
+    const wrap = $('clOpts');
+    order.forEach((j, k) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.textContent = q.o[j];
+      b.addEventListener('click', () => this.answer(k, q));
+      wrap.appendChild(b);
+    });
+    setActions($('clActions'), []);
+  },
+  answer(k, q) {
+    if (this.done) return;
+    this.done = true;
+    const good = k === this.a;
+    if (good) { this.ok++; Gains.mark(); }
+    $('clMsg').textContent = (good ? 'Right. ' : '') + q.why;
+    $('clMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    $('clOpts').querySelectorAll('.opt').forEach((b, j) => {
+      if (j === this.a) b.classList.add('is-right');
+      b.disabled = true;
+    });
+    setActions($('clActions'), [{
+      label: this.i + 1 >= this.q.length ? 'Done' : 'Next', primary: true,
+      act: () => { this.done = false; this.i++; this.ask(); }
+    }]);
+  },
+  checked() {
+    const c = this.cur, all = this.ok === this.q.length;
+    SRS.update(this.key(c.id, 'k'), 'r', all ? 'perfect' : this.ok ? 'good' : 'weak');
+    Store.touch();
+    $('clIdea').textContent = this.ok + ' of ' + this.q.length + ' right.';
+    $('clBody').innerHTML = all
+      ? '<p class="cl-p">That one has landed. The drills will mean something now.</p>'
+      : '<p class="cl-p">Worth reading again before you drill it — the drill assumes this.</p>';
+    setActions($('clActions'), [
+      all ? { label: 'Drill it', primary: true, act: () => this.drill(c) }
+          : { label: 'Read it again', primary: true, act: () => this.read(c.id) },
+      { label: 'Back to the classes', act: () => this.open() }
+    ]);
+    Gains.line($('clBody'));
+    App.refresh();
+  },
+  // each class hands off to whichever drill actually practises it
+  drill(c) {
+    if (c.id === 'kosoado') return Grid.open();
+    if (c.id === 'vgroups' || c.id === 'masu') return Verbs.open();
+    if (c.id === 'numbers') return Practice.start(NBANDS.map(b => b.id));
+    if (c.id === 'particles' || c.id === 'wa' || c.id === 'no' || c.id === 'ka') return Exam.run('vg');
+    if (c.id === 'greetings') return Practice.start(LBYID['0'] ? LBYID['0'].keys : []);
+    return Exam.run('vg');
+  }
+};
+
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

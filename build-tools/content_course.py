@@ -246,6 +246,12 @@ COURSE = {
         w('よく', 'often, much'),
         # Expressions
         w('そうですね', "that's right, let me see"),
+        # From the workbook pages the class set (WB 33), which uses words the textbook
+        # vocabulary list does not. They can appear in Part IV, so they count.
+        w('サッカー', 'soccer'),
+        w('バスケットボール', 'basketball'),
+        w('ロック', 'rock music'),
+        w('クラシック', 'classical music'),
         w('でも', 'but'),
         w('どうですか', 'how about ...?, how is ...?'),
         w('ええ', 'yes'),

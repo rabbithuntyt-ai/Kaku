@@ -8,6 +8,7 @@ from verify import check
 
 from content_course import COURSE, KATAKANA
 from content_exam import GRAMMAR, BUILD, EXCHANGE, LISTEN, KOSOADO, VERBS, VERB_GROUPS
+from content_class import C as CLASSES
 from content_scenes import SCENES
 SCENE_BY_LESSON = {s['lesson']: {k: v for k, v in s.items() if k != 'lesson'} for s in SCENES}
 
@@ -74,7 +75,7 @@ exam = dict(grammar=GRAMMAR, build=BUILD, exchange=EXCHANGE, listen=LISTEN,
                          rows=[list(r) for r in KOSOADO['rows']],
                          cues=[list(c) for c in KOSOADO['cues']],
                          lines=[list(l) for l in KOSOADO['lines']]),
-            verbs=VERBS, verbgroups=[list(g) for g in VERB_GROUPS])
+            verbs=VERBS, verbgroups=[list(g) for g in VERB_GROUPS], classes=CLASSES)
 json.dump(dict(lessons=out, course=course_meta, katakana=[list(k) for k in KATAKANA], exam=exam),
           open('lessons.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print('exam bank:', len(GRAMMAR), 'grammar |', len(BUILD), 'sentences |', len(EXCHANGE),
@@ -92,7 +93,8 @@ import verify_scenes
 # be made of words the course has actually taught, or the answer key is teaching you something
 # the exam will mark wrong. Names and numbers are allowed on top, as the exam itself uses them.
 EXAM_EXTRA = ['メアリー', 'ソラ', 'たけし', 'やました', 'アリゾナ', 'さくら', 'ロバート', 'リー', 'ワン',
-              'アレックス', 'さん', 'せんせい', 'が', 'まる', 'おなまえ', 'ごしゅっしん', 'おしごと']
+              'アレックス', 'さん', 'せんせい', 'が', 'まる', 'おなまえ', 'ごしゅっしん', 'おしごと',
+              'たなか', 'すずき', 'ゆい', 'ロバート', 'そら', 'めありい']
 # Scope it by what the course teaches, not by Kaku's own lesson numbers: a course word keeps
 # whichever lesson already held it, so としょかん and おかあさん sit well past lesson 3.
 course_vocab = [row[:3] for l in out for row in l['vocab'] if len(row) > 3]
@@ -115,6 +117,19 @@ for line, en in KOSOADO['lines']:
     left = verify_scenes.leftover(line, exam_forms)
     if left:
         exam_bad.append('KOSOADO ' + line + ' -> ' + left)
+for cl in CLASSES:
+    for jp, en, note in cl['ex']:
+        if any('\u3040' <= c <= '\u30ff' for c in jp):
+            left = verify_scenes.leftover(jp.split('\u2192')[0], exam_forms)
+            if left:
+                exam_bad.append('CLASS ' + cl['id'] + ' ' + jp + ' -> ' + left)
+    for wrong, right, why in cl['slips']:
+        left = verify_scenes.leftover(right.split('(')[0], exam_forms)
+        if left:
+            exam_bad.append('CLASS slip ' + cl['id'] + ' ' + right + ' -> ' + left)
+    for q in cl['check']:
+        if not (0 <= q['a'] < len(q['o'])):
+            exam_bad.append('CLASS check answer out of range: ' + cl['id'])
 for item in GRAMMAR:
     # only the right answer: the other options are wrong on purpose, and several are wrong
     # precisely by being a form Japanese does not have

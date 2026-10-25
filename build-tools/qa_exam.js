@@ -47,7 +47,11 @@ const open = async (browser) => {
                byCourse: on.reduce((a, x) => { a[x.c] = (a[x.c] || 0) + 1; return a; }, {}),
                kata: K.KATAKANA.length };
     });
-    ok(v.on === 193, 'the course vocabulary is ' + v.on + ' words');
+    // read the expected total from the course data rather than pinning it, so adding a
+    // workbook word is not a test failure
+    const expected = await page.evaluate(() =>
+      Object.values(window.__kaku.COURSE).reduce((a, c) => a + c.n, 0));
+    ok(v.on === expected, 'every one of the ' + expected + ' course words is marked, and no others');
     ok(v.all > v.on, 'and the rest of what Kaku knows is still there, ' + (v.all - v.on) + ' words of it');
     ok(Object.keys(v.byCourse).sort().join(',') === '0,1,2,3', 'split across the four course lessons');
     ok(v.kata === 18, 'with ' + v.kata + ' katakana words for Part II');
@@ -355,7 +359,9 @@ const open = async (browser) => {
       K.SRS.update(key, 'r', 'perfect');
       return { before, after: Object.values(K.Exam.untouched()).reduce((a, x) => a + x.length, 0) };
     });
-    ok(u.before === 193, 'from nothing, all 193 course words are untouched');
+    const total = await page.evaluate(() =>
+      Object.values(window.__kaku.COURSE).reduce((a, c) => a + c.n, 0));
+    ok(u.before === total, 'from nothing, all ' + total + ' course words are untouched');
     ok(u.after === u.before - 1, 'and practising one takes it off the list');
 
     ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
@@ -430,6 +436,87 @@ const open = async (browser) => {
     ok(hw.words.every((w) => /^[゠-ヿーA-Z]+$/.test(w)), 'all of them katakana: ' + hw.words.join(' '));
     ok(hw.marked === 1, 'a word is marked once however the finish is reached');
     ok(hw.freed, 'and the board is let go of, so a stray stroke cannot reach a finished drill');
+
+    ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
+    await ctx.close();
+  }
+
+  // ---- the catch-up classes ---------------------------------------------------------
+  // Drilling something you do not understand only makes you quicker at guessing, so these
+  // come first: the idea, the shape, contrasting examples, the mistake, then a check.
+  {
+    const { ctx, page, errs } = await open(browser);
+    const cl = await page.evaluate(() => {
+      const C = window.__kaku.CLASSES;
+      return { n: C.length,
+               lessons: [...new Set(C.map((c) => c.lesson))].sort(),
+               complete: C.every((c) => c.idea && c.body.length && c.ex.length && c.check.length),
+               haveSlips: C.filter((c) => c.slips.length).length,
+               particles: C.find((c) => c.id === 'particles') };
+    });
+    ok(cl.n >= 14, 'there is a class for every idea the course taught (' + cl.n + ')');
+    ok(cl.lessons.join(',') === '0,1,2,3', 'across all four course lessons');
+    ok(cl.complete, 'each one has an idea, an explanation, examples and a check');
+    ok(cl.haveSlips === cl.n, 'and every one names the mistake people actually make');
+    ok(cl.particles.body.length >= 4 && cl.particles.shape.length >= 7,
+      'particles gets the fullest treatment, since that is the one that was asked for');
+    ok(cl.particles.slips.some((x) => /で/.test(x[0]) && /に/.test(x[1])),
+      'including で against に, which is the distinction that actually costs marks');
+
+    await page.click('#classesBtn');
+    await page.waitForTimeout(250);
+    ok((await page.$$('.clrow')).length === cl.n, 'all of them are listed');
+    await page.click('[data-cl="particles"]');
+    await page.waitForTimeout(250);
+    const read = await page.evaluate(() => ({
+      title: document.getElementById('clTitle').textContent,
+      paras: document.querySelectorAll('.cl-p').length,
+      ex: document.querySelectorAll('.clex').length,
+      slips: document.querySelectorAll('.slip').length,
+      acts: [...document.querySelectorAll('#clActions button')].map((x) => x.textContent)
+    }));
+    ok(read.paras >= 4 && read.ex >= 5 && read.slips >= 4, 'the class reads as a class, not a cue card');
+    ok(read.acts.some((a) => /Check I understood/.test(a)), 'and ends by offering to check');
+
+    // the check has to gate the drill, or it is just another drill
+    const checked = await page.evaluate(async () => {
+      const C = window.__kaku.Class;
+      C.check();
+      await new Promise((r) => setTimeout(r, 60));
+      const n = C.q.length;
+      for (let i = 0; i < n; i++) {
+        C.answer(C.a, C.q[C.i]);
+        await new Promise((r) => setTimeout(r, 40));
+        const b = document.querySelector('#clActions button[data-primary]');
+        if (b) b.click();
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      return { n, acts: [...document.querySelectorAll('#clActions button')].map((x) => x.textContent),
+               body: document.getElementById('clBody').textContent };
+    });
+    ok(checked.n >= 2, 'the check asks at least a couple of questions');
+    ok(checked.acts.some((a) => /Drill it/.test(a)), 'getting them right opens the drill');
+    ok(/landed/.test(checked.body), 'and says so plainly');
+
+    const failed = await page.evaluate(async () => {
+      const C = window.__kaku.Class;
+      C.read('wa');
+      await new Promise((r) => setTimeout(r, 60));
+      C.check();
+      await new Promise((r) => setTimeout(r, 60));
+      for (let i = 0; i < C.q.length; i++) {
+        C.answer((C.a + 1) % C.q[C.i].o.length, C.q[C.i]);
+        await new Promise((r) => setTimeout(r, 40));
+        const b = document.querySelector('#clActions button[data-primary]');
+        if (b) b.click();
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      return { acts: [...document.querySelectorAll('#clActions button')].map((x) => x.textContent),
+               body: document.getElementById('clBody').textContent };
+    });
+    ok(failed.acts.some((a) => /Read it again/.test(a)) && !failed.acts.some((a) => /Drill it/.test(a)),
+      'getting them wrong sends you back to the explanation instead');
+    ok(/assumes this/.test(failed.body), 'because the drill assumes the class landed');
 
     ok(errs.length === 0, 'no errors' + (errs.length ? ' — ' + errs[0] : ''));
     await ctx.close();
