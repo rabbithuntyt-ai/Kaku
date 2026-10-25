@@ -10,6 +10,7 @@ from content_course import COURSE, KATAKANA, VIDEO
 from content_exam import GRAMMAR, BUILD, EXCHANGE, LISTEN, KOSOADO, VERBS, VERB_GROUPS
 from content_class import C as CLASSES
 from content_path import PATH, PATH_STAGES
+from content_build import PARTS, JOBS, KINDS, EXQ, ORDER
 from content_scenes import SCENES
 SCENE_BY_LESSON = {s['lesson']: {k: v for k, v in s.items() if k != 'lesson'} for s in SCENES}
 
@@ -72,12 +73,57 @@ for l in lessons:
                     vocab=v, **({'scene': scene} if scene else {})))
 course_meta = {k: dict(name=c['name'], tb=c['tb'], n=len(c['words']),
                       **({'video': list(VIDEO[k])} if k in VIDEO else {})) for k, c in COURSE.items()}
+# Parts IV and V are the two the student cannot get a single mark on, so they are the two that
+# carry their working. Each sentence ships with the job each word is doing and the particle that
+# marks it; each exchange ships with the kind of answer its question word demands. Both are
+# checked here rather than trusted: a breakdown has to rebuild its own sentence, character for
+# character, or the build fails.
+VBY = {v['v']: v for v in VERBS}
+build_bad = []
+for item in BUILD:
+    parts = PARTS.get(item['a'])
+    if not parts:
+        build_bad.append('no breakdown for ' + item['a'])
+        continue
+    neg = item['a'].endswith('ません。')
+    rebuilt = ''
+    for chunk, par, job in parts:
+        if job not in JOBS:
+            build_bad.append('unknown job ' + job + ' in ' + item['a'])
+            continue
+        if job == 'verb':
+            v = VBY.get(chunk)
+            if not v:
+                build_bad.append('unknown verb ' + chunk + ' in ' + item['a'])
+                continue
+            rebuilt += v['mn'] if neg else v['ms']
+        else:
+            rebuilt += chunk + par
+    if rebuilt + '。' != item['a']:
+        build_bad.append('breakdown does not rebuild: ' + item['a'] + ' -> ' + rebuilt + '。')
+    item['parts'] = [list(x) for x in parts]
+    item['neg'] = 1 if neg else 0
+for item in EXCHANGE:
+    kind = EXQ.get(item['before'])
+    if not kind:
+        build_bad.append('no question kind for ' + item['before'])
+    elif kind not in KINDS:
+        build_bad.append('unknown question kind ' + kind)
+    item['kind'] = kind or ''
+for p in build_bad:
+    print('  BUILD PROBLEM:', p)
+print('parts IV and V:', len(BUILD), 'sentences broken down |', len(EXCHANGE),
+      'exchanges tagged |', len(set(EXQ.values())), 'question shapes in use')
+assert not build_bad, f'{len(build_bad)} problem(s) in the Part IV/V breakdowns'
+
 exam = dict(grammar=GRAMMAR, build=BUILD, exchange=EXCHANGE, listen=LISTEN,
             kosoado=dict(cols=[list(c) for c in KOSOADO['cols']],
                          rows=[list(r) for r in KOSOADO['rows']],
                          cues=[list(c) for c in KOSOADO['cues']],
                          lines=[list(l) for l in KOSOADO['lines']]),
-            verbs=VERBS, verbgroups=[list(g) for g in VERB_GROUPS], classes=CLASSES)
+            verbs=VERBS, verbgroups=[list(g) for g in VERB_GROUPS], classes=CLASSES,
+            jobs={k: list(v) for k, v in JOBS.items()}, order=ORDER,
+            kinds={k: [list(v[0])] + list(v[1:]) for k, v in KINDS.items()})
 json.dump(dict(lessons=out, course=course_meta, katakana=[list(k) for k in KATAKANA], exam=exam,
                path=PATH, stages=PATH_STAGES),
           open('lessons.json', 'w', encoding='utf-8'), ensure_ascii=False)
@@ -151,6 +197,7 @@ for item in GRAMMAR:
 cl_ids = {c['id'] for c in CLASSES}
 les_ids = {l['id'] for l in out}
 part_ids = {'listen', 'kata', 'vg', 'build', 'ex'}
+track_ids = {'sent', 'exch'}
 row_ids = set('a k s t n h m y r w g z d b p'.split())
 band_ids = {'n:1', 'n:2', 'n:3', 'n:4', 'n:5'}
 for st in PATH:
@@ -158,6 +205,7 @@ for st in PATH:
     if k == 'class' and r not in cl_ids: exam_bad.append('PATH ' + st['id'] + ' -> no class ' + str(r))
     if k in ('words', 'drill', 'talk') and r not in les_ids: exam_bad.append('PATH ' + st['id'] + ' -> no lesson ' + str(r))
     if k == 'part' and r not in part_ids: exam_bad.append('PATH ' + st['id'] + ' -> no exam part ' + str(r))
+    if k == 'maker' and r not in track_ids: exam_bad.append('PATH ' + st['id'] + ' -> no track ' + str(r))
     if k == 'kana' and (not r or set(r) - row_ids): exam_bad.append('PATH ' + st['id'] + ' -> bad rows ' + str(r))
     if k == 'nums' and (not r or set(r) - band_ids): exam_bad.append('PATH ' + st['id'] + ' -> bad bands ' + str(r))
     for cid in st['covers'].get('cls', []):

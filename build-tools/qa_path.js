@@ -34,14 +34,14 @@ const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { 
   await p.waitForTimeout(400);
 
   // ---------------------------------------------------------------- the route
-  ok(/step 3 of 52/.test(await p.textContent('#pathWhen')), 'home: the tile says which step you are on');
+  ok(/step 3 of 54/.test(await p.textContent('#pathWhen')), 'home: the tile says which step you are on');
   ok(/Checkpoint/.test(await p.textContent('#pathSub')), 'home: and names what is next (' + (await p.textContent('#pathSub')).slice(0, 60) + ')');
   await p.click('#pathBtn');
   await p.waitForTimeout(250);
   ok(await p.evaluate(() => document.body.dataset.screen) === 'path', 'route: the tile opens it');
   const stages = await p.$$eval('.pstage-h b', n => n.map(x => x.textContent));
   ok(stages[0] === 'Before any Japanese' && stages.length === 8, 'route: eight stages, writing first');
-  ok((await p.$$eval('.pstep', n => n.length)) === 52, 'route: every step is listed');
+  ok((await p.$$eval('.pstep', n => n.length)) === 54, 'route: every step is listed');
   const here = await p.$$eval('.pstep.here .ps-t', n => n.map(x => x.textContent));
   ok(here.length === 1 && /Checkpoint/.test(here[0]),
      'route: the marker sits on the first unfinished step, which is the checkpoint');
@@ -64,7 +64,7 @@ const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { 
      (went.filter(x => /^ERR/.test(x[2])).map(x => ' — ' + x[0] + ': ' + x[2]).join('')));
   const want = { class: 'film', kana: 'practice', words: 'practice', drill: 'practice', nums: 'practice',
                  kata: 'exam', kwrite: 'kwrite', grid: 'grid', verbs: 'verbs', part: 'exam',
-                 talk: 'talk', check: 'exam', exam: 'exam', keep: 'practice' };
+                 talk: 'talk', check: 'exam', exam: 'exam', keep: 'practice', maker: 'maker' };
   const wrong = went.filter(([id, k, sc]) => want[k] && want[k] !== sc);
   ok(!wrong.length, 'route: each kind of step opens the right screen' +
      wrong.map(x => ' — ' + x[0] + ' went to ' + x[2]).join(''));

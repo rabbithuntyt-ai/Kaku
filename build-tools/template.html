@@ -699,6 +699,52 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
   .board-wrap { grid-column: 2; grid-row: 1 / 5; padding: 8px 0; }
 }
 
+/* ---------------------------------------------------------------- Parts IV and V */
+.mktabs { display: flex; gap: 6px; margin: 2px 0 14px; }
+.mktab { flex: 1; display: grid; gap: 1px; padding: 9px 10px; border: 1px solid var(--trace);
+  border-radius: 11px; background: var(--sheet); color: var(--muted); font: 600 12px var(--ui);
+  letter-spacing: .04em; text-transform: uppercase; cursor: pointer; text-align: left; }
+.mktab span { font: 400 12.5px var(--ui); letter-spacing: 0; text-transform: none; color: var(--ink-soft); }
+.mktab.on { border-color: var(--red); color: var(--red); }
+.mktab.on span { color: var(--ink); }
+.rungs { display: grid; gap: 6px; margin: 12px 0 4px; }
+.rung { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: start;
+  width: 100%; text-align: left; padding: 10px 12px; border: 1px solid var(--trace);
+  border-radius: 11px; background: var(--sheet); color: var(--ink); font: inherit; cursor: pointer; }
+.rung:hover { border-color: var(--ink-soft); }
+.rung .rg-n { font: 700 13px var(--ui); color: var(--ink-soft); padding-top: 1px; }
+.rung .rg-t { font-weight: 620; font-size: 14.5px; }
+.rung .rg-w { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.rung .rg-s { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft);
+  white-space: nowrap; padding-top: 3px; }
+.rung.done { border-left: 3px solid var(--good); }
+.rung.here { border-color: var(--red); background: color-mix(in srgb, var(--red) 6%, var(--sheet)); }
+.rung.here .rg-n, .rung.here .rg-s { color: var(--red); }
+.rung.later { opacity: .62; }
+#mkQ .mk-cue { display: block; font: 600 26px/1.4 var(--kana); color: var(--ink);
+  text-transform: none; letter-spacing: 0; }
+#mkQ .mk-cue:empty { display: none; }
+#mkQ .mk-sub { display: block; font: 400 14px/1.5 var(--ui); color: var(--muted); margin-top: 6px;
+  text-transform: none; letter-spacing: 0; }
+.mk-shape { font: 600 18px var(--kana); color: var(--muted); margin: 4px 0 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
+.chips.tapq { margin-top: 4px; }
+.chip-w { font: 600 18px var(--kana); padding: 9px 13px; border: 1px solid var(--trace);
+  border-radius: 10px; background: var(--sheet); color: var(--ink); cursor: pointer; }
+.chip-w:hover:not(:disabled) { border-color: var(--ink-soft); }
+.chip-w.none { font: 400 13px var(--ui); color: var(--muted); }
+.chip-w.placed { border-color: var(--red); }
+.chip-w .par { font-style: normal; color: var(--red); }
+.chip-w.is-right { border-color: var(--red); background: color-mix(in srgb, var(--red) 13%, transparent); }
+.chip-w.is-wrong { opacity: .5; text-decoration: line-through; }
+.chip-w:disabled { cursor: default; }
+.slots { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 52px;
+  padding: 8px; border: 1px dashed var(--trace); border-radius: 11px; margin-bottom: 4px; }
+.slots-empty { font: 400 13px var(--ui); color: var(--ink-soft); padding: 4px 6px; }
+.given-w { display: inline-block; font: 600 20px var(--kana); border: 1px solid var(--trace);
+  border-radius: 9px; padding: 5px 10px; margin: 0 5px 5px 0; }
+.shot .built { color: var(--red); }
+
 /* ---------------------------------------------------------------- the route through */
 .pnow { border: 1px solid var(--red); border-radius: 14px; padding: 13px 14px; margin: 4px 0 12px;
   background: color-mix(in srgb, var(--red) 7%, var(--sheet)); }
@@ -883,6 +929,11 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
         <span class="t-main">Verbs</span>
         <span class="t-sub" id="verbsSub">Lesson 3 by group, meaning and ます form</span>
         <span class="meter"><i id="verbsMeter"></i></span>
+      </button>
+<button class="tile wide" id="makerBtn" type="button">
+        <span class="t-main">Writing sentences &amp; exchanges</span>
+        <span class="t-sub" id="makerSub">Parts IV and V, one decision at a time</span>
+        <span class="meter"><i id="makerMeter"></i></span>
       </button>
 <button class="tile" id="gridBtn" type="button">
         <span class="t-main">こそあど</span>
@@ -1238,6 +1289,27 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
     <div class="pbar" id="pathBar" aria-hidden="true"></div>
     <p class="note" id="pathCount"></p>
     <div id="pathList"></div>
+  </section>
+
+  <section id="maker" hidden aria-label="Writing sentences and exchanges">
+    <button class="back" id="mkBack" type="button">Back</button>
+    <div id="mkHome">
+      <div class="mktabs" id="mkTabs"></div>
+      <p class="eyebrow" id="mkEyebrow"></p>
+      <h2 class="k-head" id="mkTitle"></h2>
+      <p class="note" id="mkNote"></p>
+      <div class="rungs" id="mkLadder"></div>
+      <div class="actions" id="mkStart"></div>
+      <div id="mkAsk"></div>
+    </div>
+    <div id="mkRun" hidden>
+      <p class="note" id="mkProg"></p>
+      <p class="eyebrow" id="mkRung"></p>
+      <div class="cue" id="mkQ"></div>
+      <div id="mkBody"></div>
+      <p class="msg" id="mkMsg" aria-live="polite"></p>
+      <div class="actions" id="mkNext"></div>
+    </div>
   </section>
 
   <section id="film" hidden aria-label="Video lesson">
@@ -2545,7 +2617,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film', 'maker']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3706,10 +3778,11 @@ $('vocabBtn').addEventListener('click', () => Vocab.open());
 $('talkBtn').addEventListener('click', () => Talk.open());
 $('examBtn').addEventListener('click', () => Exam.open());
 $('gridBtn').addEventListener('click', () => Grid.open());
+$('makerBtn').addEventListener('click', () => Maker.open());
 $('verbsBtn').addEventListener('click', () => Verbs.open());
 $('classesBtn').addEventListener('click', () => Class.open());
 $('pathBtn').addEventListener('click', () => Path.open());
-for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack']) {
+for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack', 'mkBack']) {
   $(id).addEventListener('click', () => {
     if (Exam.timer) { clearInterval(Exam.timer); Exam.timer = null; }
     if (typeof Film !== 'undefined') Film.leave();
@@ -6126,6 +6199,12 @@ const App = {
       ? Math.round(kosC * 100) + '% on the twelve'
       : 'これ, この, ここ \u2014 the grid, one decision at a time';
     meter('gridMeter', kosC);
+    const mkS = Maker.trackScore('sent'), mkE = Maker.trackScore('exch');
+    const mkR = Math.max(Maker.at('sent'), Maker.at('exch'));
+    $('makerSub').textContent = (mkS + mkE) > 0.05
+      ? 'Rung ' + (mkR + 1) + ' of 5 \u00b7 ' + Math.round((mkS + mkE) / 2 * 100) + '% of the way through both'
+      : 'Parts IV and V, one decision at a time';
+    meter('makerMeter', (mkS + mkE) / 2);
     const vk = Verbs.all().flatMap(v => ['g', 'm', 'f', 'r'].map(k => Verbs.key(v.v, k)));
     const vC = vk.length ? vk.reduce((a, k) => a + confidence(k), 0) / vk.length : 0;
     $('verbsSub').textContent = vC > 0.05
@@ -6415,6 +6494,9 @@ const Exam = {
     if (worst && worst.chance < 0.85) {
       const last = (S.exam && S.exam.coach) || [];
       const hits = last.length ? Coach.byIds(last, 3) : Coach.forPart(worst.id);
+      if (worst.id === 'build' || worst.id === 'ex') {
+        Coach.drillLine($('examCoach'), [{ key: worst.id === 'build' ? 'x:b0' : 'x:e0', good: false }]);
+      }
       Coach.line($('examCoach'), hits, last.length
         ? 'From the last paper you sat — where those misses are explained'
         : 'Part ' + ['I', 'II', 'III', 'IV', 'V'][this.PARTS.findIndex(x => x.id === worst.id)] +
@@ -7434,7 +7516,8 @@ const PSTAGES = (LESSONS && LESSONS.stages) || [];
 const PBYID = {};
 PATH.forEach((s, i) => { s.n = i; PBYID[s.id] = s; });
 const PKIND = { class: 'class', kana: 'writing', words: 'words', drill: 'drill', nums: 'numbers',
-  kata: 'katakana', kwrite: 'by hand', grid: 'grid', verbs: 'verbs', part: 'exam part', talk: 'out loud',
+  kata: 'katakana', kwrite: 'by hand', grid: 'grid', verbs: 'verbs', part: 'exam part',
+  maker: 'build it', talk: 'out loud',
   check: 'test', exam: 'mock paper', keep: 'review', final: 'final' };
 
 const Path = {
@@ -7464,6 +7547,7 @@ const Path = {
       case 'grid': return this.avg(this.gridKeys());
       case 'verbs': return this.avg(this.verbKeys());
       case 'part': return this.share(Exam.keys(st.ref), 0.4);
+      case 'maker': return Maker.trackScore(st.ref);
       case 'talk': {
         const keys = this.sceneKeys(st.ref);
         return keys.length ? keys.filter(k => modeConfidence(k, 'p') > 0.3).length / keys.length : 0;
@@ -7584,6 +7668,7 @@ const Path = {
       case 'grid': return Grid.open();
       case 'verbs': return Verbs.open();
       case 'part': { Exam.open(); return Exam.run(st.ref); }
+      case 'maker': return Maker.open(st.ref);
       case 'talk': { show('talk'); return Talk.pick(st.ref); }
       case 'check': return Check.run(st);
       case 'exam': { Exam.open(); return Exam.run(null, st.ref === 'strict'); }
@@ -7941,12 +8026,28 @@ const Film = {
   open(id, from) {
     const c = CLASSES.find(x => x.id === id);
     if (!c) return Class.open();
-    this.cur = c; this.from = from || 'classes';
-    this.beats = this.cut(c);
+    this.cur = c;
+    SRS.update(Class.key(c.id, 'r'), 'r', 'good');
+    Store.touch();
+    this.run(this.cut(c), {
+      from: from || 'classes',
+      eyebrow: COURSE[c.lesson] ? COURSE[c.lesson].name : '',
+      title: c.t,
+      ask: { kind: 'class', id: c.id, name: c.t }
+    });
+  },
+  // the same player, fed any list of beats. The worked examples in the sentence builder are
+  // cut from a sentence rather than a class, and there is no reason for them to have their own
+  // play button, their own narration, or their own bugs.
+  run(beats, opts) {
+    opts = opts || {};
+    this.beats = beats;
+    this.from = opts.from || 'classes';
+    this.acts = opts.actions || null;
     this.i = 0; this.playing = false;
     show('film');
-    $('fmEyebrow').textContent = COURSE[c.lesson] ? COURSE[c.lesson].name : '';
-    $('fmTitle').textContent = c.t;
+    $('fmEyebrow').textContent = opts.eyebrow || '';
+    $('fmTitle').textContent = opts.title || '';
     $('fmNote').textContent = Speech.ok
       ? (Speech.available() ? '' : 'No Japanese voice on this machine, so the Japanese lines are shown rather than read.')
       : 'This browser will not read aloud, so it plays as captions on a timer.';
@@ -7956,10 +8057,9 @@ const Film = {
       $('fmNext').addEventListener('click', () => this.step(1));
       $('fmPlay').addEventListener('click', () => this.toggle());
     }
-    SRS.update(Class.key(c.id, 'r'), 'r', 'good');
-    Store.touch();
-    Ask.mount('fmAsk', { kind: 'class', id: c.id, name: c.t });
+    if (opts.ask) Ask.mount('fmAsk', opts.ask); else $('fmAsk').innerHTML = '';
     this.draw();
+    if (opts.autoplay) this.toggle();
   },
   leave() {
     this.token++; this.playing = false;
@@ -7999,7 +8099,7 @@ const Film = {
     $('fmPrev').disabled = this.i === 0;
     $('fmNext').disabled = this.i + 1 >= this.beats.length;
     const c = this.cur;
-    setActions($('fmActions'), [
+    setActions($('fmActions'), this.acts ? this.acts(b) : [
       { label: 'Check I understood', primary: !!b.end, act: () => { this.leave(); Class.read(c.id); Class.check(); } },
       { label: 'Read it as text', act: () => { this.leave(); Class.read(c.id); } },
       { label: 'Say the examples again', act: () => { this.leave(); c.ex.forEach(([jp], k) => {
@@ -8282,6 +8382,696 @@ const Ask = {
   }
 };
 
+// ================================================================ Parts IV and V, taken apart
+// Both sections mark a whole sentence right or wrong, which is the worst possible feedback for
+// someone who cannot write one yet: a zero says something failed and nothing about what. There
+// are four decisions inside a Part IV answer — what job each word does, which particle marks
+// that job, what order the pieces go in, and what the verb becomes — and a Part V answer turns
+// on one, which is what the question word is demanding back.
+//
+// So this drills one decision at a time and climbs. Three right in a row moves you up a rung;
+// two wrong in a row moves you back down to the thing the misses were really about. Nobody is
+// asked to write a whole sentence until the pieces are reliable, and when they do write one and
+// it is wrong, they are told which chunk was wrong rather than shown the answer.
+const MKJOBS = (EXAM && EXAM.jobs) || {};
+const MKORDER = (EXAM && EXAM.order) || [];
+const MKKINDS = (EXAM && EXAM.kinds) || {};
+const SENTS = ((EXAM && EXAM.build) || []).filter(b => b.parts && b.parts.length);
+const EXCHS = ((EXAM && EXAM.exchange) || []).filter(e => e.kind && MKKINDS[e.kind]);
+
+const Maker = {
+  TRACKS: {
+    sent: { n: 'Writing sentences', part: 'Part IV',
+            about: 'Words given, order and particles and conjugation yours.' },
+    exch: { n: 'Completing exchanges', part: 'Part V',
+            about: 'Half a conversation given, the other half missing.' }
+  },
+  RUNGS: {
+    sent: [
+      { id: 's1', n: 'What job is the word doing?',
+        why: 'Before any Japanese: which word is the sentence about, which one is being acted on, which is a place, which is a time. Get this and the particles follow.' },
+      { id: 's2', n: 'Which particle marks that job?',
+        why: 'One decision, four options. は for the topic, を for the thing acted on, で for where it happens, に for where you are heading.' },
+      { id: 's3', n: 'What order do the pieces go in?',
+        why: 'Particles already attached. Topic first, verb last, and the rest in the order the answer key likes.' },
+      { id: 's4', n: 'What does the verb become?',
+        why: 'ます when the English is positive, ません when it is not — and the group decides the shape of the stem.' },
+      { id: 's5', n: 'Write the whole sentence',
+        why: 'The real question, typed. If it goes wrong you are told which chunk, not just the answer.' }
+    ],
+    exch: [
+      { id: 'e1', n: 'Which word decides the answer?',
+        why: 'Every exchange turns on one word. Find it and the rest of the question is scenery.' },
+      { id: 'e2', n: 'What kind of answer does it want?',
+        why: 'どこ wants a place. いくら wants money. ますか wants はい or いいえ. Name the kind before writing anything.' },
+      { id: 'e3', n: 'What shape does the answer take?',
+        why: 'The shape is fixed by the question. Pick the frame and the words drop into it.' },
+      { id: 'e4', n: 'Fill the shape in',
+        why: 'The frame is given, the content is yours.' },
+      { id: 'e5', n: 'Write the whole line',
+        why: 'The real question, typed, in both directions — sometimes the answer is missing, sometimes the question is.' }
+    ]
+  },
+  key(rung) { return 'x:m' + rung; },
+  verb(name) { return Verbs.all().find(v => v.v === name) || null; },
+  // the whole chunk as it appears in the sentence, particle and conjugation included
+  piece(item, part) {
+    const [chunk, par, job] = part;
+    if (job !== 'verb') return chunk + par;
+    const v = this.verb(chunk);
+    return v ? (item.neg ? v.mn : v.ms) : chunk;
+  },
+  jobShort(job) { return (MKJOBS[job] || [job])[0]; },
+  jobPar(job) { return (MKJOBS[job] || ['', ''])[1]; },
+  jobTeach(job) { return (MKJOBS[job] || ['', '', '', ''])[3] || ''; },
+  kindWants(k) { return (MKKINDS[k] || [[], '', '', ''])[1]; },
+  kindShape(k) { return (MKKINDS[k] || [[], '', '', ''])[2]; },
+  kindTeach(k) { return (MKKINDS[k] || [[], '', '', ''])[3]; },
+  kindWords(k) { return (MKKINDS[k] || [[]])[0] || []; },
+
+  // ---------------------------------------------------------------- where you are
+  at(track) {
+    const m = (S.maker && S.maker[track]) || 0;
+    return Math.max(0, Math.min(this.RUNGS[track].length - 1, m));
+  },
+  reached(track, i) { return i <= this.at(track); },
+  rungScore(track, i) { return confidence(this.key(this.RUNGS[track][i].id)); },
+  trackScore(track) {
+    const rs = this.RUNGS[track];
+    return rs.reduce((a, r) => a + confidence(this.key(r.id)), 0) / rs.length;
+  },
+
+  // ---------------------------------------------------------------- the screen
+  open(track) {
+    this.track = track || this.track || 'sent';
+    show('maker');
+    $('mkRun').hidden = true;
+    $('mkHome').hidden = false;
+    this.paint();
+  },
+  paint() {
+    const tr = this.track, T = this.TRACKS[tr];
+    $('mkTitle').textContent = T.n;
+    $('mkEyebrow').textContent = T.part + ' · ' + (tr === 'sent' ? SENTS.length + ' sentences' : EXCHS.length + ' exchanges');
+    $('mkTabs').innerHTML = Object.keys(this.TRACKS).map(k =>
+      '<button type="button" class="mktab' + (k === tr ? ' on' : '') + '" data-tr="' + k + '">' +
+      esc(this.TRACKS[k].part) + '<span>' + esc(this.TRACKS[k].n) + '</span></button>').join('');
+    $('mkTabs').querySelectorAll('[data-tr]').forEach(b =>
+      b.addEventListener('click', () => this.open(b.dataset.tr)));
+    $('mkNote').textContent = T.about + ' Four decisions hide inside that, and a whole-sentence ' +
+      'mark cannot tell you which one you are getting wrong. So here they are one at a time.';
+    const here = this.at(tr);
+    $('mkLadder').innerHTML = this.RUNGS[tr].map((r, i) => {
+      const c = confidence(this.key(r.id));
+      const state = i < here ? 'done' : i === here ? 'here' : 'later';
+      return '<button class="rung ' + state + '" type="button" data-rung="' + i + '">' +
+        '<span class="rg-n">' + (i + 1) + '</span>' +
+        '<span><span class="rg-t">' + esc(r.n) + '</span>' +
+        '<span class="rg-w">' + esc(r.why) + '</span></span>' +
+        '<span class="rg-s">' + (c > 0.05 ? Math.round(c * 100) + '%' : i === here ? 'start here' : '') +
+        '</span></button>';
+    }).join('');
+    $('mkLadder').querySelectorAll('[data-rung]').forEach(b =>
+      b.addEventListener('click', () => this.run(tr, +b.dataset.rung)));
+    setActions($('mkStart'), [
+      { label: here > 0 ? 'Carry on from rung ' + (here + 1) : 'Start at the beginning',
+        primary: true, act: () => this.run(tr, here) },
+      { label: 'Watch one worked through', act: () => this.worked(tr) },
+      { label: 'Just give me the real questions', act: () => this.run(tr, 4) }
+    ]);
+    Ask.mount('mkAsk', { kind: 'maker', id: tr, name: T.n });
+  },
+
+  // ---------------------------------------------------------------- one worked example
+  // generated from the breakdown, played through the same narrated player the classes use
+  worked(track, item) {
+    if (track === 'exch') return this.workedEx(item || Exam.pick(EXCHS, 1)[0]);
+    const it = item || Exam.pick(SENTS, 1)[0];
+    const beats = [], m = [];
+    const chunkOf = (p) => this.piece(it, p);
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">The question</p>' +
+        '<p class="say">Put these in order, add the particles, and make the verb polite.</p>' +
+        '<p class="mid">' + it.w.map(w => '<span class="given-w">' + esc(w) + '</span>').join('') + '</p>' +
+        '<p class="en">' + esc(it.en) + '</p></div>',
+      voice: [{ t: 'Here is the question. The words are ' + it.w.join(', ') +
+                ', and the sentence has to mean: ' + it.en, lang: 'en' }],
+      hold: 4200
+    });
+    let sofar = '';
+    it.parts.forEach((p, k) => {
+      const [chunk, par, job] = p;
+      const short = this.jobShort(job);
+      const line = job === 'verb'
+        ? 'The verb goes last, and the English ' + (it.neg ? 'says not, so it takes ません' : 'is positive, so it takes ます') + '. ' + chunk + ' becomes ' + chunkOf(p) + '.'
+        : (par ? chunk + ' is the ' + short + ', so it takes ' + par + '. ' : chunk + ' is the ' + short + ', and it takes no particle. ') + this.jobTeach(job);
+      sofar += chunkOf(p);
+      beats.push({
+        html: '<div class="shot"><p class="eyeb">' + esc(short) + '</p>' +
+          '<p class="big">' + esc(chunk) + (par ? '<mark>' + esc(par) + '</mark>' : '') +
+          (job === 'verb' ? ' → <mark>' + esc(chunkOf(p)) + '</mark>' : '') + '</p>' +
+          '<p class="nt">' + esc(line) + '</p>' +
+          '<p class="mid built">' + esc(sofar) + '</p></div>',
+        voice: [{ t: chunkOf(p), lang: 'ja' }, { t: line, lang: 'en' }],
+        hold: 3600
+      });
+    });
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">The answer</p>' +
+        '<p class="big">' + esc(it.a) + '</p><p class="en">' + esc(it.en) + '</p>' +
+        '<p class="nt">Topic first, verb last, everything else labelled by its particle.</p></div>',
+      voice: [{ t: it.a, lang: 'ja' }, { t: 'Topic first, verb last, everything else labelled by its particle.', lang: 'en' }],
+      hold: 3600, end: true
+    });
+    Film.run(beats, {
+      eyebrow: 'Part IV worked through', title: it.en, from: 'maker',
+      ask: { kind: 'maker', id: 'sent', name: 'Writing sentences' },
+      actions: (b) => [
+        { label: 'Try one myself', primary: !!b.end, act: () => { Film.leave(); this.run('sent', this.at('sent')); } },
+        { label: 'Another worked example', act: () => { Film.leave(); this.worked('sent'); } },
+        { label: 'Back', act: () => { Film.leave(); this.open('sent'); } }
+      ]
+    });
+  },
+  workedEx(it) {
+    const kind = it.kind, want = this.kindWants(kind), shape = this.kindShape(kind);
+    const qw = this.kindWords(kind)[0] || '';
+    const beats = [];
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">The exchange</p>' +
+        '<p class="mid">' + esc(it.before) + '</p>' +
+        '<p class="mid reply">' + (it.ask === 'after' ? '<span class="blank">?</span>' : esc(it.after)) + '</p>' +
+        '<p class="nt">' + (it.ask === 'after' ? 'The answer is missing.' : 'The question is missing.') + '</p></div>',
+      voice: [{ t: it.before, lang: 'ja' },
+              { t: it.ask === 'after' ? 'The answer is missing.' : 'The question is missing.', lang: 'en' }],
+      hold: 3600
+    });
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">' + (qw ? 'The question word' : 'No question word') + '</p>' +
+        '<p class="big">' + (qw ? Film.lit(it.before, [qw]) : esc(it.before)) + '</p>' +
+        '<p class="nt">' + esc(qw ? qw + ' is the word that decides everything else.'
+          : 'There is no question word in it, which is itself the clue: this is a yes-or-no question.') + '</p></div>',
+      voice: [{ t: qw ? qw + ' is the word that decides everything else.'
+                      : 'There is no question word in it. That is itself the clue: this is a yes or no question.', lang: 'en' }],
+      hold: 3400
+    });
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">What it wants back</p>' +
+        '<p class="big">' + esc(want) + '</p><p class="nt">' + esc(this.kindTeach(kind)) + '</p></div>',
+      voice: [{ t: 'It wants ' + want + '. ' + this.kindTeach(kind), lang: 'en' }],
+      hold: 4200
+    });
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">The shape</p><p class="big">' + esc(shape) + '</p>' +
+        '<p class="nt">Drop the content into the frame and the line writes itself.</p></div>',
+      voice: [{ t: 'The shape is: ' + shape, lang: 'en' }],
+      hold: 3200
+    });
+    beats.push({
+      html: '<div class="shot"><p class="eyeb">The whole thing</p>' +
+        '<p class="mid">' + esc(it.before) + '</p>' +
+        '<p class="mid reply">' + esc(it.after) + '</p>' +
+        '<p class="nt">' + esc(it.hint ? 'The missing half: ' + it.a : it.a) + '</p></div>',
+      voice: [{ t: it.before, lang: 'ja' }, { t: it.after, lang: 'ja' }],
+      hold: 3600, end: true
+    });
+    Film.run(beats, {
+      eyebrow: 'Part V worked through', title: it.hint || it.before, from: 'maker',
+      ask: { kind: 'maker', id: 'exch', name: 'Completing exchanges' },
+      actions: (b) => [
+        { label: 'Try one myself', primary: !!b.end, act: () => { Film.leave(); this.run('exch', this.at('exch')); } },
+        { label: 'Another worked example', act: () => { Film.leave(); this.worked('exch'); } },
+        { label: 'Back', act: () => { Film.leave(); this.open('exch'); } }
+      ]
+    });
+  }
+};
+
+// ---------------------------------------------------------------- the questions at each rung
+Object.assign(Maker, {
+  PARTICLES: ['は', 'を', 'で', 'に', 'の', 'も'],
+  ask1(it) {                                   // what job is this word doing
+    const pool = it.parts.filter(p => p[2] !== 'verb');
+    const p = Exam.pick(pool, 1)[0];
+    const right = this.jobShort(p[2]);
+    const others = Exam.shuffle(Object.keys(MKJOBS).filter(j => j !== 'verb' && this.jobShort(j) !== right))
+      .map(j => this.jobShort(j));
+    const opts = Exam.shuffle([right].concat([...new Set(others)].slice(0, 3)));
+    return { kind: 'mc', q: p[0], sub: '“' + it.en + '” — what job is this word doing?',
+             opts, a: opts.indexOf(right), item: it,
+             why: p[0] + ' is the ' + right + '. ' + this.jobTeach(p[2]) };
+  },
+  ask2(it) {                                   // which particle marks it
+    const pool = it.parts.filter(p => p[2] !== 'verb');
+    const p = Exam.pick(pool, 1)[0];
+    const right = p[1] || 'no particle';
+    const wrong = Exam.shuffle(this.PARTICLES.filter(x => x !== p[1])).slice(0, p[1] ? 2 : 3);
+    const opts = Exam.shuffle([right].concat(wrong).concat(p[1] ? ['no particle'] : []));
+    return { kind: 'mc', q: p[0], sub: 'This is the ' + this.jobShort(p[2]) + ' of “' + it.en +
+               '”. What goes after it?',
+             opts, a: opts.indexOf(right), item: it,
+             why: this.jobTeach(p[2]) };
+  },
+  ask3(it) {                                   // put the pieces in order
+    const pieces = it.parts.map(p => this.piece(it, p));
+    // the particle is tinted on the chip, so ordering them is also one more look at which
+    // particle went where
+    const tint = {};
+    it.parts.forEach((p, i) => { tint[pieces[i]] = p[2] === 'verb' ? '' : p[1]; });
+    return { kind: 'order', q: it.en, sub: 'Particles are already on. Tap them into order.',
+             bank: Exam.shuffle(pieces.slice()), a: pieces.join(''), pieces, tint, item: it,
+             why: it.a + ' — topic first, verb last.' };
+  },
+  ask4(it) {                                   // what the verb becomes
+    const vp = it.parts.find(p => p[2] === 'verb');
+    const v = this.verb(vp[0]);
+    if (!v) return this.ask1(it);
+    const right = it.neg ? v.mn : v.ms;
+    const sameGroup = Verbs.all().filter(x => x.v !== v.v).map(x => it.neg ? x.mn : x.ms);
+    // the trap that costs the marks: treating a う-verb ending in る as a る-verb
+    const tempt = (v.g === 'u' && v.v.endsWith('る'))
+      ? v.v.slice(0, -1) + (it.neg ? 'ません' : 'ます') : '';
+    const opts = Exam.shuffle([right, it.neg ? v.ms : v.mn]
+      .concat(tempt ? [tempt] : Exam.pick(sameGroup, 1)).concat(Exam.pick(sameGroup, 1))
+      .filter((x, i, arr) => arr.indexOf(x) === i).slice(0, 4));
+    return { kind: 'mc', q: v.v, sub: '“' + it.en + '” — what does the verb become?',
+             opts, a: opts.indexOf(right), item: it,
+             why: v.note + ' The English is ' + (it.neg ? 'negative, so ' + v.mn : 'positive, so ' + v.ms) + '.' };
+  },
+  ask5(it) {                                   // the real thing
+    return { kind: 'type', q: it.en, sub: 'Order them, add the particles, conjugate the verb.',
+             words: it.w, a: it.a, alt: it.alt || [], item: it, why: it.a };
+  },
+  // --- Part V
+  tokens(q) { return String(q).split(/\s+/).filter(Boolean); },
+  askE1(it) {                                  // which word decides the answer
+    const words = this.kindWords(it.kind);
+    const toks = this.tokens(it.before);
+    const hit = words.length ? toks.findIndex(t => words.some(w => t.includes(w))) : -1;
+    const bank = toks.concat(['no question word']);
+    return { kind: 'tap', q: it.before, sub: 'Which part of this decides what the answer has to be?',
+             bank, a: hit >= 0 ? hit : bank.length - 1, item: it,
+             why: hit >= 0
+               ? words[0] + ' is the question word. ' + this.kindTeach(it.kind)
+               : 'There is no question word, which is the clue: it is a yes-or-no question. ' + this.kindTeach(it.kind) };
+  },
+  askE2(it) {                                  // what kind of answer
+    const right = this.kindWants(it.kind);
+    const others = Exam.shuffle(Object.keys(MKKINDS).filter(k => this.kindWants(k) !== right))
+      .map(k => this.kindWants(k));
+    const opts = Exam.shuffle([right].concat([...new Set(others)].slice(0, 3)));
+    return { kind: 'mc', q: it.before, sub: 'What does this question want back?',
+             opts, a: opts.indexOf(right), item: it, why: this.kindTeach(it.kind) };
+  },
+  askE3(it) {                                  // which shape
+    const right = this.kindShape(it.kind);
+    const others = Exam.shuffle(Object.keys(MKKINDS).filter(k => this.kindShape(k) !== right))
+      .map(k => this.kindShape(k));
+    const opts = Exam.shuffle([right].concat([...new Set(others)].slice(0, 3)));
+    return { kind: 'mc', q: it.before, sub: 'What shape does the answer take?',
+             opts, a: opts.indexOf(right), item: it, why: this.kindTeach(it.kind) };
+  },
+  askE4(it) {                                  // fill the shape in
+    const miss = it.ask === 'after' ? it.after : it.before;
+    return { kind: 'type', q: it.ask === 'after' ? it.before : it.after,
+             sub: 'The shape is ' + this.kindShape(it.kind) + '. ' +
+                  (it.hint ? 'Say: ' + it.hint + '.' : ''),
+             shape: this.kindShape(it.kind), a: it.a, alt: it.alt || [], item: it,
+             exchange: it, why: miss };
+  },
+  askE5(it) {                                  // the real thing
+    return { kind: 'type', q: it.ask === 'after' ? it.before : it.after,
+             sub: it.hint ? 'Write the missing line. ' + it.hint + '.' : 'Write the missing line.',
+             a: it.a, alt: it.alt || [], item: it, exchange: it, why: it.a };
+  },
+  make(track, rung) {
+    const pool = track === 'sent' ? SENTS : EXCHS;
+    if (!pool.length) return null;
+    const it = Exam.weakest(pool.map((x, i) => (track === 'sent' ? 'x:b' : 'x:e') + i), 1)
+      .map(k => pool[+k.slice(3)])[0] || Exam.pick(pool, 1)[0];
+    const fn = track === 'sent'
+      ? [this.ask1, this.ask2, this.ask3, this.ask4, this.ask5][rung]
+      : [this.askE1, this.askE2, this.askE3, this.askE4, this.askE5][rung];
+    const q = fn.call(this, it);
+    q.rung = rung; q.track = track;
+    q.key = this.key(this.RUNGS[track][rung].id);
+    q.itemKey = (track === 'sent' ? 'x:b' : 'x:e') + pool.indexOf(it);
+    return q;
+  }
+});
+
+// ---------------------------------------------------------------- marking that says what broke
+Object.assign(Maker, {
+  tidy(x) { return toKana(String(x || '')).replace(/[\s　。、．，.]/g, ''); },
+  // Every chunk of the target is looked for in what was written, in order, and the thing that
+  // follows it is checked against the particle that belongs there. The first thing that does not
+  // line up is the thing to say — not the whole answer, which teaches nothing.
+  checkSent(it, given) {
+    const got = this.tidy(given);
+    if (!got) return { ok: false, say: 'Nothing written yet.' };
+    const accepts = [it.a].concat(it.alt || []).map(x => this.tidy(x));
+    if (accepts.includes(got)) return { ok: true, say: 'Right.' };
+
+    // A sentence can be wrong in three ways at once, and being told only the first is how you
+    // end up fixing one thing a day. All of them are gathered; one of them is led with.
+    const found = [];
+    const note = (at, say) => { found.push({ at, say }); };
+
+    const vp = it.parts.find(p => p[2] === 'verb');
+    const v = vp && this.verb(vp[0]);
+    if (v) {
+      // one verb problem, not four: the checks run hardest-first and stop at the first hit
+      const want = it.neg ? v.mn : v.ms, other = it.neg ? v.ms : v.mn;
+      const naive = v.v.slice(0, -1) + (it.neg ? 'ません' : 'ます');
+      if (got.endsWith(other)) {
+        note(v.v, 'The verb is the wrong way round. The English is ' + (it.neg ? 'negative' : 'positive') +
+          ', so it has to be ' + want + ', not ' + other + '.');
+      } else if (got.endsWith(v.v)) {
+        note(v.v, 'That is the dictionary form. The paper wants the polite form: ' + v.v +
+          ' becomes ' + want + '.');
+      } else if (naive !== want && got.includes(naive)) {
+        note(v.v, v.v + ' looks like a る-verb and is not. ' + v.note + ' It has to be ' + want + '.');
+      } else if (got.includes(want) && !got.endsWith(want)) {
+        note(want, 'The verb is right but it is not at the end. In Japanese the verb always comes ' +
+          'last — everything else goes in front of it.');
+      } else if (!got.includes(want)) {
+        note(v.v, 'The verb is missing or in a shape that is not on the paper. ' + v.v + ' means "' +
+          v.m + '", and here it becomes ' + want + '.');
+      }
+    }
+    for (const [chunk, par, job] of it.parts) {
+      if (job === 'verb') continue;
+      const at = got.indexOf(chunk);
+      if (at < 0) {
+        note(chunk, chunk + ' is not in there. It is the ' + this.jobShort(job) + ' — ' +
+          (MKJOBS[job] || ['', '', ''])[2].toLowerCase());
+        continue;
+      }
+      const after = got.slice(at + chunk.length);
+      if (par) {
+        const fine = after.startsWith(par) || (job === 'dest' && after.startsWith('へ'));
+        if (!fine) {
+          const wrote = this.PARTICLES.includes(after[0]) ? after[0] : '';
+          note(chunk, chunk + ' is the ' + this.jobShort(job) + ', so it takes ' + par +
+            (wrote ? ', not ' + wrote : ' — you left the particle off') + '. ' + this.jobTeach(job));
+        }
+      } else if (this.PARTICLES.includes(after[0])) {
+        // は after あさ is not a stray particle, it is the start of はやく. A bare chunk is only
+        // wrong if what follows it is not the beginning of some other piece of the sentence.
+        const others = it.parts.filter(x => x[0] !== chunk).map(x => this.piece(it, x));
+        if (!others.some(o => after.startsWith(o))) {
+          note(chunk, chunk + ' takes no particle at all. ' + this.jobTeach(job));
+        }
+      }
+    }
+    if (found.length) {
+      const more = found.length - 1;
+      return { ok: false, at: found[0].at, all: found,
+               say: found[0].say + (more ? ' There ' + (more > 1 ? 'are ' + more + ' other things' : 'is one other thing') +
+                    ' wrong too, but fix this one first.' : '') };
+    }
+    // every piece is there and labelled right, so what is left is the order
+    const pieces = it.parts.map(p => this.piece(it, p));
+    const left = pieces.slice();
+    let scan = got, loose = true;
+    while (scan.length && loose) {
+      const k = left.findIndex(x => scan.startsWith(x));
+      if (k < 0) { loose = false; break; }
+      scan = scan.slice(left[k].length);
+      left.splice(k, 1);
+    }
+    if (loose && !scan.length && !left.length) {
+      return { ok: true, say: 'That is correct Japanese — every piece is labelled right, and the order ' +
+        'of the middle is genuinely free. The answer key writes it ' + it.a + ', and matching the key is the ' +
+        'safer habit for the paper.' };
+    }
+    return { ok: false, at: '', say: 'The pieces are right but they are not in an order the paper accepts. ' +
+      'Topic first, verb last: ' + it.a };
+  },
+  checkEx(it, given) {
+    const got = this.tidy(given);
+    if (!got) return { ok: false, say: 'Nothing written yet.' };
+    const accepts = [it.a].concat(it.alt || []).map(x => this.tidy(x));
+    if (accepts.includes(got)) return { ok: true, say: 'Right.' };
+    const kind = it.kind, want = this.tidy(it.a);
+    if ((kind === 'yesno' || kind === 'yesnov') && !/^(はい|いいえ)/.test(got)) {
+      return { ok: false, say: 'A yes-or-no question is answered はい or いいえ first, then the same shape ' +
+        'back. ' + this.kindTeach(kind) };
+    }
+    if (kind === 'whose' && want.includes('の') && !got.includes('の')) {
+      return { ok: false, say: 'だれの asks whose, so the の stays in the answer. Without it you have named ' +
+        'a person and a thing rather than saying the thing is theirs.' };
+    }
+    for (const [k, tail, name] of [['price', 'えん', 'えん'], ['age', 'さい', 'さい'],
+                                   ['year', 'ねんせい', 'ねんせい'], ['time', 'じ', 'じ']]) {
+      if (kind === k && !got.includes(tail)) {
+        return { ok: false, say: 'The counter is missing. ' + this.kindWants(kind) + ' is written with ' +
+          name + ' on the end. ' + this.kindTeach(kind) };
+      }
+    }
+    if (!/です|ます|ません/.test(got)) {
+      return { ok: false, say: 'It has to end politely — です for a noun, ます or ません for a verb. ' +
+        this.kindTeach(kind) };
+    }
+    if (kind === 'wheredo' && !/で/.test(got)) {
+      return { ok: false, say: 'どこで asks where you do it, so the place keeps its で and the verb comes ' +
+        'too. ' + this.kindTeach(kind) };
+    }
+    if (kind === 'whatdo' && !/を/.test(got)) {
+      return { ok: false, say: 'なにを asks what you do it to, so the thing takes を and the verb comes ' +
+        'too. ' + this.kindTeach(kind) };
+    }
+    return { ok: false, say: 'The shape wanted is ' + this.kindShape(kind) + '. ' + this.kindTeach(kind) };
+  }
+});
+
+// ---------------------------------------------------------------- the session, which climbs
+Object.assign(Maker, {
+  LEN: 14,
+  run(track, rung) {
+    this.track = track;
+    this.rung = Math.max(0, Math.min(this.RUNGS[track].length - 1, rung || 0));
+    this.n = 0; this.ok = 0; this.streak = 0; this.slips = 0; this.log = []; this.moved = '';
+    $('mkHome').hidden = true;
+    $('mkRun').hidden = false;
+    show('maker');
+    Gains.snap();
+    this.next();
+  },
+  next() {
+    if (this.n >= this.LEN) return this.finish();
+    const q = this.make(this.track, this.rung);
+    if (!q) return this.finish();
+    this.cur = q; this.n++; this.done = false; this.placed = [];
+    this.ask();
+  },
+  ask() {
+    const q = this.cur, R = this.RUNGS[this.track][this.rung];
+    $('mkProg').textContent = 'Question ' + this.n + ' of ' + this.LEN +
+      (this.moved ? ' · ' + this.moved : '');
+    $('mkProg').className = 'note' + (this.moved ? ' good' : '');
+    $('mkRung').textContent = 'Rung ' + (this.rung + 1) + ' of ' + this.RUNGS[this.track].length +
+      ' · ' + R.n;
+    $('mkQ').innerHTML = '<b class="mk-cue">' + (q.kind === 'tap' ? '' : esc(q.q)) + '</b>' +
+      (q.sub ? '<span class="mk-sub">' + esc(q.sub) + '</span>' : '');
+    $('mkMsg').textContent = ''; $('mkMsg').className = 'msg';
+    const body = $('mkBody');
+    body.innerHTML = '';
+    if (q.kind === 'mc') {
+      const wrap = document.createElement('div');
+      wrap.className = 'opts';
+      q.opts.forEach((o, j) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'opt'; b.textContent = o;
+        b.addEventListener('click', () => this.answer(j));
+        wrap.appendChild(b);
+      });
+      body.appendChild(wrap);
+      setActions($('mkNext'), []);
+    } else if (q.kind === 'tap') {
+      const wrap = document.createElement('div');
+      wrap.className = 'chips tapq';
+      q.bank.forEach((tok, j) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip-w' + (j === q.bank.length - 1 ? ' none' : '');
+        b.textContent = tok;
+        b.addEventListener('click', () => this.answer(j));
+        wrap.appendChild(b);
+      });
+      body.appendChild(wrap);
+      setActions($('mkNext'), []);
+    } else if (q.kind === 'order') {
+      const slots = document.createElement('div');
+      slots.className = 'slots'; slots.id = 'mkSlots';
+      const bank = document.createElement('div');
+      bank.className = 'chips'; bank.id = 'mkBank';
+      body.appendChild(slots); body.appendChild(bank);
+      this.drawOrder();
+      setActions($('mkNext'), [
+        { label: 'Check it', primary: true, act: () => this.answer(this.placed.join('')) },
+        { label: 'Clear', act: () => { this.placed = []; this.drawOrder(); } }
+      ]);
+    } else {
+      if (q.words) {
+        const given = document.createElement('div');
+        given.className = 'given';
+        given.innerHTML = q.words.map(w => '<span>' + esc(w) + '</span>').join('');
+        body.appendChild(given);
+      }
+      if (q.shape) {
+        const sh = document.createElement('p');
+        sh.className = 'mk-shape'; sh.textContent = q.shape;
+        body.appendChild(sh);
+      }
+      const input = document.createElement('input');
+      input.type = 'text'; input.className = 'type'; input.id = 'mkType';
+      input.setAttribute('autocomplete', 'off'); input.setAttribute('autocapitalize', 'off');
+      input.placeholder = 'write it in kana';
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.answer(input.value); });
+      body.appendChild(input);
+      const acts = [{ label: 'Answer', primary: true, act: () => this.answer(input.value) }];
+      // the button that matters: when you cannot start, watch this very sentence being built
+      if (this.track === 'sent') acts.push({ label: 'Break it down for me', act: () => this.worked('sent', q.item) });
+      else acts.push({ label: 'Break it down for me', act: () => this.worked('exch', q.item) });
+      setActions($('mkNext'), acts);
+      setTimeout(() => input.focus(), 30);
+    }
+  },
+  drawOrder() {
+    const q = this.cur;
+    const slots = $('mkSlots'), bank = $('mkBank');
+    if (!slots || !bank) return;
+    const face = (p) => {
+      const par = (q.tint || {})[p];
+      return par && p.endsWith(par)
+        ? esc(p.slice(0, -par.length)) + '<i class="par">' + esc(par) + '</i>'
+        : esc(p);
+    };
+    slots.innerHTML = this.placed.length
+      ? this.placed.map((p, i) => '<button class="chip-w placed" type="button" data-rm="' + i + '">' +
+          face(p) + '</button>').join('')
+      : '<span class="slots-empty">Tap the pieces below, in order</span>';
+    const left = q.bank.slice();
+    for (const p of this.placed) { const k = left.indexOf(p); if (k >= 0) left.splice(k, 1); }
+    bank.innerHTML = left.map((p) => '<button class="chip-w" type="button" data-add="' + esc(p) +
+      '">' + face(p) + '</button>').join('');
+    slots.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => {
+      if (this.done) return;
+      this.placed.splice(+b.dataset.rm, 1); this.drawOrder();
+    }));
+    bank.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+      if (this.done) return;
+      this.placed.push(b.dataset.add); this.drawOrder();
+    }));
+  },
+  answer(given) {
+    const q = this.cur;
+    if (!q || this.done) return;
+    this.done = true;
+    let good = false, say = '';
+    if (q.kind === 'mc' || q.kind === 'tap') {
+      good = given === q.a;
+      say = good ? 'Right. ' + q.why : q.why;
+    } else if (q.kind === 'order') {
+      good = given === q.a;
+      say = good ? 'Right. ' + q.why : 'Not that order. ' + q.why;
+    } else {
+      const r = this.track === 'sent' ? this.checkSent(q.item, given) : this.checkEx(q.item, given);
+      good = r.ok; say = r.say;
+    }
+    if (good) { this.ok++; this.streak++; this.slips = 0; Gains.mark(); }
+    else { this.streak = 0; this.slips++; }
+    this.log.push({ key: q.itemKey, good, q: q.sub || q.q, why: q.why, rung: this.rung });
+    SRS.update(q.key, 'r', good ? 'perfect' : 'weak');
+    // the real questions are the ones the midterm screen reads, so only those move it
+    if (this.rung === this.RUNGS[this.track].length - 1 && q.itemKey) {
+      SRS.update(q.itemKey, 'r', good ? 'perfect' : 'weak');
+    }
+    S.maker = S.maker || {};
+    S.maker[this.track] = Math.max(S.maker[this.track] || 0, this.rung);
+    Store.touch();
+    $('mkMsg').textContent = say;
+    $('mkMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    $('mkBody').querySelectorAll('.opt').forEach((b, j) => {
+      if (j === q.a) b.classList.add('is-right');
+      else if (!good && j === given) b.classList.add('is-wrong');
+      b.disabled = true;
+    });
+    if (q.kind === 'tap') {
+      $('mkBody').querySelectorAll('.chip-w').forEach((b, j) => {
+        if (j === q.a) b.classList.add('is-right');
+        else if (!good && j === given) b.classList.add('is-wrong');
+        b.disabled = true;
+      });
+    }
+    if (q.kind === 'order' && !good) {
+      $('mkSlots').innerHTML = '<span class="chip-w is-right">' + esc(q.a) + '</span>';
+    }
+    const input = $('mkType');
+    if (input) input.disabled = true;
+    this.climb();
+    const acts = [{ label: this.n >= this.LEN ? 'See how that went' : 'Next', primary: true,
+                    act: () => this.next() }];
+    if (!good && this.rung === this.RUNGS[this.track].length - 1) {
+      acts.push({ label: 'Watch this one built', act: () => this.worked(this.track, q.item) });
+    }
+    if (!good && this.track === 'sent' && this.rung < 4) {
+      acts.push({ label: 'Why?', act: () => {
+        const job = (q.item.parts.find(p => p[0] === q.q) || [])[2];
+        $('mkMsg').textContent = job ? this.jobTeach(job) : q.why;
+      } });
+    }
+    setActions($('mkNext'), acts);
+  },
+  // three in a row moves you up; two misses move you back to what the misses were about
+  climb() {
+    const top = this.RUNGS[this.track].length - 1;
+    this.moved = '';
+    if (this.streak >= 3 && this.rung < top) {
+      this.rung++; this.streak = 0;
+      this.moved = 'Up to rung ' + (this.rung + 1);
+      S.maker = S.maker || {};
+      S.maker[this.track] = Math.max(S.maker[this.track] || 0, this.rung);
+      Store.touch();
+    } else if (this.slips >= 2 && this.rung > 0) {
+      this.rung--; this.slips = 0;
+      this.moved = 'Back to rung ' + (this.rung + 1) + ' — that is where this is going wrong';
+    }
+  },
+  finish() {
+    const pct = this.n ? Math.round(this.ok / this.n * 100) : 0;
+    const byRung = {};
+    for (const l of this.log) {
+      const b = byRung[l.rung] || (byRung[l.rung] = { ok: 0, n: 0 });
+      b.n++; if (l.good) b.ok++;
+    }
+    $('mkProg').textContent = ''; $('mkRung').textContent = 'Session finished';
+    $('mkQ').innerHTML = '<div class="score"><span class="score-n">' + pct + '%</span>' +
+      '<span class="score-l">' + this.ok + ' of ' + this.n + ' right · finished on rung ' +
+      (this.rung + 1) + '</span></div>';
+    $('mkBody').innerHTML = Object.keys(byRung).sort().map(k =>
+      '<div class="row"><span>' + esc(this.RUNGS[this.track][k].n) + '</span><span>' +
+      byRung[k].ok + '/' + byRung[k].n + '</span></div>').join('');
+    $('mkMsg').textContent = this.rung >= this.RUNGS[this.track].length - 1 && pct >= 70
+      ? 'That is the real question, answered. Sit the part itself now.'
+      : this.rung > 0
+      ? 'Rung ' + (this.rung + 1) + ' is where you are. The rung above opens when three in a row go right.'
+      : 'Start here again tomorrow — this is the rung everything else stands on.';
+    $('mkMsg').className = 'msg ' + (pct >= 70 ? 'good' : '');
+    Gains.line($('mkBody'));
+    Coach.after($('mkBody'), this.log, 'Where this is explained');
+    setActions($('mkNext'), [
+      { label: 'Keep going', primary: true, act: () => this.run(this.track, this.rung) },
+      { label: 'Watch one worked through', act: () => this.worked(this.track) },
+      { label: this.track === 'sent' ? 'Sit Part IV' : 'Sit Part V',
+        act: () => { Exam.open(); Exam.run(this.track === 'sent' ? 'build' : 'ex'); } },
+      { label: 'Back', act: () => this.open(this.track) }
+    ]);
+    App.refresh();
+  }
+});
+
 // ================================================================ what to go back and read
 // A mark on its own is a verdict, not advice. Getting 40% on Part IV tells you that something
 // is wrong and nothing about what; the useful sentence is "read the particles class again".
@@ -8362,11 +9152,36 @@ const Coach = {
       b.addEventListener('click', () => Film.open(b.dataset.coach, 'classes')));
     return wrap;
   },
+  // Parts IV and V have a section of their own now, and when the misses come from there that
+  // section is the answer rather than any amount of re-reading
+  drillLine(host, log) {
+    if (!host) return;
+    const want = { sent: 0, exch: 0 };
+    for (const l of (log || [])) {
+      if (l.good) continue;
+      if (/^x:b/.test(String(l.key || ''))) want.sent++;
+      if (/^x:e/.test(String(l.key || ''))) want.exch++;
+    }
+    const rows = Object.keys(want).filter(k => want[k]);
+    if (!rows.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'coach';
+    wrap.innerHTML = '<p class="coach-h">And the way to practise it</p>' + rows.map(k =>
+      '<button class="coach-c" type="button" data-track="' + k + '">' +
+      '<span class="cc-t">' + esc(Maker.TRACKS[k].part + ' \u00b7 ' + Maker.TRACKS[k].n) + '</span>' +
+      '<span class="cc-i">Taken apart into the decisions inside it, drilled one at a time, ' +
+      'and marked chunk by chunk so you are told what went wrong.</span>' +
+      '<span class="cc-n">' + want[k] + (want[k] > 1 ? ' misses' : ' miss') + ' here</span></button>').join('');
+    host.appendChild(wrap);
+    wrap.querySelectorAll('[data-track]').forEach(b =>
+      b.addEventListener('click', () => Maker.open(b.dataset.track)));
+  },
   // one call after a test: the classes behind the grammar misses, and the word lists behind
   // the rest, which are two different kinds of not knowing something
   after(host, log, lead) {
     const hits = this.from(log);
     this.line(host, hits, lead);
+    this.drillLine(host, log);
     const words = this.wordMisses(log);
     if (words.length && host) {
       const wrap = document.createElement('div');
@@ -8388,7 +9203,7 @@ const Coach = {
   forPart(id) { return this.byIds(this.PART_CLASS[id] || [], 2); }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

@@ -183,9 +183,16 @@ STAGES = [
              'Eight English words to write in katakana.', ref='kata', covers=dict(kata=True), mins=10),
         step('part-vg', 'part', 'Part III — Vocabulary and grammar',
              'Fifteen multiple choice over the whole course.', ref='vg', covers=dict(gram=True), mins=15),
+        step('make-sent', 'maker', 'Learn to write the sentences',
+             'Four decisions hide inside one Part IV answer. This drills them one at a time and '
+             'climbs, instead of marking whole sentences wrong.', ref='sent',
+             covers=dict(build=True), mins=25),
         step('part-build', 'part', 'Part IV — Writing sentences',
              'Words given, order and particles and conjugation yours. Five marks and the '
              'hardest five.', ref='build', covers=dict(build=True), mins=15),
+        step('make-exch', 'maker', 'Learn to complete the exchanges',
+             'Every exchange turns on its question word. Find it, name what it wants back, then '
+             'write the line.', ref='exch', covers=dict(exch=True), mins=20),
         step('part-ex', 'part', 'Part V — Completing exchanges',
              'Half a conversation given, the other half missing.', ref='ex',
              covers=dict(exch=True), mins=12),
