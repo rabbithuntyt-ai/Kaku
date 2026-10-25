@@ -710,6 +710,41 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .opts.pair { margin: 4px 0 2px; }
 .opt.picked { border-color: var(--red); background: color-mix(in srgb, var(--red) 9%, transparent); }
 
+/* ---------------------------------------------------------------- verb flashcards */
+.decks { display: grid; gap: 7px; margin: 12px 0 4px; }
+.deck { display: grid; gap: 3px; width: 100%; text-align: left; padding: 11px 13px;
+  border: 1px solid var(--trace); border-radius: 12px; background: var(--sheet); color: var(--ink);
+  font: inherit; cursor: pointer; }
+.deck:hover { border-color: var(--ink-soft); }
+.deck .dk-t { font-weight: 640; font-size: 15px; }
+.deck .dk-a { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.deck .meter { margin-top: 7px; }
+.flip { perspective: 1200px; margin: 10px 0 14px; }
+.flip-in { position: relative; width: 100%; min-height: 300px; transition: transform .45s ease;
+  transform-style: preserve-3d; }
+.flip.turned .flip-in { transform: rotateY(180deg); }
+.flip .face { position: absolute; inset: 0; backface-visibility: hidden; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;
+  padding: 20px 16px; border: 1px solid var(--trace); border-radius: 16px; background: var(--sheet); }
+.flip .face.rear { transform: rotateY(180deg); border-color: var(--red); }
+.vart { color: var(--ink); }
+.cd-jp { font: 600 34px var(--kana); }
+.cd-jp.big { font-size: 44px; }
+.cd-en { font-size: 16px; color: var(--muted); }
+.cd-en.big { font-size: 26px; color: var(--ink); font-weight: 620; line-height: 1.3; }
+.cd-ask { font-size: 13.5px; color: var(--ink-soft); }
+.cd-grp { font: 700 11.5px var(--ui); letter-spacing: .05em; text-transform: uppercase;
+  border: 1px solid var(--trace); border-radius: 20px; padding: 4px 11px; color: var(--muted); }
+.cd-grp.g-ru { border-color: var(--good); color: var(--good); }
+.cd-grp.g-u { border-color: var(--red); color: var(--red); }
+.cd-grp.g-irr { border-color: var(--ink-soft); color: var(--ink); }
+.cd-forms { display: flex; gap: 14px; align-items: baseline; }
+.cd-forms b { font: 600 22px var(--kana); }
+.cd-forms i { font: 400 20px var(--kana); font-style: normal; color: var(--muted); }
+.cd-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; max-width: 30ch; }
+.cd-note.warn { color: var(--red); }
+@media (prefers-reduced-motion: reduce) { .flip-in { transition: none; } }
+
 /* ---------------------------------------------------------------- Parts IV and V */
 .mktabs { display: flex; gap: 6px; margin: 2px 0 14px; }
 .mktab { flex: 1; display: grid; gap: 1px; padding: 9px 10px; border: 1px solid var(--trace);
@@ -1308,6 +1343,27 @@ if ('serviceWorker' in navigator) {
     <div class="pbar" id="pathBar" aria-hidden="true"></div>
     <p class="note" id="pathCount"></p>
     <div id="pathList"></div>
+  </section>
+
+  <section id="cards" hidden aria-label="Verb flashcards">
+    <button class="back" id="cdHome2" type="button">Back</button>
+    <div id="cdHome">
+      <h2 class="k-head">Verb flashcards</h2>
+      <p class="note" id="cdNote"></p>
+      <div class="decks" id="cdDecks"></div>
+      <div class="actions" id="cdStart"></div>
+    </div>
+    <div id="cdRun" hidden>
+      <p class="note" id="cdProg"></p>
+      <div class="flip" id="cdCard">
+        <div class="flip-in">
+          <div class="face front" id="cdFront"></div>
+          <div class="face rear" id="cdRear"></div>
+        </div>
+      </div>
+      <p class="msg" id="cdMsg" aria-live="polite"></p>
+      <div class="actions" id="cdNext"></div>
+    </div>
   </section>
 
   <section id="maker" hidden aria-label="Writing sentences and exchanges">
@@ -2636,7 +2692,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film', 'maker']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film', 'maker', 'cards']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3801,7 +3857,7 @@ $('makerBtn').addEventListener('click', () => Maker.open());
 $('verbsBtn').addEventListener('click', () => Verbs.open());
 $('classesBtn').addEventListener('click', () => Class.open());
 $('pathBtn').addEventListener('click', () => Path.open());
-for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack', 'mkBack']) {
+for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack', 'mkBack', 'cdHome2']) {
   $(id).addEventListener('click', () => {
     if (Exam.timer) { clearInterval(Exam.timer); Exam.timer = null; }
     if (typeof Film !== 'undefined') Film.leave();
@@ -7085,7 +7141,8 @@ const Verbs = {
     $('verbsRun').hidden = true;
     this.paint();
     setActions($('verbsActions'), [
-      { label: 'Which group?', primary: true, act: () => this.run('g') },
+      { label: 'Flashcards', primary: true, act: () => Cards.open() },
+      { label: 'Which group?', act: () => this.run('g') },
       { label: 'What does it mean?', act: () => this.run('m') },
       { label: 'Make it polite', act: () => this.run('f') },
       { label: 'From memory', act: () => this.run('r') }
@@ -8480,6 +8537,231 @@ const Ask = {
   }
 };
 
+// ================================================================ verb flashcards
+// A picture on one side and the Japanese on the other, which is the one way of learning a verb
+// that never goes through English. Then the half that actually costs marks: the group, and the
+// two forms the group decides.
+//
+// The drawings are line art written here as paths, not borrowed from the textbook. They are
+// deliberately plain: a card has to be readable at a glance, and a picture you have to study is
+// a picture that has become a second puzzle.
+const VERB_ART = {
+  たべる: '<path d="M11 33h42a21 21 0 0 1-42 0Z"/><path d="M22 57h20"/>' +
+          '<path d="M41 7 31 28M49 9 37 30"/>',
+  のむ:   '<path d="M15 23h27v23a9 9 0 0 1-9 9h-9a9 9 0 0 1-9-9Z"/>' +
+          '<path d="M42 29h6a7 7 0 0 1 0 14h-6"/>' +
+          '<path d="M24 16c2-3-2-5 0-8M33 16c2-3-2-5 0-8"/>',
+  みる:   '<path d="M5 32c9-12 18-18 27-18s18 6 27 18c-9 12-18 18-27 18S14 44 5 32Z"/>' +
+          '<circle cx="32" cy="32" r="7"/>',
+  きく:   '<path d="M13 37v-5a19 19 0 0 1 38 0v5"/>' +
+          '<rect x="7" y="35" width="11" height="18" rx="5"/>' +
+          '<rect x="46" y="35" width="11" height="18" rx="5"/>',
+  よむ:   '<path d="M32 21c-6-5-14-7-22-6v31c8-1 16 1 22 6 6-5 14-7 22-6V15c-8-1-16 1-22 6Z"/>' +
+          '<path d="M32 21v31"/>',
+  はなす: '<path d="M11 13h42a5 5 0 0 1 5 5v21a5 5 0 0 1-5 5H30L17 55V44h-6a5 5 0 0 1-5-5V18a5 5 0 0 1 5-5Z"/>' +
+          '<path d="M17 24h30M17 33h20"/>',
+  かえる: '<path d="M23 33 39 18l16 15"/><path d="M27 33v19h24V33"/><path d="M36 52v-11h6v11"/>' +
+          '<path d="M5 43h16"/><path d="M16 37l6 6-6 6"/>',
+  いく:   '<circle cx="13" cy="32" r="5"/><circle cx="13" cy="32" r="10"/>' +
+          '<path d="M27 32h26"/><path d="M46 25l8 7-8 7"/>',
+  くる:   '<circle cx="51" cy="32" r="5"/><circle cx="51" cy="32" r="10"/>' +
+          '<path d="M8 32h26"/><path d="M27 25l8 7-8 7"/>',
+  おきる: '<path d="M6 48h52"/><path d="M19 48a13 13 0 0 1 26 0"/>' +
+          '<path d="M32 23V9M18 28l-7-7M46 28l7-7"/>',
+  ねる:   '<path d="M7 29v24"/><path d="M7 45h50v8"/><path d="M14 38h43v7H14Z"/>' +
+          '<path d="M16 33h11v5H16Z"/>' +
+          '<path d="M36 22h9l-9 9h9M49 9h7l-7 7h7"/>',
+  する:   '<path d="M32 8l5 14 14 5-14 5-5 14-5-14-14-5 14-5Z"/>' +
+          '<path d="M52 44a9 9 0 0 1-9 9M12 20a9 9 0 0 1 9-9"/>',
+  べんきょうする:
+          '<path d="M13 15h27a4 4 0 0 1 4 4v22"/><path d="M13 15v34h20"/><path d="M19 15v34"/>' +
+          '<path d="M38 52l3-9 14-14 6 6-14 14Z"/><path d="M51 23l6 6"/>'
+};
+
+const Cards = {
+  DECKS: [
+    { id: 'pic', n: 'Picture to Japanese', kind: 'm',
+      about: 'A drawing on the front. Say the verb before you turn it over.' },
+    { id: 'jp', n: 'Japanese to meaning', kind: 'm',
+      about: 'The verb on the front, the picture and the meaning behind it.' },
+    { id: 'en', n: 'English to Japanese', kind: 'm',
+      about: 'The hardest direction, and the one Part IV asks for.' },
+    { id: 'conj', n: 'Group, ます and ません', kind: 'f',
+      about: 'The verb on the front. Which group, and both forms, before you turn it over.' },
+    { id: 'sort', n: 'Sort them into groups', kind: 'g',
+      about: 'No turning over: tap る, う or irregular and find out at once.' }
+  ],
+  art(v) { return VERB_ART[v] || '<circle cx="32" cy="32" r="18"/>'; },
+  draw(v, size) {
+    return '<svg class="vart" viewBox="0 0 64 64" width="' + (size || 132) + '" height="' + (size || 132) +
+      '" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true">' + this.art(v) + '</svg>';
+  },
+  groupName(g) { const row = Verbs.groups().find(x => x[0] === g); return row ? row[1] : g; },
+  score(deck) {
+    const kind = (this.DECKS.find(d => d.id === deck) || {}).kind || 'm';
+    const all = Verbs.all();
+    if (!all.length) return 0;
+    return all.reduce((a, v) => a + confidence(Verbs.key(v.v, kind)), 0) / all.length;
+  },
+  open() {
+    show('cards');
+    $('cdRun').hidden = true;
+    $('cdHome').hidden = false;
+    $('cdNote').textContent = 'Thirteen verbs, five ways round. The first three teach the word; ' +
+      'the last two teach what the exam marks — which group it is in, and the two forms the ' +
+      'group decides.';
+    $('cdDecks').innerHTML = this.DECKS.map(d => {
+      const c = this.score(d.id);
+      return '<button class="deck" type="button" data-deck="' + d.id + '">' +
+        '<span class="dk-t">' + esc(d.n) + '</span>' +
+        '<span class="dk-a">' + esc(d.about) + '</span>' +
+        '<span class="meter"><i style="width:' + Math.round(c * 100) + '%"></i></span></button>';
+    }).join('');
+    $('cdDecks').querySelectorAll('[data-deck]').forEach(b =>
+      b.addEventListener('click', () => this.run(b.dataset.deck)));
+    setActions($('cdStart'), [
+      { label: 'Shuffle all thirteen', primary: true, act: () => this.run('pic') },
+      { label: 'The list instead', act: () => Verbs.open() }
+    ]);
+  },
+  run(deck) {
+    this.deck = this.DECKS.find(d => d.id === deck) || this.DECKS[0];
+    const kind = this.deck.kind;
+    // weakest first, so a deck spends its cards where they are needed
+    this.queue = Exam.weakest(Verbs.all().map(v => Verbs.key(v.v, kind)), 13)
+      .map(k => Verbs.all()[+k.slice(4)]).filter(Boolean);
+    if (!this.queue.length) this.queue = Exam.shuffle(Verbs.all());
+    this.i = 0; this.ok = 0; this.turned = false;
+    $('cdHome').hidden = true;
+    $('cdRun').hidden = false;
+    Gains.snap();
+    this.show();
+  },
+  faces(v) {
+    const d = this.deck, g = this.groupName(v.g);
+    const forms = '<span class="cd-forms"><b>' + esc(v.ms) + '</b><i>' + esc(v.mn) + '</i></span>' +
+      (v.trap ? '<span class="cd-note warn">' + esc(v.note || '') + '</span>' : '');
+    const badge = '<span class="cd-grp g-' + esc(v.g) + '">' + esc(g) + '</span>';
+    if (d.id === 'pic') {
+      return [this.draw(v.v),
+              '<span class="cd-jp">' + esc(v.v) + '</span><span class="cd-en">' + esc(v.m) + '</span>' +
+              badge + forms];
+    }
+    if (d.id === 'jp') {
+      return ['<span class="cd-jp big">' + esc(v.v) + '</span>',
+              this.draw(v.v, 96) + '<span class="cd-en">' + esc(v.m) + '</span>' + badge + forms];
+    }
+    if (d.id === 'en') {
+      return ['<span class="cd-en big">' + esc(v.m) + '</span>',
+              '<span class="cd-jp">' + esc(v.v) + '</span>' + this.draw(v.v, 96) + badge + forms];
+    }
+    // the half that costs marks
+    return ['<span class="cd-jp big">' + esc(v.v) + '</span>' +
+            '<span class="cd-ask">Which group? And both forms?</span>',
+            badge + forms + '<span class="cd-note">' + esc(v.note || '') + '</span>'];
+  },
+  show() {
+    const v = this.queue[this.i];
+    if (!v) return this.done();
+    this.cur = v; this.turned = false; this.rated = false;
+    $('cdProg').textContent = 'Card ' + (this.i + 1) + ' of ' + this.queue.length + ' · ' + this.deck.n;
+    $('cdMsg').textContent = ''; $('cdMsg').className = 'msg';
+    const card = $('cdCard');
+    card.classList.remove('turned');
+    if (!this.wired) {
+      this.wired = true;
+      card.addEventListener('click', () => { if (this.deck.id !== 'sort') this.turn(); });
+    }
+    if (this.deck.id === 'sort') return this.sort(v);
+    const [front, back] = this.faces(v);
+    $('cdFront').innerHTML = front;
+    $('cdRear').innerHTML = back;
+    card.hidden = false;
+    setActions($('cdNext'), [
+      { label: 'Turn it over', primary: true, act: () => this.turn() },
+      { label: 'Hear it', act: () => Speech.line(v.v) },
+      { label: 'Stop', act: () => this.open() }
+    ]);
+  },
+  turn() {
+    if (this.turned) return;
+    this.turned = true;
+    $('cdCard').classList.add('turned');
+    const v = this.cur;
+    setActions($('cdNext'), [
+      { label: 'Knew it', primary: true, act: () => this.rate('perfect') },
+      { label: 'Almost', act: () => this.rate('good') },
+      { label: 'Not yet', act: () => this.rate('weak') },
+      { label: 'Hear it', act: () => Speech.line(v.v) }
+    ]);
+  },
+  rate(grade) {
+    if (this.rated) return;
+    this.rated = true;
+    const v = this.cur, d = this.deck;
+    SRS.update(Verbs.key(v.v, d.kind), 'r', grade);
+    // knowing the forms means knowing the group, so that card marks both
+    if (d.id === 'conj') SRS.update(Verbs.key(v.v, 'g'), 'r', grade);
+    if (grade === 'perfect') { this.ok++; Gains.mark(); }
+    Store.touch();
+    this.i++;
+    this.show();
+  },
+  // the one deck that marks you rather than asking you to mark yourself
+  sort(v) {
+    $('cdCard').hidden = false;
+    $('cdFront').innerHTML = '<span class="cd-jp big">' + esc(v.v) + '</span>' +
+      '<span class="cd-ask">' + esc(v.m) + '</span>';
+    $('cdRear').innerHTML = '';
+    const groups = Verbs.groups();
+    setActions($('cdNext'), groups.map(([id, name]) => ({
+      label: name, primary: false, act: () => this.sorted(v, id)
+    })).concat([{ label: 'Stop', act: () => this.open() }]));
+  },
+  sorted(v, picked) {
+    if (this.rated) return;
+    this.rated = true;
+    const good = picked === v.g;
+    SRS.update(Verbs.key(v.v, 'g'), 'r', good ? 'perfect' : 'weak');
+    if (good) { this.ok++; Gains.mark(); }
+    Store.touch();
+    $('cdCard').classList.add('turned');
+    $('cdRear').innerHTML = '<span class="cd-grp g-' + esc(v.g) + '">' + esc(this.groupName(v.g)) + '</span>' +
+      '<span class="cd-forms"><b>' + esc(v.ms) + '</b><i>' + esc(v.mn) + '</i></span>' +
+      '<span class="cd-note">' + esc(v.note || '') + '</span>';
+    $('cdMsg').textContent = good ? 'Right.' : 'Not that one — ' + this.groupName(v.g) + '.';
+    $('cdMsg').className = 'msg ' + (good ? 'good' : 'bad');
+    setActions($('cdNext'), [
+      { label: this.i + 1 >= this.queue.length ? 'Done' : 'Next', primary: true,
+        act: () => { this.i++; this.show(); } },
+      { label: 'Hear it', act: () => Speech.line(v.v) }
+    ]);
+  },
+  done() {
+    const n = this.queue.length, pct = n ? Math.round(this.ok / n * 100) : 0;
+    $('cdCard').hidden = true;
+    $('cdProg').textContent = '';
+    $('cdMsg').innerHTML = '';
+    $('cdMsg').className = 'msg';
+    const host = $('cdRun');
+    const old = host.querySelector('.score');
+    if (old) old.remove();
+    const box = document.createElement('div');
+    box.className = 'score';
+    box.innerHTML = '<span class="score-n">' + pct + '%</span><span class="score-l">' +
+      this.ok + ' of ' + n + ' known on sight</span>';
+    host.insertBefore(box, $('cdMsg'));
+    Gains.line($('cdMsg'));
+    setActions($('cdNext'), [
+      { label: 'Again', primary: true, act: () => { box.remove(); this.run(this.deck.id); } },
+      { label: 'The group deck', act: () => { box.remove(); this.run('conj'); } },
+      { label: 'Back', act: () => { box.remove(); this.open(); } }
+    ]);
+    App.refresh();
+  }
+};
+
 // ================================================================ Parts IV and V, taken apart
 // Both sections mark a whole sentence right or wrong, which is the worst possible feedback for
 // someone who cannot write one yet: a zero says something failed and nothing about what. There
@@ -9317,7 +9599,7 @@ const Coach = {
   forPart(id) { return this.byIds(this.PART_CLASS[id] || [], 2); }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, Cards, VERB_ART, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();
