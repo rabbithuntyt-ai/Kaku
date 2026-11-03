@@ -600,3 +600,161 @@ C.insert(2, dict(
              why='The small ゅ joins the beat before it; full size is its own beat.'),
     ],
 ))
+
+# ---------------------------------------------------------------- classes 14 and 15
+C.append(dict(
+    id='nitime', lesson='3', t='に on a time, and when to leave it off',
+    idea='Some time words take に, some never do, and some do not mind. The class drew the line '
+         'in three places, and the line is the whole rule.',
+    body=[
+        'A time word is not like a place word. うち always takes で or に depending on the job, '
+        'but with time it depends on the kind of time it is, and nothing else.',
+        'If the time is a number or a named day, it takes に. 十じに, にちようびに, どようびに. '
+        'These are points you could put a finger on in a diary, and に marks a point.',
+        'If the time is measured from where you are standing in time — あした, きょう, きのう, '
+        'まいにち, まいばん — it takes nothing at all. "Tomorrow" is not a date, it is a '
+        'direction from today, and あしたに is a mistake rather than a style choice.',
+        'And a third group does not mind either way: the parts of a day, あさ and よる, and '
+        'しゅうまつ. Writing the に is never wrong there, so if you are unsure on the paper, '
+        'put it in.',
+        'ごろ means "at about", and it goes where the に would: 十じごろ, or 十じごろに. Both '
+        'are fine. What you cannot do is write ごろ on a word that never takes に in the first '
+        'place.',
+    ],
+    shape=[
+        ('十じに', 'a number — always に'),
+        ('にちようびに', 'a named day — always に'),
+        ('あした', 'measured from now — never に'),
+        ('あさ（に）', 'part of a day — either'),
+        ('しゅうまつ（に）', 'the weekend — either'),
+        ('十じごろ（に）', 'at about ten'),
+    ],
+    ex=[
+        ['わたしは七じにおきます。', 'I get up at seven.', 'A number, so に.'],
+        ['どようびにテニスをします。', 'I play tennis on Saturday.', 'A named day, so に.'],
+        ['あしたがっこうにいきます。', 'I am going to school tomorrow.',
+         'あした takes nothing. The に later in the sentence is the destination, not the time.'],
+        ['しゅうまつにえいがをみます。', 'I watch a film at the weekend.',
+         'しゅうまつ is the group that does not mind. With に is never wrong.'],
+        ['十じごろねます。', 'I go to bed at about ten.', 'ごろ sits where に would, and に may follow it.'],
+    ],
+    slips=[
+        ['あしたにいきます。', 'あしたいきます。',
+         'あした is measured from today, so it takes no particle.'],
+        ['まいにちにコーヒーをのみます。', 'まいにちコーヒーをのみます。',
+         'まいにち is the same kind of word as あした: no particle.'],
+        ['にちようびえいがをみます。', 'にちようびにえいがをみます。',
+         'A named day wants に. Dropping it is accepted in speech but not worth the risk here.'],
+    ],
+    check=[
+        dict(q='あした＿＿ がっこうに いきます。', o=['に', 'で', 'を', '（nothing）'], a=3,
+             why='あした is measured from now, so it takes no particle.'),
+        dict(q='にちようび＿＿ サッカーを します。', o=['に', 'で', 'を', '（nothing）'], a=0,
+             why='A named day always takes に.'),
+        dict(q='Which of these may take に or leave it off?',
+             o=['あした', 'しゅうまつ', 'まいにち', 'きのう'], a=1,
+             why='The parts of a day and しゅうまつ are the optional group. The others never take に.'),
+        dict(q='十じ＿＿ ねます。（at about ten）', o=['ごろ', 'はん', 'から', 'まで'], a=0,
+             why='ごろ is "at about", and it sits where the に would.'),
+    ],
+))
+
+C.append(dict(
+    id='masenka', lesson='3', t='〜ませんか: asking someone along',
+    idea='The negative question is how Japanese invites. It is not asking whether you will not '
+         'come; it is asking whether you would like to.',
+    body=[
+        'Take the verb, put it in its negative polite form, and add か. たべる becomes '
+        'たべませんか — "would you like to eat?"',
+        'In English a negative question sounds doubtful: "won’t you come?" In Japanese it is '
+        'the ordinary polite way to suggest something, and the negative is what makes it polite. '
+        'Asking ending in ますか instead turns it into a plain question about facts: '
+        'テレビをみますか is "do you watch TV?", テレビをみませんか is "shall we watch TV?"',
+        'The answer you want back is いいですね — "that sounds good". ええ and はい work too. To '
+        'turn it down politely the course has not given you a form yet, so the honest answer for '
+        'now is the one the class drilled: いいですね.',
+    ],
+    shape=[
+        ('Verb + ませんか', 'would you like to ...?'),
+        ('いいですね', 'that sounds good'),
+    ],
+    ex=[
+        ['こんばん六じにえいがをみませんか。', 'Would you like to see a film at six tonight?',
+         'The invitation the class dictated, に and all.'],
+        ['カフェでコーヒーをのみませんか。', 'Would you like to have a coffee at the cafe?',
+         'で for the place, を for the thing, ませんか on the end.'],
+        ['いいですね。', 'That sounds good.', 'The answer that accepts it.'],
+    ],
+    slips=[
+        ['えいがをみますか。（as an invitation）', 'えいがをみませんか。',
+         'ますか asks whether you watch films. ませんか asks whether you would like to.'],
+        ['えいがをみませんですか。', 'えいがをみませんか。',
+         'ません already is the polite negative; です does not go after it.'],
+    ],
+    check=[
+        dict(q='You want to invite someone for a coffee. コーヒーを＿＿',
+             o=['のみませんか。', 'のみますか。', 'のみません。', 'のみますね。'], a=0,
+             why='The negative question is the invitation.'),
+        dict(q='They invite you and you want to accept. ＿＿',
+             o=['いいですね。', 'そうですか。', 'ほんとうですか。', 'おねがいします。'], a=0,
+             why='いいですね is "that sounds good". そうですか is only reacting to news.'),
+        dict(q='What is the difference between みますか and みませんか?',
+             o=['Nothing', 'ませんか is an invitation, ますか is a question about what you do',
+                'ますか is ruder', 'ませんか is the past'], a=1,
+             why='The negative question invites; the positive one asks about the facts.'),
+    ],
+))
+
+C.append(dict(
+    id='freq', lesson='3', t='How often: which adverbs need a negative',
+    idea='Five frequency words, in three camps: two that want a positive verb, two that force a '
+         'negative, and one that goes with either.',
+    body=[
+        'よく (often) and ときどき (sometimes) go with a positive verb. よくテレビをみます, '
+        'ときどきざっしをよみます.',
+        'ぜんぜん (not at all) and あまり (not much) force the verb negative. There is no such '
+        'thing as ぜんぜんみます — the word only exists in a sentence that ends ません. This is '
+        'the one the exam keeps testing, because it reads perfectly well in English and is '
+        'simply wrong in Japanese.',
+        'まいにち (every day) and まいばん (every night) go with either, because they are '
+        'statements about how often rather than how much: まいにちのみます and '
+        'まいにちのみません are both ordinary sentences.',
+        'None of them takes a particle, and they all sit after the topic and before the rest of '
+        'the sentence. たいてい (usually) behaves like まいにち.',
+    ],
+    shape=[
+        ('よく', 'often — positive verb'),
+        ('ときどき', 'sometimes — positive verb'),
+        ('あまり', 'not much — negative verb'),
+        ('ぜんぜん', 'not at all — negative verb'),
+        ('まいにち', 'every day — either'),
+        ('たいてい', 'usually — either'),
+    ],
+    ex=[
+        ['わたしはよくテレビをみます。', 'I often watch TV.', 'Positive word, positive verb.'],
+        ['わたしはぜんぜんテレビをみません。', 'I do not watch TV at all.',
+         'ぜんぜん and ません go together and cannot be split up.'],
+        ['わたしはあまりおさけをのみません。', 'I do not drink much alcohol.',
+         'あまり is the same: the sentence has to end negative.'],
+        ['たけしさんはまいにちべんきょうします。', 'Takeshi studies every day.',
+         'まいにち is happy either way.'],
+    ],
+    slips=[
+        ['ぜんぜんテレビをみます。', 'ぜんぜんテレビをみません。',
+         'ぜんぜん only exists with a negative verb.'],
+        ['あまりおさけをのみます。', 'あまりおさけをのみません。',
+         'Same rule. "I drink not much" is not a sentence Japanese has.'],
+        ['よくテレビをみません。', 'よくテレビをみます。',
+         'よく is the positive one. For the negative you want あまり.'],
+    ],
+    check=[
+        dict(q='わたしは ぜんぜん テレビを＿＿', o=['みません。', 'みます。', 'みますか。', 'みましょう。'], a=0,
+             why='ぜんぜん forces the verb negative.'),
+        dict(q='Which one goes with a positive verb?',
+             o=['よく', 'あまり', 'ぜんぜん', 'あまりぜんぜん'], a=0,
+             why='よく and ときどき take a positive verb; あまり and ぜんぜん force a negative.'),
+        dict(q='わたしは＿＿ おさけを のみません。（not much）',
+             o=['あまり', 'よく', 'ときどき', 'まいばん'], a=0,
+             why='あまり is "not much", and it needs the negative it already has here.'),
+    ],
+))

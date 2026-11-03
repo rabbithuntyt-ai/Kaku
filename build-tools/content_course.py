@@ -254,6 +254,11 @@ COURSE = {
         w('よく', 'often, much'),
         # Expressions
         w('そうですね', "that's right, let me see"),
+        # Classes 14 and 15, which taught に as a time marker, ～ませんか and the frequency words
+        w('よる', 'night, evening'),
+        w('きのう', 'yesterday'),
+        w('いいですね', 'that sounds good, nice'),
+        w('ほんとうですか', 'really?'),
         # From the workbook pages the class set (WB 33), which uses words the textbook
         # vocabulary list does not. They can appear in Part IV, so they count.
         w('サッカー', 'soccer'),

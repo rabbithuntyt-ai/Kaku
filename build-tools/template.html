@@ -708,6 +708,28 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .opts.pair { margin: 4px 0 2px; }
 .opt.picked { border-color: var(--red); background: color-mix(in srgb, var(--red) 9%, transparent); }
 
+/* ---------------------------------------------------------------- Lesson 3 kanji */
+.k3grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 7px;
+  margin: 12px 0 6px; }
+.k3 { position: relative; display: grid; gap: 2px; padding: 9px 6px 8px; border-radius: 11px;
+  border: 1px solid var(--trace); background: var(--sheet); color: var(--ink); cursor: pointer;
+  text-align: center; overflow: hidden; }
+.k3::after { content: ""; position: absolute; left: 0; bottom: 0; height: 3px; width: var(--lit, 0%);
+  background: var(--red); }
+.k3:hover { border-color: var(--ink-soft); }
+.k3 b { font: 400 30px var(--kana); line-height: 1.15; }
+.k3 .k3-m { font-size: 11.5px; color: var(--muted); }
+.k3 .k3-r { font: 400 11px var(--kana); color: var(--ink-soft); }
+.k3-big { font: 400 92px/1.1 var(--kana); text-align: center; margin: 4px 0 8px; }
+.k3words { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.k3w { position: relative; padding: 8px 11px; border: 1px solid var(--trace); border-radius: 10px;
+  overflow: hidden; }
+.k3w::after { content: ""; position: absolute; left: 0; bottom: 0; height: 3px; width: var(--lit, 0%);
+  background: var(--red); }
+.k3w b { display: block; font: 600 17px var(--kana); }
+.k3w span { font-size: 12px; color: var(--muted); }
+#examQ .ex-face, .ex-face { font-variant-numeric: tabular-nums; }
+
 /* ---------------------------------------------------------------- verb flashcards */
 .decks { display: grid; gap: 7px; margin: 12px 0 4px; }
 .deck { display: grid; gap: 3px; width: 100%; text-align: left; padding: 11px 13px;
@@ -1002,6 +1024,11 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
         <span class="t-main">Midterm mock <span class="t-when" id="examWhen"></span></span>
         <span class="t-sub" id="examSub">The five parts of the real paper, marked as you go</span>
         <span class="meter"><i id="examMeter"></i></span>
+      </button>
+<button class="tile wide exam-tile" id="q3Btn" type="button">
+        <span class="t-main">Lesson 3 kanji &amp; katakana <span class="t-when" id="q3When"></span></span>
+        <span class="t-sub" id="q3Tile">The fifteen kanji and the Lesson 3 katakana words</span>
+        <span class="meter"><i id="q3Meter"></i></span>
       </button>
 <button class="tile wide" id="talkBtn" type="button">
         <span class="t-main">Talking practice</span>
@@ -1333,6 +1360,19 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
     <div class="pbar" id="pathBar" aria-hidden="true"></div>
     <p class="note" id="pathCount"></p>
     <div id="pathList"></div>
+  </section>
+
+  <section id="q3" hidden aria-label="Lesson 3 kanji and katakana">
+    <button class="back" id="q3Back" type="button">Back</button>
+    <h2 class="k-head">Lesson 3 kanji &amp; katakana</h2>
+    <p class="note" id="q3Sub"></p>
+    <p class="note" id="q3Note"></p>
+    <div class="actions" id="q3Actions"></div>
+    <div class="k3grid" id="q3Grid"></div>
+    <div id="q3One" hidden></div>
+    <p class="sect">The Lesson 3 katakana</p>
+    <div class="k3words" id="q3Kata"></div>
+    <div id="q3Ask"></div>
   </section>
 
   <section id="cards" hidden aria-label="Verb flashcards">
@@ -2682,7 +2722,7 @@ class Drill {
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function show(name) {
-  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film', 'maker', 'cards']) $(id).hidden = id !== name;
+  for (const id of ['home', 'practice', 'learn', 'kanji', 'numbers', 'vocab', 'talk', 'chat', 'lessons', 'lesson', 'summary', 'exam', 'grid', 'verbs', 'kwrite', 'classes', 'path', 'film', 'maker', 'cards', 'q3']) $(id).hidden = id !== name;
   document.body.dataset.screen = name;
   window.scrollTo(0, 0);
 }
@@ -3844,10 +3884,11 @@ $('talkBtn').addEventListener('click', () => Talk.open());
 $('examBtn').addEventListener('click', () => Exam.open());
 $('gridBtn').addEventListener('click', () => Grid.open());
 $('makerBtn').addEventListener('click', () => Maker.open());
+$('q3Btn').addEventListener('click', () => Quiz3.open());
 $('verbsBtn').addEventListener('click', () => Verbs.open());
 $('classesBtn').addEventListener('click', () => Class.open());
 $('pathBtn').addEventListener('click', () => Path.open());
-for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack', 'mkBack', 'cdHome2']) {
+for (const id of ['examBack', 'gridBack', 'verbsBack', 'kwBack', 'clBack', 'pathBack', 'fmBack', 'mkBack', 'cdHome2', 'q3Back']) {
   $(id).addEventListener('click', () => {
     if (Exam.timer) { clearInterval(Exam.timer); Exam.timer = null; }
     if (typeof Film !== 'undefined') Film.leave();
@@ -6204,7 +6245,8 @@ const App = {
     // Grouping is right for someone new, but it buries the exam for someone who has one in
     // two days. So when the midterm is close, the group with it in moves to the front.
     const groups = [...document.querySelectorAll('.tgroup')];
-    const soon = Exam.daysLeft() >= 0 && Exam.daysLeft() <= 7;
+    const nextUp = Math.min(...[Exam.daysLeft(), Quiz3.daysLeft()].filter(d => d >= 0), 99);
+    const soon = nextUp <= 7;
     const real = groups.find(g => g.getAttribute('aria-label') === 'Try it for real');
     if (real && real.parentElement) {
       const want = soon ? 0 : 2;
@@ -6264,6 +6306,14 @@ const App = {
       ? Math.round(kosC * 100) + '% on the twelve'
       : 'これ, この, ここ \u2014 the grid, one decision at a time';
     meter('gridMeter', kosC);
+    const q3k = Quiz3.score('kanji'), q3t = Quiz3.score('kata');
+    const q3When = Quiz3.daysLeft();
+    $('q3When').textContent = q3When > 1 ? 'in ' + q3When + ' days' : q3When === 1 ? 'tomorrow'
+      : q3When === 0 ? 'today' : '';
+    $('q3Tile').textContent = (q3k + q3t) > 0.05
+      ? Math.round(q3k * 100) + '% on the fifteen kanji \u00b7 ' + Math.round(q3t * 100) + '% on the katakana'
+      : 'The fifteen kanji and the Lesson 3 katakana words';
+    meter('q3Meter', (q3k + q3t) / 2);
     const mkS = Maker.trackScore('sent'), mkE = Maker.trackScore('exch');
     const mkR = Math.max(Maker.at('sent'), Maker.at('exch'));
     $('makerSub').textContent = (mkS + mkE) > 0.05
@@ -6740,6 +6790,13 @@ Object.assign(Exam, {
   // not what is being tested, and neither is whether you wrote it in kanji or kana.
   usedKanji(given) { return /[\u4e00-\u9faf]/.test(String(given || '')); },
   right(item, given) {
+    // On a kanji quiz the kana spelling is the wrong answer, so these are compared as written
+    // rather than read through toKana like everything else.
+    if (item.wantKanji) {
+      const flat = (x) => String(x || '').replace(/[\s\u3000。、．，,]/g, '');
+      const got = flat(given);
+      return [item.a].concat(item.alt || []).some(x => flat(x) === got);
+    }
     if (item.kind === 'mc' && item.opts2) {
       return Array.isArray(given) && given[0] === item.a && given[1] === item.a2;
     }
@@ -6889,7 +6946,8 @@ Object.assign(Exam, {
       const input = document.createElement('input');
       input.type = 'text'; input.className = 'type'; input.id = 'examType';
       input.setAttribute('autocomplete', 'off'); input.setAttribute('autocapitalize', 'off');
-      input.placeholder = it.part.id === 'kata' ? 'katakana' : 'write it in kana';
+      input.placeholder = it.wantKanji ? 'write it in kanji'
+        : it.part.id === 'kata' ? 'katakana' : 'write it in kana';
       input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') this.answer(input.value); });
       body.appendChild(input);
       setActions($('examActions'), [{ label: 'Answer', primary: true, act: () => this.answer(input.value) }]);
@@ -6908,7 +6966,7 @@ Object.assign(Exam, {
     // The paper says answers in Japanese, no kanji. Marking it wrong would be harsher than the
     // exam and would hide whether the Japanese was right; saying nothing rehearses the habit
     // that loses the marks. So: the mark stands, and the rule gets said.
-    const kanji = it.kind !== 'mc' && this.usedKanji(given);
+    const kanji = it.kind !== 'mc' && !it.wantKanji && this.usedKanji(given);
     if (this.strict) {
       this.i++;
       if (this.i >= this.queue.length) return this.finish();
@@ -7415,14 +7473,17 @@ Object.assign(Exam, {
 // you only find out whether you know them apart by drawing them.
 const KWrite = {
   board: null,
-  open(fromExam) {
+  open(fromExam, words) {
     show('kwrite');
     if (!this.board) {
       this.board = new Board($('kwBoard'));
       this.fit = fitBoard(this.board, $('kwOrder'));
     }
     this.fromExam = !!fromExam;
-    this.queue = Exam.weakest(KATAKANA.map((k, i) => 'x:k' + i), 6).map(k => +k.slice(3));
+    // the midterm's eighteen by default, but Lesson 3 has its own list and its own records
+    this.words = (words && words.length) ? words : KATAKANA;
+    this.pre = (words && words.length) ? 'x:t' : 'x:k';
+    this.queue = Exam.weakest(this.words.map((k, i) => this.pre + i), 6).map(k => +k.slice(3));
     this.i = 0; this.ok = 0; this.settled = -1; this.slipped = false;
     Gains.snap();
     this.ask();
@@ -7430,7 +7491,7 @@ const KWrite = {
   ask() {
     const idx = this.queue[this.i];
     if (idx === undefined) return this.done();
-    const [kana, en] = KATAKANA[idx];
+    const [kana, en] = this.words[idx];
     this.word = kana; this.en = en; this.chars = [...kana];
     // a long vowel mark and a small character have no strokes to check, so they are written in
     this.c = 0;
@@ -7470,7 +7531,7 @@ const KWrite = {
     this.settled = this.i;
     const clean = !this.slipped;
     if (clean) this.ok++;
-    SRS.update('x:k' + this.queue[this.i], 'r', clean ? 'perfect' : 'weak');
+    SRS.update(this.pre + this.queue[this.i], 'r', clean ? 'perfect' : 'weak');
     Store.touch();
     this.slipped = false;
     this.board.inputOn = false;
@@ -7484,7 +7545,9 @@ const KWrite = {
   done() {
     // writing them by hand marks the same review items as typing them, so the route keeps its
     // own tally of having sat down and done it rather than pretending the two are one skill
-    S.path = S.path || {}; S.path.hand = (S.path.hand || 0) + 1; Store.touch();
+    S.path = S.path || {};
+    const tally = this.pre === 'x:t' ? 'hand3' : 'hand';
+    S.path[tally] = (S.path[tally] || 0) + 1; Store.touch();
     const pct = Math.round(this.ok / this.queue.length * 100);
     $('kwProg').textContent = '';
     $('kwWord').textContent = pct + '%';
@@ -7662,7 +7725,7 @@ const PBYID = {};
 PATH.forEach((s, i) => { s.n = i; PBYID[s.id] = s; });
 const PKIND = { class: 'class', kana: 'writing', words: 'words', drill: 'drill', nums: 'numbers',
   kata: 'katakana', kwrite: 'by hand', grid: 'grid', verbs: 'verbs', part: 'exam part',
-  maker: 'build it', talk: 'out loud',
+  maker: 'build it', quiz3: 'kanji', kwrite3: 'by hand', talk: 'out loud',
   check: 'test', exam: 'mock paper', keep: 'review', final: 'final' };
 
 const Path = {
@@ -7693,6 +7756,8 @@ const Path = {
       case 'verbs': return this.avg(this.verbKeys());
       case 'part': return this.share(Exam.keys(st.ref), 0.4);
       case 'maker': return Maker.trackScore(st.ref);
+      case 'quiz3': return (Quiz3.score('kanji') + Quiz3.score('kata')) / 2;
+      case 'kwrite3': return Math.min(1, ((S.path && S.path.hand3) || 0) / 2);
       case 'talk': {
         const keys = this.sceneKeys(st.ref);
         return keys.length ? keys.filter(k => modeConfidence(k, 'p') > 0.3).length / keys.length : 0;
@@ -7814,6 +7879,8 @@ const Path = {
       case 'verbs': return Verbs.open();
       case 'part': { Exam.open(); return Exam.run(st.ref); }
       case 'maker': return Maker.open(st.ref);
+      case 'quiz3': return Quiz3.open();
+      case 'kwrite3': return KWrite.open(false, KATA3);
       case 'talk': { show('talk'); return Talk.pick(st.ref); }
       case 'check': return Check.run(st);
       case 'exam': { Exam.open(); return Exam.run(null, st.ref === 'strict'); }
@@ -7843,11 +7910,13 @@ const Check = {
   pool(st) {
     const upto = PATH.indexOf(st);
     const acc = { kana: [], words: [], nums: [], cls: [], kata: false, grid: false, verbs: false,
-                  gram: false, build: false, exch: false };
+                  gram: false, build: false, exch: false, kanji3: false, kata3: false };
     for (let j = 0; j < upto; j++) {
       const c = PATH[j].covers || {};
       for (const k of ['kana', 'words', 'nums', 'cls']) if (c[k]) acc[k] = acc[k].concat(c[k]);
-      for (const k of ['kata', 'grid', 'verbs', 'gram', 'build', 'exch']) if (c[k]) acc[k] = true;
+      for (const k of ['kata', 'grid', 'verbs', 'gram', 'build', 'exch', 'kanji3', 'kata3']) {
+        if (c[k]) acc[k] = true;
+      }
     }
     acc.kana = [...new Set(acc.kana)]; acc.words = [...new Set(acc.words)];
     acc.nums = [...new Set(acc.nums)]; acc.cls = [...new Set(acc.cls)];
@@ -7982,6 +8051,8 @@ const Check = {
     if (p.gram) bags.push(['gram', 3]);
     if (p.build) bags.push(['build', 2]);
     if (p.exch) bags.push(['exch', 2]);
+    if (p.kanji3) bags.push(['kanji3', 3]);
+    if (p.kata3) bags.push(['kata3', 2]);
     const total = bags.reduce((a, b) => a + b[1], 0) || 1;
     const seen = new Set();
     const fresh = (items) => items.filter(x => {
@@ -8001,6 +8072,8 @@ const Check = {
       if (kind === 'gram') return this.gramQ(n);
       if (kind === 'build') return Exam.make('build', n).map(x => Object.assign(x, { part: this.part('Writing sentences') }));
       if (kind === 'exch') return Exam.make('ex', n).map(x => Object.assign(x, { part: this.part('Exchanges') }));
+      if (kind === 'kanji3') return Quiz3.qNum(Math.ceil(n / 2)).concat(Quiz3.qWrite(Math.floor(n / 2) || 1));
+      if (kind === 'kata3') return Quiz3.qKata(n);
       return [];
     };
     for (const [kind, w] of bags) {
@@ -8524,6 +8597,236 @@ const Ask = {
     }
     S.settings.ai = 'brain'; Store.touch();
     this.ask(q);
+  }
+};
+
+// ================================================================ Lesson 3 kanji and katakana
+// Fifteen characters on workbook p.133 — 一 through 十, then 百 千 万 円 時 — and page 134 is
+// what gets done with them: a number into kanji, a reading into kanji, and a whole sentence
+// written with the kanji you have. The quiz follows the same shapes, so these are the shapes.
+//
+// Marking here is literal. Everywhere else in Kaku an answer is read through toKana so that a
+// student who writes 日本 is not punished for knowing a kanji; on a kanji quiz that would
+// accept the kana spelling of every answer, which is the one thing it must not do.
+const K3 = ((LESSONS && LESSONS.kanji3) || {}).k || [];
+const K3W = ((LESSONS && LESSONS.kanji3) || {}).write || [];
+const K3N = ((LESSONS && LESSONS.kanji3) || {}).num || [];
+const K3L = ((LESSONS && LESSONS.kanji3) || {}).lines || [];
+const K3NUMS = ((LESSONS && LESSONS.kanji3) || {}).nums || {};
+const KATA3 = ((LESSONS && LESSONS.kanji3) || {}).kata || [];
+
+const Quiz3 = {
+  // the class sets it on the 4th for section 1 and the 5th for section 2
+  WHEN: [Date.UTC(2026, 10, 4, 21, 30), Date.UTC(2026, 10, 5, 18, 30)],
+  daysLeft() {
+    const when = this.WHEN[(S.settings.sitting || '1') === '2' ? 1 : 0];
+    return Math.ceil((when - Date.now()) / DAY);
+  },
+  kkey(i) { return 'x:j' + i; },
+  tkey(i) { return 'x:t' + i; },
+  // which of the fifteen a written answer leans on, so the record goes somewhere sensible
+  keyFor(written) {
+    const hard = ['万', '千', '百', '時', '円'];
+    for (const h of hard) {
+      if (written.includes(h)) return this.kkey(K3.findIndex(k => k[0] === h));
+    }
+    for (let i = 0; i < K3.length; i++) if (written.includes(K3[i][0])) return this.kkey(i);
+    return this.kkey(0);
+  },
+  score(which) {
+    const keys = which === 'kata'
+      ? KATA3.map((x, i) => this.tkey(i))
+      : K3.map((x, i) => this.kkey(i));
+    return keys.length ? keys.reduce((a, k) => a + confidence(k), 0) / keys.length : 0;
+  },
+  // a number the sheet did not set, so the deck does not run dry
+  randomNum() {
+    const pick = Math.random();
+    if (pick < 0.3) return 11 + Math.floor(Math.random() * 89);
+    if (pick < 0.6) return (1 + Math.floor(Math.random() * 9)) * 100 + Math.floor(Math.random() * 100);
+    if (pick < 0.85) return (1 + Math.floor(Math.random() * 9)) * 1000 + Math.floor(Math.random() * 1000);
+    return (1 + Math.floor(Math.random() * 12)) * 10000 + Math.floor(Math.random() * 10000);
+  },
+  kanjiOf(n) {
+    if (K3NUMS[String(n)]) return K3NUMS[String(n)];
+    const D = '〇一二三四五六七八九';
+    const under = (x) => {
+      let s = '';
+      const t = Math.floor(x / 1000), h = Math.floor(x % 1000 / 100),
+            te = Math.floor(x % 100 / 10), o = x % 10;
+      if (t) s += (t === 1 ? '' : D[t]) + '千';
+      if (h) s += (h === 1 ? '' : D[h]) + '百';
+      if (te) s += (te === 1 ? '' : D[te]) + '十';
+      if (o) s += D[o];
+      return s;
+    };
+    const man = Math.floor(n / 10000), rest = n % 10000;
+    return (man ? (man === 1 ? '一' : under(man)) + '万' : '') + under(rest);
+  },
+  part(n) { return { id: 'k3', n: n }; },
+
+  // ---------------------------------------------------------------- the questions
+  qNum(n) {
+    const out = [];
+    const pool = Exam.shuffle(K3N.concat(Array.from({ length: 12 }, () => this.randomNum())));
+    for (const v of pool.slice(0, n)) {
+      const a = this.kanjiOf(v);
+      out.push({ kind: 'type', wantKanji: 1, key: this.keyFor(a),
+                 q: 'Write this number in kanji', face: v.toLocaleString('en-US'),
+                 a, why: v.toLocaleString('en-US') + ' is ' + a + '.', part: this.part('Numbers in kanji') });
+    }
+    return out;
+  },
+  qBack(n) {
+    const pool = Exam.shuffle(K3N.slice());
+    const out = [];
+    for (const v of pool.slice(0, n)) {
+      const k = this.kanjiOf(v);
+      out.push({ kind: 'type', key: this.keyFor(k), q: 'What number is this?', face: k,
+                 a: String(v), alt: [v.toLocaleString('en-US')],
+                 why: k + ' is ' + v.toLocaleString('en-US') + '.',
+                 part: this.part('Kanji into numbers') });
+    }
+    return out;
+  },
+  qWrite(n) {
+    return Exam.pick(K3W, n).map(([reading, written, en]) => ({
+      kind: 'type', wantKanji: 1, key: this.keyFor(written),
+      q: 'Write this in kanji', face: reading, a: written,
+      why: reading + ' is ' + written + ' (' + en + ').',
+      part: this.part('Readings into kanji')
+    }));
+  },
+  qRead(n) {
+    return Exam.pick(K3W, n).map(([reading, written, en]) => ({
+      kind: 'type', key: this.keyFor(written), q: 'How is this read?', face: written,
+      a: reading, why: written + ' is ' + reading + ' (' + en + ').',
+      part: this.part('Kanji into kana')
+    }));
+  },
+  qMean(n) {
+    const out = [];
+    for (const i of Exam.shuffle(K3.map((k, j) => j)).slice(0, n)) {
+      const k = K3[i];
+      const others = Exam.pick(K3.filter(x => x[0] !== k[0]), 3).map(x => x[1]);
+      const opts = Exam.shuffle([k[1]].concat(others));
+      out.push({ kind: 'mc', key: this.kkey(i), q: 'What does this mean?', face: k[0],
+                 opts, a: opts.indexOf(k[1]), why: k[0] + ' is "' + k[1] + '", read ' + k[2].join(' or ') + '.',
+                 part: this.part('What it means') });
+    }
+    return out;
+  },
+  qLine(n) {
+    return Exam.pick(K3L, n).map(([en, ja, alt]) => ({
+      kind: 'type', wantKanji: 1, key: this.keyFor(ja), q: en,
+      sub: 'Write it in Japanese, using the kanji you know.',
+      a: ja, alt: alt || [], why: ja, part: this.part('Whole sentences')
+    }));
+  },
+  qKata(n) {
+    const out = [];
+    for (const i of Exam.shuffle(KATA3.map((k, j) => j)).slice(0, n)) {
+      const [word, en] = KATA3[i];
+      out.push({ kind: 'type', key: this.tkey(i), q: en, sub: 'Write it in katakana.',
+                 a: word, why: en + ' is ' + word + '.', part: this.part('Katakana') });
+    }
+    return out;
+  },
+  qKataRead(n) {
+    const out = [];
+    for (const i of Exam.shuffle(KATA3.map((k, j) => j)).slice(0, n)) {
+      const [word, en] = KATA3[i];
+      const others = Exam.pick(KATA3.filter(x => x[0] !== word), 3).map(x => x[1]);
+      const opts = Exam.shuffle([en].concat(others));
+      out.push({ kind: 'mc', key: this.tkey(i), q: 'What is this?', face: word,
+                 opts, a: opts.indexOf(en), why: word + ' is ' + en + '.',
+                 part: this.part('Reading katakana') });
+    }
+    return out;
+  },
+  build(which) {
+    let q = [];
+    if (which !== 'kata') {
+      q = q.concat(this.qNum(3), this.qWrite(3), this.qRead(2), this.qBack(2), this.qMean(2), this.qLine(2));
+    }
+    if (which !== 'kanji') {
+      q = q.concat(this.qKata(which === 'kata' ? 8 : 4), this.qKataRead(which === 'kata' ? 4 : 2));
+    }
+    return Exam.shuffle(q);
+  },
+
+  // ---------------------------------------------------------------- the screen
+  open() {
+    show('q3');
+    this.paint();
+  },
+  paint() {
+    const kScore = this.score('kanji'), tScore = this.score('kata');
+    $('q3Note').textContent = 'Workbook p.133 is these fifteen; p.134 is what gets done with ' +
+      'them. The quiz follows the same three shapes, so this does too: a number into kanji, a ' +
+      'reading into kanji, and a whole sentence with the kanji you have.';
+    $('q3Grid').innerHTML = K3.map((k, i) => {
+      const c = confidence(this.kkey(i));
+      return '<button class="k3" type="button" data-k="' + i + '" style="--lit:' +
+        Math.round(c * 100) + '%">' +
+        '<b>' + esc(k[0]) + '</b><span class="k3-m">' + esc(k[1]) + '</span>' +
+        '<span class="k3-r">' + esc(k[2].join('・')) + '</span></button>';
+    }).join('');
+    $('q3Grid').querySelectorAll('[data-k]').forEach(b =>
+      b.addEventListener('click', () => this.look(+b.dataset.k)));
+    $('q3Kata').innerHTML = KATA3.map((w, i) => {
+      const c = confidence(this.tkey(i));
+      return '<div class="k3w" style="--lit:' + Math.round(c * 100) + '%">' +
+        '<b>' + esc(w[0]) + '</b><span>' + esc(w[1]) + '</span></div>';
+    }).join('');
+    $('q3Sub').textContent = Math.round(kScore * 100) + '% on the kanji · ' +
+      Math.round(tScore * 100) + '% on the katakana';
+    setActions($('q3Actions'), [
+      { label: 'Sit the quiz', primary: true, act: () => this.run('all') },
+      { label: 'Kanji only', act: () => this.run('kanji') },
+      { label: 'Katakana only', act: () => this.run('kata') },
+      { label: 'Write the katakana by hand', act: () => KWrite.open(false, KATA3) }
+    ]);
+    Ask.mount('q3Ask', { kind: 'kanji3', id: 'k3', name: 'Lesson 3 kanji' });
+  },
+  // one character, its readings and the words it turns up in
+  look(i) {
+    const k = K3[i];
+    if (!k) return;
+    const box = $('q3One');
+    box.hidden = false;
+    box.innerHTML = '<p class="eyebrow">' + esc(k[1]) + '</p>' +
+      '<div class="k3-big">' + esc(k[0]) + '</div>' +
+      '<p class="note">Read ' + esc(k[2].join(' or ')) + '.</p>' +
+      k[3].map(([word, reading, en]) =>
+        '<div class="clex"><b>' + esc(word) + '</b><span class="en">' + esc(reading) +
+        ' — ' + esc(en) + '</span></div>').join('') +
+      '<div class="actions" id="q3OneActs"></div>';
+    setActions($('q3OneActs'), [
+      { label: 'Stroke order', primary: true, act: () => Learn.open(k[0], 'kanji') },
+      { label: 'Hear the words', act: () => k[3].forEach(([w, r], j) =>
+          setTimeout(() => Speech.line(r), j * 1700)) },
+      { label: 'Close', act: () => { box.hidden = true; } }
+    ]);
+    box.scrollIntoView({ block: 'nearest' });
+  },
+  run(which) {
+    const queue = this.build(which);
+    if (!queue.length) return;
+    const name = which === 'kanji' ? 'Lesson 3 kanji' : which === 'kata' ? 'Lesson 3 katakana'
+      : 'Lesson 3 kanji and katakana';
+    Exam.runQueue(queue, {
+      title: name,
+      done: () => { S.q3 = S.q3 || {}; S.q3.at = Date.now(); Store.touch(); },
+      after: (pct) => pct >= 85 ? 'That is the standard the quiz is marked at.'
+        : pct >= 60 ? 'Close. The misses below are the ones to write out a few times.'
+        : 'Worth going back to the list and the stroke order before sitting it again.',
+      actions: () => [
+        { label: 'Again', primary: true, act: () => this.run(which) },
+        { label: 'The list', act: () => this.open() },
+        { label: 'Write the katakana by hand', act: () => KWrite.open(false, KATA3) }
+      ]
+    });
   }
 };
 
@@ -9589,7 +9892,7 @@ const Coach = {
   forPart(id) { return this.byIds(this.PART_CLASS[id] || [], 2); }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, Cards, VERB_ART, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, Cards, Quiz3, K3, KATA3, VERB_ART, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

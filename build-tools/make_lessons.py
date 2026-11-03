@@ -12,6 +12,7 @@ from content_class import C as CLASSES
 from content_path import PATH, PATH_STAGES
 from content_build import PARTS, JOBS, KINDS, EXQ, ORDER
 from content_bank import MORE_GRAMMAR, MORE_BUILD, MORE_EXCHANGE
+from content_kanji3 import K3, K3_WRITE, K3_NUM, K3_LINES, KATA3, number_kanji
 from content_scenes import SCENES
 SCENE_BY_LESSON = {s['lesson']: {k: v for k, v in s.items() if k != 'lesson'} for s in SCENES}
 
@@ -178,8 +179,33 @@ exam = dict(grammar=GRAMMAR, build=BUILD, exchange=EXCHANGE, listen=LISTEN,
             verbs=VERBS, verbgroups=[list(g) for g in VERB_GROUPS], classes=CLASSES,
             jobs={k: list(v) for k, v in JOBS.items()}, order=ORDER,
             kinds={k: [list(v[0])] + list(v[1:]) for k, v in KINDS.items()})
+# Lesson 3's own kanji sheet and katakana words, for the quiz the class sets on the 4th
+K3_CHARS = set(k[0] for k in K3)
+k3_bad = []
+for reading, written, en in K3_WRITE:
+    off = [c for c in written if '\u4e00' <= c <= '\u9fff' and c not in K3_CHARS]
+    if off:
+        k3_bad.append('K3 write ' + written + ' uses ' + ''.join(off))
+for en, ja, alt in K3_LINES:
+    for line in [ja] + list(alt):
+        off = [c for c in line if '\u4e00' <= c <= '\u9fff' and c not in K3_CHARS]
+        if off:
+            k3_bad.append('K3 line ' + line + ' uses ' + ''.join(off))
+for p3 in k3_bad:
+    print('  KANJI3 PROBLEM:', p3)
+print('lesson 3 kanji:', len(K3), ''.join(k[0] for k in K3), '|', len(K3_WRITE), 'readings |',
+      len(K3_NUM), 'numbers |', len(K3_LINES), 'sentences |', len(KATA3), 'katakana')
+assert not k3_bad, f'{len(k3_bad)} problem(s) in the Lesson 3 kanji set'
+
+kanji3 = dict(k=[[c, m, list(rd), [list(x) for x in comp]] for c, m, rd, comp in K3],
+              write=[list(x) for x in K3_WRITE],
+              num=list(K3_NUM),
+              lines=[[en, ja, list(alt)] for en, ja, alt in K3_LINES],
+              nums={str(n): number_kanji(n) for n in K3_NUM},
+              kata=[list(x) for x in KATA3])
+
 json.dump(dict(lessons=out, course=course_meta, katakana=[list(k) for k in KATAKANA], exam=exam,
-               path=PATH, stages=PATH_STAGES),
+               path=PATH, stages=PATH_STAGES, kanji3=kanji3),
           open('lessons.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print('exam bank:', len(GRAMMAR), 'grammar |', len(BUILD), 'sentences |', len(EXCHANGE),
       'exchanges |', len(KOSOADO['cues']), 'kosoado cues')
@@ -247,6 +273,14 @@ for item in GRAMMAR:
         exam_bad.append('GRAMMAR answer index out of range: ' + item['q'])
     if len(set(item['o'])) != len(item['o']):
         exam_bad.append('GRAMMAR repeated option: ' + item['q'])
+# the kana around the Lesson 3 kanji has to be course vocabulary like every other line here
+for en3, ja3, alt3 in K3_LINES:
+    for line3 in [ja3] + list(alt3):
+        kana_only = ''.join(c for c in line3 if not ('\u4e00' <= c <= '\u9fff') and not c.isdigit())
+        left = verify_scenes.leftover(kana_only, exam_forms)
+        if left:
+            exam_bad.append('KANJI3 ' + line3 + ' -> ' + left)
+
 # the path is only pointers: every one of them has to land on something
 cl_ids = {c['id'] for c in CLASSES}
 les_ids = {l['id'] for l in out}
@@ -260,6 +294,7 @@ for st in PATH:
     if k in ('words', 'drill', 'talk') and r not in les_ids: exam_bad.append('PATH ' + st['id'] + ' -> no lesson ' + str(r))
     if k == 'part' and r not in part_ids: exam_bad.append('PATH ' + st['id'] + ' -> no exam part ' + str(r))
     if k == 'maker' and r not in track_ids: exam_bad.append('PATH ' + st['id'] + ' -> no track ' + str(r))
+    if k in ('quiz3', 'kwrite3') and r: exam_bad.append('PATH ' + st['id'] + ' takes no ref')
     if k == 'kana' and (not r or set(r) - row_ids): exam_bad.append('PATH ' + st['id'] + ' -> bad rows ' + str(r))
     if k == 'nums' and (not r or set(r) - band_ids): exam_bad.append('PATH ' + st['id'] + ' -> bad bands ' + str(r))
     for cid in st['covers'].get('cls', []):

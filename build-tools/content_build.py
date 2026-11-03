@@ -178,6 +178,12 @@ KINDS = {
     'yesnov': ([], 'yes or no, with a verb', 'はい、〜ます。／いいえ、〜ません。',
                'A verb question answers with the same verb: はい、のみます or いいえ、のみません. '
                'You do not repeat the whole sentence, only the verb.'),
+    'when':   (['いつ'], 'a time', '〜に〜ます。',
+               'いつ asks when. The answer is the time expression, and whether it takes に '
+               'depends on the kind of time it is: a day or a number does, あした does not.'),
+    'invite': (['ませんか'], 'an acceptance, not an answer', 'いいですね。',
+               'A question ending ませんか is an invitation, not a question about facts. It is '
+               'answered いいですね — that sounds good — rather than はい or いいえ.'),
     'react':  ([], 'a reaction, not an answer', 'そうですか。／ありがとうございます。',
                'Not every missing line is an answer. When the exchange runs to three lines the '
                'last one is usually your reaction: そうですか to news, ありがとうございます when '

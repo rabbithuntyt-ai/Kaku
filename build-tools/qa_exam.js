@@ -601,11 +601,13 @@ const open = async (browser) => {
     ok(cold.startHidden, 'and does not offer to resume something that has not started');
     ok(cold.ways.length === 3 && /route/i.test(cold.ways[0]),
        'and points at the route before anything else: ' + cold.ways.join(', '));
-    // the midterm is days away, so its group leads; the route comes straight after it
-    ok(cold.groups.length === 4 && cold.groups[0] === 'Try it for real' &&
-       cold.groups[1] === 'Find your way' && cold.groups.includes('Understand it') &&
-       cold.groups.includes('Practise it'),
-      'and the tiles are grouped by what they are for: ' + cold.groups.join(' / '));
+    // whichever paper is sat next pulls its group to the front; with none due, the route leads
+    const due = await page.evaluate(() => Math.min(...[window.__kaku.Exam.daysLeft(),
+      window.__kaku.Quiz3.daysLeft()].filter((d) => d >= 0), 99));
+    ok(cold.groups.length === 4 && cold.groups[0] === (due <= 7 ? 'Try it for real' : 'Find your way') &&
+       cold.groups.includes('Understand it') && cold.groups.includes('Practise it'),
+      'and the tiles are grouped by what they are for, with ' + (due <= 7 ? 'the next paper' : 'the route') +
+      ' first: ' + cold.groups.join(' / '));
 
     const warm = await page.evaluate(() => {
       window.__kaku.SRS.update('あ', 'w', 'perfect');

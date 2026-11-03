@@ -203,7 +203,31 @@ STAGES = [
              'are fast enough.', ref='strict', mins=60),
     ]),
 
-    dict(id='after', n='After the midterm', sub='Where the final will go', steps=[
+    dict(id='l3b', n='Lesson 3 continues', sub='What classes 14 and 15 added, and the kanji quiz', steps=[
+        step('kanji3', 'quiz3', 'The fifteen Lesson 3 kanji',
+             'Workbook p.133 is 一 through 十 plus 百, 千, 万, 円 and 時. The quiz asks for them '
+             'the way page 134 does: a number into kanji, a reading into kanji, a whole sentence.',
+             covers=dict(kanji3=True), mins=30),
+        step('nitime', 'class', 'に on a time, and when to leave it off',
+             'Three groups: numbers and named days always take it, あした and まいにち never do, '
+             'and the parts of a day do not mind.', ref='nitime',
+             covers=dict(cls=['nitime']), mins=10),
+        step('masenka', 'class', '〜ませんか: asking someone along',
+             'The negative question is how Japanese invites. いいですね is how you accept.',
+             ref='masenka', covers=dict(cls=['masenka']), mins=8),
+        step('freq', 'class', 'How often, and which ones need a negative',
+             'よく and ときどき want a positive verb; あまり and ぜんぜん force a negative. The '
+             'exam keeps testing the second pair.', ref='freq',
+             covers=dict(cls=['freq']), mins=9),
+        step('kata3', 'kwrite3', 'Write the Lesson 3 katakana by hand',
+             'The quiz wants them written, not recognised. Twelve words, with a finger.',
+             covers=dict(kata3=True), mins=12),
+        step('ck-l3b', 'check', 'Checkpoint — Lesson 3 so far',
+             'Everything up to here, with the new kanji and the new grammar mixed in.',
+             ref=dict(n=18), mins=10),
+    ]),
+
+    dict(id='after', n='After that', sub='Where the final will go', steps=[
         step('keep', 'keep', 'Keep the three lessons warm',
              'The final is cumulative. Ten minutes of review a day costs less than relearning '
              'Lesson 1 in December.', mins=10),
