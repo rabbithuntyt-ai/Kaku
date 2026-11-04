@@ -740,7 +740,7 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .deck .dk-a { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
 .deck .meter { margin-top: 7px; }
 .flip { perspective: 1200px; margin: 10px 0 14px; }
-.flip-in { position: relative; width: 100%; min-height: 300px; transition: transform .45s ease;
+.flip-in { position: relative; width: 100%; min-height: 290px; transition: transform .45s ease;
   transform-style: preserve-3d; }
 .flip.turned .flip-in { transform: rotateY(180deg); }
 .flip .face { position: absolute; inset: 0; backface-visibility: hidden; display: flex;
@@ -763,6 +763,9 @@ button { font: inherit; color: inherit; -webkit-appearance: none; appearance: no
 .cd-forms i { font: 400 20px var(--kana); font-style: normal; color: var(--muted); }
 .cd-note { font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; max-width: 30ch; }
 .cd-note.warn { color: var(--red); }
+.cd-hook { font-size: 13px; line-height: 1.5; color: var(--red); max-width: 30ch; margin-top: 2px;
+  border-top: 1px dashed var(--trace); padding-top: 9px; }
+.cd-hook b { font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .flip-in { transition: none; } }
 
 /* ---------------------------------------------------------------- Parts IV and V */
@@ -8838,38 +8841,8 @@ const Quiz3 = {
 // The drawings are line art written here as paths, not borrowed from the textbook. They are
 // deliberately plain: a card has to be readable at a glance, and a picture you have to study is
 // a picture that has become a second puzzle.
-const VERB_ART = {
-  たべる: '<path d="M11 33h42a21 21 0 0 1-42 0Z"/><path d="M22 57h20"/>' +
-          '<path d="M41 7 31 28M49 9 37 30"/>',
-  のむ:   '<path d="M15 23h27v23a9 9 0 0 1-9 9h-9a9 9 0 0 1-9-9Z"/>' +
-          '<path d="M42 29h6a7 7 0 0 1 0 14h-6"/>' +
-          '<path d="M24 16c2-3-2-5 0-8M33 16c2-3-2-5 0-8"/>',
-  みる:   '<path d="M5 32c9-12 18-18 27-18s18 6 27 18c-9 12-18 18-27 18S14 44 5 32Z"/>' +
-          '<circle cx="32" cy="32" r="7"/>',
-  きく:   '<path d="M13 37v-5a19 19 0 0 1 38 0v5"/>' +
-          '<rect x="7" y="35" width="11" height="18" rx="5"/>' +
-          '<rect x="46" y="35" width="11" height="18" rx="5"/>',
-  よむ:   '<path d="M32 21c-6-5-14-7-22-6v31c8-1 16 1 22 6 6-5 14-7 22-6V15c-8-1-16 1-22 6Z"/>' +
-          '<path d="M32 21v31"/>',
-  はなす: '<path d="M11 13h42a5 5 0 0 1 5 5v21a5 5 0 0 1-5 5H30L17 55V44h-6a5 5 0 0 1-5-5V18a5 5 0 0 1 5-5Z"/>' +
-          '<path d="M17 24h30M17 33h20"/>',
-  かえる: '<path d="M23 33 39 18l16 15"/><path d="M27 33v19h24V33"/><path d="M36 52v-11h6v11"/>' +
-          '<path d="M5 43h16"/><path d="M16 37l6 6-6 6"/>',
-  いく:   '<circle cx="13" cy="32" r="5"/><circle cx="13" cy="32" r="10"/>' +
-          '<path d="M27 32h26"/><path d="M46 25l8 7-8 7"/>',
-  くる:   '<circle cx="51" cy="32" r="5"/><circle cx="51" cy="32" r="10"/>' +
-          '<path d="M8 32h26"/><path d="M27 25l8 7-8 7"/>',
-  おきる: '<path d="M6 48h52"/><path d="M19 48a13 13 0 0 1 26 0"/>' +
-          '<path d="M32 23V9M18 28l-7-7M46 28l7-7"/>',
-  ねる:   '<path d="M7 29v24"/><path d="M7 45h50v8"/><path d="M14 38h43v7H14Z"/>' +
-          '<path d="M16 33h11v5H16Z"/>' +
-          '<path d="M36 22h9l-9 9h9M49 9h7l-7 7h7"/>',
-  する:   '<path d="M32 8l5 14 14 5-14 5-5 14-5-14-14-5 14-5Z"/>' +
-          '<path d="M52 44a9 9 0 0 1-9 9M12 20a9 9 0 0 1 9-9"/>',
-  べんきょうする:
-          '<path d="M13 15h27a4 4 0 0 1 4 4v22"/><path d="M13 15v34h20"/><path d="M19 15v34"/>' +
-          '<path d="M38 52l3-9 14-14 6 6-14 14Z"/><path d="M51 23l6 6"/>'
-};
+const VERB_ART = ((LESSONS && LESSONS.verbart) || {}).art || {};
+const VERB_HOOK = ((LESSONS && LESSONS.verbart) || {}).hook || {};
 
 const Cards = {
   DECKS: [
@@ -8884,11 +8857,16 @@ const Cards = {
     { id: 'sort', n: 'Sort them into groups', kind: 'g',
       about: 'No turning over: tap る, う or irregular and find out at once.' }
   ],
-  art(v) { return VERB_ART[v] || '<circle cx="32" cy="32" r="18"/>'; },
+  art(v) { return VERB_ART[v] || '<circle cx="36" cy="36" r="20"/>'; },
   draw(v, size) {
-    return '<svg class="vart" viewBox="0 0 64 64" width="' + (size || 132) + '" height="' + (size || 132) +
-      '" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" ' +
+    return '<svg class="vart" viewBox="0 0 72 72" width="' + (size || 136) + '" height="' + (size || 136) +
+      '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" ' +
       'stroke-linejoin="round" aria-hidden="true">' + this.art(v) + '</svg>';
+  },
+  // the hook: how the word sounds, pointed at what it means
+  hook(v) {
+    const h = VERB_HOOK[v];
+    return h ? '<span class="cd-hook">' + h + '</span>' : '';
   },
   groupName(g) { const row = Verbs.groups().find(x => x[0] === g); return row ? row[1] : g; },
   score(deck) {
@@ -8936,23 +8914,25 @@ const Cards = {
     const forms = '<span class="cd-forms"><b>' + esc(v.ms) + '</b><i>' + esc(v.mn) + '</i></span>' +
       (v.trap ? '<span class="cd-note warn">' + esc(v.note || '') + '</span>' : '');
     const badge = '<span class="cd-grp g-' + esc(v.g) + '">' + esc(g) + '</span>';
+    const hook = this.hook(v.v);
     if (d.id === 'pic') {
       return [this.draw(v.v),
               '<span class="cd-jp">' + esc(v.v) + '</span><span class="cd-en">' + esc(v.m) + '</span>' +
-              badge + forms];
+              badge + forms + hook];
     }
     if (d.id === 'jp') {
       return ['<span class="cd-jp big">' + esc(v.v) + '</span>',
-              this.draw(v.v, 96) + '<span class="cd-en">' + esc(v.m) + '</span>' + badge + forms];
+              this.draw(v.v, 92) + '<span class="cd-en">' + esc(v.m) + '</span>' + badge + forms + hook];
     }
     if (d.id === 'en') {
       return ['<span class="cd-en big">' + esc(v.m) + '</span>',
-              '<span class="cd-jp">' + esc(v.v) + '</span>' + this.draw(v.v, 96) + badge + forms];
+              '<span class="cd-jp">' + esc(v.v) + '</span>' + this.draw(v.v, 92) + badge + hook];
     }
     // the half that costs marks
     return ['<span class="cd-jp big">' + esc(v.v) + '</span>' +
             '<span class="cd-ask">Which group? And both forms?</span>',
-            badge + forms + '<span class="cd-note">' + esc(v.note || '') + '</span>'];
+            // a trap verb already has its warning inside forms; saying it twice is not twice as useful
+            badge + forms + (v.trap ? '' : '<span class="cd-note">' + esc(v.note || '') + '</span>') + hook];
   },
   show() {
     const v = this.queue[this.i];
@@ -8971,11 +8951,19 @@ const Cards = {
     $('cdFront').innerHTML = front;
     $('cdRear').innerHTML = back;
     card.hidden = false;
+    this.fit();
     setActions($('cdNext'), [
       { label: 'Turn it over', primary: true, act: () => this.turn() },
       { label: 'Hear it', act: () => Speech.line(v.v) },
       { label: 'Stop', act: () => this.open() }
     ]);
+  },
+  fit() {
+    const inner = $('cdCard').querySelector('.flip-in');
+    if (!inner) return;
+    inner.style.height = 'auto';
+    const tall = Math.max($('cdFront').scrollHeight, $('cdRear').scrollHeight, 290);
+    inner.style.height = tall + 'px';
   },
   turn() {
     if (this.turned) return;
@@ -9022,7 +9010,8 @@ const Cards = {
     $('cdCard').classList.add('turned');
     $('cdRear').innerHTML = '<span class="cd-grp g-' + esc(v.g) + '">' + esc(this.groupName(v.g)) + '</span>' +
       '<span class="cd-forms"><b>' + esc(v.ms) + '</b><i>' + esc(v.mn) + '</i></span>' +
-      '<span class="cd-note">' + esc(v.note || '') + '</span>';
+      '<span class="cd-note">' + esc(v.note || '') + '</span>' + this.hook(v.v);
+    this.fit();
     $('cdMsg').textContent = good ? 'Right.' : 'Not that one — ' + this.groupName(v.g) + '.';
     $('cdMsg').className = 'msg ' + (good ? 'good' : 'bad');
     setActions($('cdNext'), [
@@ -9892,7 +9881,7 @@ const Coach = {
   forPart(id) { return this.byIds(this.PART_CLASS[id] || [], 2); }
 };
 
-window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, Cards, Quiz3, K3, KATA3, VERB_ART, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
+window.__kaku = { S: () => S, DRILL, Sync, Store, Wifi, sanitize, confidence, Confidence, Practice, Learn, Lesson, Lessons, Vocab, Talk, Chat, Partner, Brain, BRAIN_MODELS, Ears, EAR_MODELS, Exam, Grid, Verbs, Gains, KWrite, Class, CLASSES, Coach, Maker, Cards, Quiz3, K3, KATA3, VERB_ART, VERB_HOOK, SENTS, EXCHS, Path, PATH, PSTAGES, PBYID, Check, Film, Ask, COURSE, KATAKANA, roughTokens, looping, toKana, Allowed, parseJa, occurrences, diagnose, romajiToKana, asJapanese, Listen, scoreSay, judge, normJa, kanaForms, romajiOf, Numbers, numberReading, numberParts, randomNumber, numberOptions, NBANDS, Core, pBoard, lBoard, App, plan, pool, allPool, lessonPool, VOCAB, LBYID, ROMAJI, SRS, indexVocab, answer: () => ROMAJI[Practice.card.ch] };
 const local = Store.loadLocal();
 if (local) S = sanitize(local);
 indexVocab();

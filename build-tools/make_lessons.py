@@ -13,6 +13,7 @@ from content_path import PATH, PATH_STAGES
 from content_build import PARTS, JOBS, KINDS, EXQ, ORDER
 from content_bank import MORE_GRAMMAR, MORE_BUILD, MORE_EXCHANGE
 from content_kanji3 import K3, K3_WRITE, K3_NUM, K3_LINES, KATA3, number_kanji
+from content_verbart import ART as VERB_ART, MNEMONIC as VERB_HOOK
 from content_scenes import SCENES
 SCENE_BY_LESSON = {s['lesson']: {k: v for k, v in s.items() if k != 'lesson'} for s in SCENES}
 
@@ -193,6 +194,11 @@ for en, ja, alt in K3_LINES:
             k3_bad.append('K3 line ' + line + ' uses ' + ''.join(off))
 for p3 in k3_bad:
     print('  KANJI3 PROBLEM:', p3)
+art_bad = [v['v'] for v in VERBS if v['v'] not in VERB_ART or v['v'] not in VERB_HOOK]
+for a in art_bad:
+    print('  VERB ART PROBLEM: nothing drawn or no hook for', a)
+assert not art_bad, 'every verb needs a drawing and a hook'
+print('verb cards:', len(VERB_ART), 'drawings |', len(VERB_HOOK), 'hooks')
 print('lesson 3 kanji:', len(K3), ''.join(k[0] for k in K3), '|', len(K3_WRITE), 'readings |',
       len(K3_NUM), 'numbers |', len(K3_LINES), 'sentences |', len(KATA3), 'katakana')
 assert not k3_bad, f'{len(k3_bad)} problem(s) in the Lesson 3 kanji set'
@@ -205,7 +211,8 @@ kanji3 = dict(k=[[c, m, list(rd), [list(x) for x in comp]] for c, m, rd, comp in
               kata=[list(x) for x in KATA3])
 
 json.dump(dict(lessons=out, course=course_meta, katakana=[list(k) for k in KATAKANA], exam=exam,
-               path=PATH, stages=PATH_STAGES, kanji3=kanji3),
+               path=PATH, stages=PATH_STAGES, kanji3=kanji3,
+               verbart=dict(art=VERB_ART, hook=VERB_HOOK)),
           open('lessons.json', 'w', encoding='utf-8'), ensure_ascii=False)
 print('exam bank:', len(GRAMMAR), 'grammar |', len(BUILD), 'sentences |', len(EXCHANGE),
       'exchanges |', len(KOSOADO['cues']), 'kosoado cues')

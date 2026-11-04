@@ -30,8 +30,23 @@ const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { 
   });
   ok(art.missing.length === 0, 'art: all ' + art.verbs + ' verbs have a drawing');
   ok(art.distinct === art.verbs, 'art: and no two verbs share one');
-  ok(/viewBox="0 0 64 64"/.test(art.svg) && /stroke="currentColor"/.test(art.svg),
+  ok(/viewBox="0 0 72 72"/.test(art.svg) && /stroke="currentColor"/.test(art.svg),
      'art: drawn as line art that follows the theme colour');
+  const people = await p.evaluate(() => {
+    const K = window.__kaku;
+    // a drawing of a thing reads as a noun; every one of these has somebody in it
+    return K.Verbs.all().filter(v => !/circle/.test(K.VERB_ART[v.v] || '')).map(v => v.v);
+  });
+  ok(people.length === 0, 'art: every one has a person in it' + (people.length ? ' — ' + people.join(', ') : ''));
+  const hooks = await p.evaluate(() => {
+    const K = window.__kaku;
+    return { missing: K.Verbs.all().filter(v => !K.VERB_HOOK[v.v]).map(v => v.v),
+             bold: K.Verbs.all().filter(v => !/<b>/.test(K.VERB_HOOK[v.v] || '')).map(v => v.v),
+             sample: K.VERB_HOOK['かえる'] };
+  });
+  ok(hooks.missing.length === 0, 'hooks: every verb has one');
+  ok(hooks.bold.length === 0, 'hooks: each one marks the part of the sound it hangs on');
+  ok(/frog/.test(hooks.sample), 'hooks: かえる is the frog that returns to its pond');
 
   // the way in
   await p.evaluate(() => window.__kaku.Verbs.open());
@@ -54,8 +69,10 @@ const ok = (c, msg) => { if (c) { pass++; console.log('  ok  ' + msg); } else { 
   const backHas = await p.evaluate(() => {
     const r = document.getElementById('cdRear');
     return { jp: !!r.querySelector('.cd-jp'), en: !!r.querySelector('.cd-en'),
-             grp: !!r.querySelector('.cd-grp'), forms: (r.querySelector('.cd-forms') || {}).textContent || '' };
+             grp: !!r.querySelector('.cd-grp'), hook: !!r.querySelector('.cd-hook'),
+             forms: (r.querySelector('.cd-forms') || {}).textContent || '' };
   });
+  ok(backHas.hook, 'card: and the hook for remembering it');
   ok(backHas.jp && backHas.en && backHas.grp && backHas.forms.length > 3,
      'card: the back carries the verb, the meaning, the group and both forms (' + backHas.forms + ')');
   ok(!(await p.evaluate(() => document.getElementById('cdCard').classList.contains('turned'))),
